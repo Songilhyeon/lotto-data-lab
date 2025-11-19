@@ -1,65 +1,123 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import LottoCard from "./components/LottoCard";
 
 export default function Home() {
+  const [round, setRound] = useState(1198);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="bg-gray-50 text-gray-900 min-h-screen">
+      {/* Navigation */}
+      <nav className="bg-white shadow-sm sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-6 flex justify-between items-center py-4">
+          <div className="text-2xl font-bold text-blue-600">Lotto Data Lab</div>
+          <div className="hidden md:flex space-x-8 text-sm font-medium">
+            <Link className="text-blue-600" href="/Home">
+              홈
+            </Link>
+            <Link className="hover:text-blue-600 transition" href="/analyze">
+              번호 분석
+            </Link>
+            <Link className="hover:text-blue-600 transition" href="/history">
+              히스토리
+            </Link>
+            <Link className="hover:text-blue-600 transition" href="/pattern">
+              패턴
+            </Link>
+            <Link className="hover:text-blue-600 transition" href="/faq">
+              FAQ
+            </Link>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </nav>
+
+      <button
+        onClick={() => setRound((prev) => prev - 1)}
+        className="bg-blue-500 text-white px-3 py-1 rounded"
+      >
+        이전 회차
+      </button>
+
+      <button
+        onClick={() => setRound((prev) => prev + 1)}
+        className="bg-blue-500 text-white px-3 py-1 rounded"
+      >
+        다음 회차
+      </button>
+
+      {/* 서버 컴포넌트 호출 가능 */}
+      <LottoCard round={round} />
+
+      {/* Statistics Card */}
+      <section className="grid md:grid-cols-3 gap-6">
+        <div className="bg-white p-6 rounded-xl shadow hover:shadow-md transition">
+          <h3 className="text-lg font-semibold mb-2">가장 자주 나온 번호</h3>
+          <p className="text-3xl font-bold text-blue-600">23</p>
         </div>
-      </main>
+
+        <div className="bg-white p-6 rounded-xl shadow hover:shadow-md transition">
+          <h3 className="text-lg font-semibold mb-2">가장 적게 나온 번호</h3>
+          <p className="text-3xl font-bold text-red-500">7</p>
+        </div>
+
+        <div className="bg-white p-6 rounded-xl shadow hover:shadow-md transition">
+          <h3 className="text-lg font-semibold mb-2">평균 당첨 번호</h3>
+          <p className="text-3xl font-bold text-gray-700">28.3</p>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-gray-300 py-12 mt-20">
+        <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-3 gap-8">
+          <div>
+            <h4 className="font-bold text-white mb-4">서비스</h4>
+            <ul className="space-y-2">
+              <li>
+                <a className="hover:text-blue-400" href="/analyze">
+                  번호 분석
+                </a>
+              </li>
+              <li>
+                <a className="hover:text-blue-400" href="/history">
+                  히스토리 트래커
+                </a>
+              </li>
+              <li>
+                <a className="hover:text-blue-400" href="/pattern">
+                  패턴 인사이트
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-bold text-white mb-4">고객지원</h4>
+            <ul className="space-y-2">
+              <li>
+                <a className="hover:text-blue-400" href="/faq">
+                  FAQ
+                </a>
+              </li>
+              <li>
+                <a className="hover:text-blue-400" href="/contact">
+                  문의하기
+                </a>
+              </li>
+              <li>
+                <a className="hover:text-blue-400" href="/privacy">
+                  개인정보처리방침
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <div className="text-sm text-gray-400">
+            © 2024 로또인사이트. All rights reserved.
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
