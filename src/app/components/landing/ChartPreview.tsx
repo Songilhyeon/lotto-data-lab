@@ -1,0 +1,141 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip as RechartTooltip,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
+import HeatmapCell from "./HeatmapCell";
+import { Tooltip } from "react-tooltip";
+
+interface LottoDraw {
+  drwNo: number;
+  drwNoDate: string;
+  numbers: number[];
+  bnusNo: number;
+}
+
+const url = process.env.NEXT_PUBLIC_BACKEND_URL;
+
+export default function ChartPreview() {
+  const [draws, setDraws] = useState<LottoDraw[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await fetch(`${url}/api/lotto/analyze?limit=20`);
+        const result = await res.json();
+        if (Array.isArray(result.data)) setDraws(result.data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const freqData = draws.reduce(
+    (acc: Record<number, { count: number; rounds: number[] }>, draw) => {
+      draw.numbers.forEach((n) => {
+        if (!acc[n]) acc[n] = { count: 0, rounds: [] };
+        acc[n].count++;
+        acc[n].rounds.push(draw.drwNo);
+      });
+      return acc;
+    },
+    {}
+  );
+
+  const barChartData = Object.keys(freqData).map((num) => ({
+    number: parseInt(num),
+    count: freqData[parseInt(num)].count,
+  }));
+
+  const oddEven = draws.flatMap((d) => d.numbers);
+  const oddCount = oddEven.filter((n) => n % 2 === 1).length;
+  const evenCount = oddEven.filter((n) => n % 2 === 0).length;
+  const pieData = [
+    { name: "홀수", value: oddCount },
+    { name: "짝수", value: evenCount },
+  ];
+
+  const maxFreq = Math.max(...Object.values(freqData).map((v) => v.count), 1);
+
+  return (
+    <div className="bg-white shadow-md rounded-lg p-6 flex flex-col items-center">
+      <h3 className="text-xl font-semibold mb-4">미리보기 차트</h3>
+
+      {loading ? (
+        <p className="text-gray-500">데이터 불러오는 중...</p>
+      ) : (
+        <>
+          {/* BarChart */}
+          <div className="w-full h-40 mb-6">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={barChartData}>
+                <XAxis dataKey="number" />
+                <YAxis />
+                <RechartTooltip />
+                <Bar dataKey="count" fill="#3B82F6" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* PieChart */}
+          <div className="w-50 h-50 mb-6">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={30}
+                  outerRadius={50}
+                  label
+                >
+                  <Cell fill="#ef4444" />
+                  <Cell fill="#3b82f6" />
+                </Pie>
+                <RechartTooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Heatmap */}
+          <div className="w-full">
+            <h4 className="text-sm font-semibold mb-2">번호 등장 히트맵</h4>
+            <div className="grid grid-cols-6 gap-1">
+              {Object.keys(freqData).map((num) => {
+                const { count, rounds } = freqData[parseInt(num)];
+                return (
+                  <HeatmapCell
+                    key={num}
+                    number={parseInt(num)}
+                    count={count}
+                    rounds={rounds}
+                    maxCount={maxFreq}
+                  />
+                );
+              })}
+            </div>
+            <Tooltip id="tooltip" />
+          </div>
+        </>
+      )}
+      <p className="text-gray-500 text-sm mt-2 text-center">
+        분석 페이지에서 전체 데이터와 다양한 차트를 확인할 수 있습니다.
+      </p>
+    </div>
+  );
+}

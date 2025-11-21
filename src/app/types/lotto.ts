@@ -1,6 +1,6 @@
 export interface LottoNumber {
   drwNo: number;
-  drwNoDate: string;
+  drwNoDate: Date;
   drwtNo1: number;
   drwtNo2: number;
   drwtNo3: number;
@@ -12,4 +12,11 @@ export interface LottoNumber {
   firstWinamnt: string;
   totSellamnt: string;
   firstAccumamnt: string;
+}
+
+export interface AnalysisResult extends LottoNumber {
+  numbers: number[];
+  highlightMost: boolean;
+  highlightLeast: boolean;
+  highlightCurrent: boolean;
 }

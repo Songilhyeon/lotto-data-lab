@@ -1,26 +1,31 @@
-function getLottoBallColor(number: number): string {
-  if (number >= 1 && number <= 10) return "bg-yellow-400";
-  if (number >= 11 && number <= 20) return "bg-blue-500";
-  if (number >= 21 && number <= 30) return "bg-red-500";
-  if (number >= 31 && number <= 40) return "bg-gray-400";
-  if (number >= 41 && number <= 45) return "bg-green-500";
-  return "bg-black";
-}
+// components/LottoBall.tsx
+"use client";
 
-interface LottoBallProps {
+import { getBallColor } from "../utils/getBallColor";
+import clsx from "clsx";
+
+type LottoBallProps = {
   number: number;
-}
+  className?: string; // ← 추가됨 (부모 커스터마이징 가능)
+};
 
-const LottoBall: React.FC<LottoBallProps> = ({ number }) => {
-  const bgColor = getLottoBallColor(number);
-
+export default function LottoBall({ number, className }: LottoBallProps) {
   return (
     <div
-      className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${bgColor}`}
+      className={clsx(
+        `
+        flex items-center justify-center 
+        ${getBallColor(number)} 
+        text-white font-semibold 
+        text-[11px] sm:text-sm 
+        rounded-full 
+        w-7 h-7 sm:w-9 sm:h-9 
+        shadow-md
+      `,
+        className
+      )}
     >
       {number}
     </div>
   );
-};
-
-export default LottoBall;
+}

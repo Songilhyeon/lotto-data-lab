@@ -1,54 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { ApiResponse } from "@/app/types/api";
 import { LottoNumber } from "@/app/types/lotto";
 import LottoBall from "./LottoBall";
 
-interface LottoCardProps {
-  round: number;
-}
-export default function LottoCard({ round }: LottoCardProps) {
-  const [data, setData] = useState<LottoNumber | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!round) return;
-
-    async function load() {
-      setLoading(true);
-      try {
-        const port = process.env.NEXT_PUBLIC_BACKEND_URL;
-        const res = await fetch(`${port}/api/lotto/${round}`);
-        const json: ApiResponse<LottoNumber> = await res.json();
-
-        if (json.success) {
-          setData(json.data!);
-          setError(null);
-        } else {
-          setError(json.message || "에러 발생");
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    load();
-  }, [round]);
-
-  if (error) return <div className="text-red-500">{error}</div>;
-  if (!data || loading) return <div>Loading...</div>;
+export default function LottoCard({ data }: { data: LottoNumber | null }) {
+  if (!data) return <div>표시할 로또 정보가 존재하지 않습니다.</div>;
 
   return (
-    <div className="p-4 border rounded-lg shadow-md">
-      <h2 className="text-xl font-bold mb-2">회차 {data.drwNo}</h2>
-      <p className="mb-2">
+    <div className="p-3 sm:p-4 border rounded-xl shadow-md bg-white w-full max-w-md mx-auto">
+      <h2 className="text-lg sm:text-xl font-bold mb-2">회차 {data.drwNo}</h2>
+
+      <p className="text-sm mb-2">
         추첨일: {new Date(data.drwNoDate).toLocaleDateString()}
       </p>
-      <div className="flex space-x-2 mb-2">
+
+      {/* 번호 출력 */}
+      <div className="flex flex-wrap items-center gap-2 mb-3">
         {[
           data.drwtNo1,
           data.drwtNo2,
@@ -57,14 +24,24 @@ export default function LottoCard({ round }: LottoCardProps) {
           data.drwtNo5,
           data.drwtNo6,
         ].map((n) => (
-          <LottoBall key={n} number={n} />
+          <LottoBall key={n} number={n} className="w-8 h-8 sm:w-10 sm:h-10" />
         ))}
-        <LottoBall key={data.bnusNo} number={data.bnusNo} />
+
+        <span className="px-1 font-bold text-lg">+</span>
+
+        <LottoBall
+          key={data.bnusNo}
+          number={data.bnusNo}
+          className="w-8 h-8 sm:w-10 sm:h-10"
+        />
       </div>
-      <p>총 판매액: {Number(data.totSellamnt).toLocaleString()}원</p>
-      <p>1등 총 당첨금: {Number(data.firstAccumamnt).toLocaleString()}원</p>
-      <p>1등 당첨금: {Number(data.firstWinamnt).toLocaleString()}원</p>
-      <p>1등 인원: {data.firstPrzwnerCo}명</p>
+
+      <div className="text-sm sm:text-base leading-relaxed space-y-1">
+        <p>총 판매액: {Number(data.totSellamnt).toLocaleString()}원</p>
+        <p>1등 총 당첨금: {Number(data.firstAccumamnt).toLocaleString()}원</p>
+        <p>1등 당첨금: {Number(data.firstWinamnt).toLocaleString()}원</p>
+        <p>1등 인원: {data.firstPrzwnerCo}명</p>
+      </div>
     </div>
   );
 }
