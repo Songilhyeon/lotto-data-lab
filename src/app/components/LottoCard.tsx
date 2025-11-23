@@ -8,7 +8,7 @@ export default function LottoCard({ data }: { data: LottoNumber | null }) {
 
   return (
     <div className="p-3 sm:p-4 border rounded-xl shadow-md bg-white w-full max-w-md mx-auto">
-      <h2 className="text-lg sm:text-xl font-bold mb-2">회차 {data.drwNo}</h2>
+      <h2 className="text-lg sm:text-xl font-bold mb-2">{data.drwNo} 회</h2>
 
       <p className="text-sm mb-2">
         추첨일: {new Date(data.drwNoDate).toLocaleDateString()}

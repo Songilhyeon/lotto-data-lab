@@ -1,27 +1,27 @@
 "use client";
 
-import React from "react";
-
 interface RangeFilterBarProps {
   start: number;
   end: number;
   latest: number;
-  includeBonus: boolean;
+  includeBonus?: boolean; // optional
   setStart: (v: number) => void;
   setEnd: (v: number) => void;
-  setIncludeBonus: (v: boolean) => void;
+  setIncludeBonus?: (v: boolean) => void; // optional
   onRecentSelect: (count: number) => void;
+  showCheckBox?: boolean; // optional
 }
 
 export default function RangeFilterBar({
   start,
   end,
   latest,
-  includeBonus,
+  includeBonus = true,
   setStart,
   setEnd,
   setIncludeBonus,
   onRecentSelect,
+  showCheckBox = true,
 }: RangeFilterBarProps) {
   return (
     <div className="flex flex-wrap gap-4 items-end mb-6">
@@ -62,18 +62,22 @@ export default function RangeFilterBar({
       </div>
 
       {/* 보너스 포함 체크 */}
-      <div className="flex items-center gap-2 w-full sm:w-auto">
-        <input
-          type="checkbox"
-          id="includeBonus"
-          checked={includeBonus}
-          onChange={(e) => setIncludeBonus(e.target.checked)}
-          className="w-4 h-4"
-        />
-        <label htmlFor="includeBonus" className="text-sm text-gray-700">
-          보너스 번호 포함
-        </label>
-      </div>
+      {showCheckBox &&
+        includeBonus !== undefined &&
+        setIncludeBonus !== undefined && (
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <input
+              type="checkbox"
+              id="includeBonus"
+              checked={includeBonus}
+              onChange={(e) => setIncludeBonus(e.target.checked)}
+              className="w-4 h-4"
+            />
+            <label htmlFor="includeBonus" className="text-sm text-gray-700">
+              보너스 번호 포함
+            </label>
+          </div>
+        )}
 
       {/* 최근 버튼들 */}
       <div className="flex flex-wrap gap-2 w-full sm:w-auto">

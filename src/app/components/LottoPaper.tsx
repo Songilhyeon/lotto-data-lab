@@ -14,7 +14,7 @@ export default function LottoPaper({ data }: { data: LottoNumber | null }) {
   ];
   return (
     <div className="p-4 rounded-xl shadow-md bg-[#f9f9f4] w-full max-w-md mx-auto">
-      <h3 className="text-lg font-bold text-blue-600 mb-3">용지 패턴</h3>
+      <h2 className="text-lg sm:text-xl font-bold mb-2">{data.drwNo} 회</h2>
       <div className="grid grid-cols-7 gap-0.5 text-center">
         {[...Array(45)].map((_, i) => {
           const num = i + 1;

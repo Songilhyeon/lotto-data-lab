@@ -2,11 +2,7 @@
 
 import { LottoNumber } from "@/app/types/lotto";
 
-export default function OneRoundPattern({
-  data,
-}: {
-  data: LottoNumber | null;
-}) {
+export default function SimplePattern({ data }: { data: LottoNumber | null }) {
   if (!data) return null;
 
   const numbers = [
@@ -48,9 +44,7 @@ export default function OneRoundPattern({
 
   return (
     <div className="p-4 sm:p-5 rounded-xl shadow-lg bg-white w-full max-w-md mx-auto">
-      <h3 className="text-lg sm:text-xl font-bold text-blue-600 mb-3">
-        단순 패턴
-      </h3>
+      <h2 className="text-lg sm:text-xl font-bold mb-2">{data.drwNo} 회</h2>
 
       {/* 홀짝 */}
       <div className="mb-4">

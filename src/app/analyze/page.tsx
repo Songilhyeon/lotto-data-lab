@@ -1,17 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
-import OneRoundAnalyze from "@/app/components/analyze/OneRoundAnalyze";
-import MultiRoundAnalyze from "@/app/components/analyze/MultiRoundAnalyze";
+import { useState } from "react";
+import OneRoundInfo from "@/app/components/analyze/OneRoundInfo";
+import MultiRoundInfo from "@/app/components/analyze/MultiRoundInfo";
+import NumberFrequency from "@/app/components/analyze/NumberFrequency";
 import SimilarRounds from "@/app/components/analyze/SimilarPatterns";
 
-function SumAnalysis() {
-  return <div>합계 분석 모드</div>;
-}
-
 const tabs = [
-  { id: "oneRound", label: "회차정보" },
-  { id: "multiRound", label: "번호별 빈도수" },
+  { id: "oneRound", label: "회차 정보" },
+  { id: "multiRound", label: "기간별 정보" },
+  { id: "numberFrequency", label: "번호별 빈도수" },
   { id: "similar", label: "유사 회차" },
 ];
 
@@ -21,9 +19,11 @@ export default function LottoAnalysisPage() {
   const renderContent = () => {
     switch (activeTab) {
       case "oneRound":
-        return <OneRoundAnalyze />;
+        return <OneRoundInfo />;
       case "multiRound":
-        return <MultiRoundAnalyze />;
+        return <MultiRoundInfo />;
+      case "numberFrequency":
+        return <NumberFrequency />;
       case "similar":
         return <SimilarRounds />;
       default:

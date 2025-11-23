@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { getLatestRound } from "@/app/utils/getLatestRound";
 import RangeFilterBar from "@/app/components/analyze/RangeFilterBar";
-import LottoPaperCard from "@/app/components/analyze/LottoPaperCard";
 
 interface MultiRoundResponse {
   start: number;
@@ -17,8 +16,8 @@ interface MultiRoundResponse {
 const url = process.env.NEXT_PUBLIC_BACKEND_URL;
 const latest = getLatestRound();
 
-export default function MultiRoundAnalyze() {
-  const [start, setStart] = useState(latest - 10);
+export default function NumberFrequency() {
+  const [start, setStart] = useState(latest - 9);
   const [end, setEnd] = useState(latest);
   const [includeBonus, setIncludeBonus] = useState(false); // 보너스 포함 여부
   const [stats, setStats] = useState<MultiRoundResponse | null>(null);
@@ -26,7 +25,7 @@ export default function MultiRoundAnalyze() {
   useEffect(() => {
     const fetchStatistics = () => {
       fetch(
-        `${url}/api/lotto/simple/statistics?start=${start}&end=${end}&includeBonus=${includeBonus}`
+        `${url}/api/lotto/statistics?start=${start}&end=${end}&includeBonus=${includeBonus}`
       )
         .then((res) => res.json())
         .then((res) => setStats(res.data))
@@ -62,8 +61,7 @@ export default function MultiRoundAnalyze() {
 
   return (
     <section className="mt-8">
-      <h2 className="text-lg font-bold mb-4">기간별 번호 횟수</h2>
-      {/* 범위 입력 + 옵션 */}
+      {/* Range UI */}
       <RangeFilterBar
         start={start}
         end={end}

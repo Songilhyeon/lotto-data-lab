@@ -31,7 +31,7 @@ export default function ChartPreview() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(`${url}/api/lotto/analyze?limit=20`);
+        const res = await fetch(`${url}/api/lotto/frequency?limit=20`);
         const result = await res.json();
         if (Array.isArray(result.data)) setDraws(result.data);
       } catch (err) {
