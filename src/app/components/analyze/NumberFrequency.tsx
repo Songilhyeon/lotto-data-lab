@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getLatestRound } from "@/app/utils/getLatestRound";
-import RangeFilterBar from "@/app/components/analyze/RangeFilterBar";
+import RangeFilterBar from "@/app/components/RangeFilterBar";
 
 interface MultiRoundResponse {
   start: number;

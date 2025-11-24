@@ -34,7 +34,18 @@ export default function ResultCard({ record }: ResultCardProps) {
       {/* 당첨 정보 */}
       <div className="flex flex-col gap-1 mb-2 text-sm sm:text-base">
         <div>
-          💰 당첨금:{" "}
+          💰 1등 총 당첨금:{" "}
+          <span className="font-semibold">
+            {Number(record.firstAccumamnt) === 0
+              ? (
+                  Number(record.firstWinamnt) * Number(record.firstPrzwnerCo)
+                ).toLocaleString()
+              : Number(record.firstAccumamnt).toLocaleString()}
+            원
+          </span>
+        </div>
+        <div>
+          💰 1등 당첨금:{" "}
           <span className="font-semibold">
             {Number(record.firstWinamnt).toLocaleString()}원
           </span>

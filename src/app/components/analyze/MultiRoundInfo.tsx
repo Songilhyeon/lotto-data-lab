@@ -5,7 +5,7 @@ import LottoPaper from "@/app/components/LottoPaper";
 import LottoCard from "@/app/components/LottoCard";
 import SimplePattern from "@/app/components/SimplePattern";
 import { getLatestRound } from "@/app/utils/getLatestRound";
-import RangeFilterBar from "@/app/components/analyze/RangeFilterBar";
+import RangeFilterBar from "@/app/components/RangeFilterBar";
 import { LottoNumber } from "@/app/types/lotto";
 
 const url = process.env.NEXT_PUBLIC_BACKEND_URL;

@@ -1,5 +1,5 @@
 "use client";
-
+import { Tooltip } from "react-tooltip";
 import { useEffect, useState } from "react";
 import {
   ResponsiveContainer,
@@ -13,16 +13,11 @@ import {
   Cell,
 } from "recharts";
 import HeatmapCell from "./HeatmapCell";
-import { Tooltip } from "react-tooltip";
 
 interface LottoDraw {
   drwNo: number;
-  drwNoDate: string;
   numbers: number[];
-  bnusNo: number;
 }
-
-const url = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 export default function ChartPreview() {
   const [draws, setDraws] = useState<LottoDraw[]>([]);
@@ -31,7 +26,9 @@ export default function ChartPreview() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(`${url}/api/lotto/frequency?limit=20`);
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/lotto/frequency?limit=20`
+        );
         const result = await res.json();
         if (Array.isArray(result.data)) setDraws(result.data);
       } catch (err) {
@@ -43,26 +40,27 @@ export default function ChartPreview() {
     fetchData();
   }, []);
 
-  const freqData = draws.reduce(
-    (acc: Record<number, { count: number; rounds: number[] }>, draw) => {
-      draw.numbers.forEach((n) => {
-        if (!acc[n]) acc[n] = { count: 0, rounds: [] };
-        acc[n].count++;
-        acc[n].rounds.push(draw.drwNo);
-      });
-      return acc;
-    },
-    {}
-  );
+  // 번호별 등장 횟수 및 회차 기록
+  const freqData: Record<number, { count: number; rounds: number[] }> = {};
+  let oddCount = 0;
+  let evenCount = 0;
 
-  const barChartData = Object.keys(freqData).map((num) => ({
-    number: parseInt(num),
-    count: freqData[parseInt(num)].count,
+  draws.forEach((draw) => {
+    draw.numbers.forEach((n) => {
+      if (!freqData[n]) freqData[n] = { count: 0, rounds: [] };
+      freqData[n].count++;
+      freqData[n].rounds.push(draw.drwNo);
+
+      // 홀짝 카운트
+      n % 2 ? oddCount++ : evenCount++;
+    });
+  });
+
+  const barChartData = Object.entries(freqData).map(([num, { count }]) => ({
+    number: +num,
+    count,
   }));
 
-  const oddEven = draws.flatMap((d) => d.numbers);
-  const oddCount = oddEven.filter((n) => n % 2 === 1).length;
-  const evenCount = oddEven.filter((n) => n % 2 === 0).length;
   const pieData = [
     { name: "홀수", value: oddCount },
     { name: "짝수", value: evenCount },
@@ -79,7 +77,7 @@ export default function ChartPreview() {
       ) : (
         <>
           {/* BarChart */}
-          <div className="w-full h-40 mb-6">
+          <div className="w-full h-48 mb-6">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={barChartData}>
                 <XAxis dataKey="number" />
@@ -91,7 +89,7 @@ export default function ChartPreview() {
           </div>
 
           {/* PieChart */}
-          <div className="w-50 h-50 mb-6">
+          <div className="w-full h-48 mb-6">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -116,23 +114,26 @@ export default function ChartPreview() {
           <div className="w-full">
             <h4 className="text-sm font-semibold mb-2">번호 등장 히트맵</h4>
             <div className="grid grid-cols-6 gap-1">
-              {Object.keys(freqData).map((num) => {
-                const { count, rounds } = freqData[parseInt(num)];
-                return (
-                  <HeatmapCell
-                    key={num}
-                    number={parseInt(num)}
-                    count={count}
-                    rounds={rounds}
-                    maxCount={maxFreq}
-                  />
-                );
-              })}
+              {Object.entries(freqData).map(([num, { count, rounds }]) => (
+                <HeatmapCell
+                  key={num}
+                  number={+num}
+                  count={count}
+                  rounds={rounds}
+                  maxCount={maxFreq}
+                />
+              ))}
             </div>
-            <Tooltip id="tooltip" />
           </div>
+
+          <Tooltip
+            id="lotto-tooltip"
+            place="top"
+            className="!bg-transparent !p-0 !shadow-none"
+          />
         </>
       )}
+
       <p className="text-gray-500 text-sm mt-2 text-center">
         분석 페이지에서 전체 데이터와 다양한 차트를 확인할 수 있습니다.
       </p>

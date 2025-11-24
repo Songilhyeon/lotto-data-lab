@@ -13,7 +13,7 @@ export default function Header() {
   const navLinks = [
     { name: "홈", href: "/" },
     { name: "분석", href: "/analyze" },
-    { name: "히스토리", href: "/history" },
+    { name: "히스토리", href: "/lotto-history" },
   ];
 
   return (

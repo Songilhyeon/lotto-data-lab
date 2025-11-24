@@ -2,11 +2,11 @@ import React from "react";
 import { AnalysisResult } from "../../types/lotto";
 
 interface Props {
-  rows: AnalysisResult[];
+  results: AnalysisResult[];
   includeBonus: boolean;
 }
 
-export default function PatternTable({ rows, includeBonus }: Props) {
+export default function PatternTable({ results, includeBonus }: Props) {
   return (
     <div className="overflow-x-auto bg-white shadow-md rounded-lg p-4">
       <h2 className="font-semibold text-gray-700 mb-2">홀짝 패턴</h2>
@@ -23,7 +23,7 @@ export default function PatternTable({ rows, includeBonus }: Props) {
           </tr>
         </thead>
         <tbody>
-          {rows.map((draw) => (
+          {results.map((draw) => (
             <tr key={draw.drwNo} className="odd:bg-gray-50 even:bg-gray-100">
               <td className="px-2 py-1 font-semibold">{draw.drwNo}</td>
               {draw.numbers.map((num) => (

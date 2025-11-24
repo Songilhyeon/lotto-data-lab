@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 .bg-paper-pattern {
-  background-image: url("/textures/paper-texture.jpg"); /* 실제 종이 이미지 경로 */
-  background-size: cover;
+  background-image: url("/textures/paper-texture.webp"); /* 실제 종이 이미지 경로 */
+  background-size: 100% 100%;
   background-repeat: repeat;
 }

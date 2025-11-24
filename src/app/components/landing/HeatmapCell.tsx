@@ -1,7 +1,5 @@
 "use client";
 
-import { Tooltip } from "react-tooltip";
-
 interface Props {
   number: number;
   count: number;
@@ -18,12 +16,18 @@ export default function HeatmapCell({
   const intensity = Math.min(count / maxCount, 1);
   const bgColor = `rgba(59, 130, 246, ${intensity})`;
 
+  const tooltipHtml = `
+    <div class="px-3 py-2 rounded-lg shadow-lg bg-gray-900 text-white text-sm leading-relaxed max-w-xs">
+      <div class="font-semibold text-blue-400 mb-1">번호 ${number}</div>
+      <div>등장: <span class="font-semibold">${count}회</span></div>
+      <div class="mt-1 text-gray-300">회차: ${rounds.join(", ")}</div>
+    </div>
+  `;
+
   return (
     <div
-      data-tooltip-id={`tooltip-${number}`}
-      data-tooltip-content={`번호 ${number}\n등장: ${count}회\n회차: ${rounds.join(
-        ", "
-      )}`}
+      data-tooltip-id="lotto-tooltip"
+      data-tooltip-html={tooltipHtml}
       className="h-10 flex items-center justify-center text-white font-bold rounded cursor-pointer"
       style={{ backgroundColor: bgColor }}
     >

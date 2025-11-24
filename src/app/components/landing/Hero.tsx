@@ -8,7 +8,7 @@ export default function Hero() {
     <header className="bg-paper-pattern shadow-md">
       <div className="max-w-6xl mx-auto px-6 py-16 text-center">
         <motion.h1
-          className="text-4xl md:text-5xl font-bold text-gray-900 mb-4"
+          className="text-4xl md:text-5xl font-bold text-black mb-4"
           initial={{ y: -50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.8 }}
@@ -16,7 +16,7 @@ export default function Hero() {
           로또 데이터 실험실
         </motion.h1>
         <motion.p
-          className="text-gray-700 text-lg md:text-xl mb-8"
+          className="text-black text-lg md:text-xl mb-8"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
