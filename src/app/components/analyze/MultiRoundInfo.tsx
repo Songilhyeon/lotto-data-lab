@@ -18,32 +18,70 @@ export default function OneRoundInfo() {
   const [viewType, setViewType] = useState<"card" | "pattern" | "paper">(
     "card"
   );
+  const [selectedRecent, setSelectedRecent] = useState<number | null>(10);
 
   useEffect(() => {
-    fetch(`${url}/api/lotto/rounds?start=${start}&end=${end}`)
-      .then((res) => res.json())
-      .then((res) => {
-        const sorted = [...res.data].sort((a, b) => b.drwNo - a.drwNo);
+    let isMounted = true;
+    const fetchData = async () => {
+      try {
+        const res = await fetch(
+          `${url}/api/lotto/rounds?start=${start}&end=${end}`
+        );
+        const json = await res.json();
+
+        if (!json.data || !json.success) {
+          if (!isMounted) return;
+          setLottoData([]);
+          return;
+        }
+
+        if (!isMounted) return;
+        const sorted = [...json.data].sort((a, b) => b.drwNo - a.drwNo);
         setLottoData(sorted);
-      })
-      .catch(() => setLottoData(null));
+      } catch (err) {
+        console.error(err);
+        if (!isMounted) return;
+        setLottoData(null);
+      }
+    };
+
+    fetchData();
+    return () => {
+      isMounted = false;
+    };
   }, [start, end]);
 
-  const handleRecent = (count: number) => {
-    setStart(latest - count + 1);
-    setEnd(latest);
+  // --- end 입력 시 recent 선택 해제 ---
+  const handleEndChange = (value: number) => {
+    setEnd(value);
+    setSelectedRecent(null); // 수동 변경 시 recent 해제
   };
 
+  // --- start 직접 수정 ---
+  const handleStartChange = (value: number) => {
+    setStart(value);
+    setSelectedRecent(null); // 수동 변경 시 recent 해제
+  };
+
+  const handleRecent = (count: number) => {
+    setSelectedRecent(count);
+    setStart(end - count + 1);
+  };
+
+  const clearRecentSelect = () => setSelectedRecent(null);
+
   return (
-    <div className="text-gray-900 px-4 py-6 sm:px-6 md:px-10 space-y-6">
+    <div className="min-h-screen bg-linear-to-br from-green-50 to-purple-100 p-4 sm:p-6 lg:p-8">
       {/* Range UI */}
       <RangeFilterBar
         start={start}
         end={end}
-        setStart={setStart}
-        setEnd={setEnd}
+        selectedRecent={selectedRecent}
+        setStart={handleStartChange}
+        setEnd={handleEndChange}
         latest={latest}
         onRecentSelect={handleRecent}
+        clearRecentSelect={clearRecentSelect}
         showCheckBox={false}
       />
 

@@ -47,7 +47,7 @@ export default function Footer() {
       <div className="max-w-6xl mx-auto px-6 py-8 flex flex-row justify-center items-center gap-2">
         <Logo size="sm" />
         <div className="text-center text-gray-500 text-sm">
-          © {new Date().getFullYear()} 로또 데이터 연구소. All rights reserved.
+          © {new Date().getFullYear()} 로또 데이터 실험실 All rights reserved.
         </div>
       </div>
     </footer>

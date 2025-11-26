@@ -12,12 +12,16 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import HeatmapCell from "./HeatmapCell";
+import HeatmapCell from "@/app/components/HeatmapCell";
+import { getLatestRound } from "@/app/utils/getLatestRound";
 
 interface LottoDraw {
   drwNo: number;
   numbers: number[];
 }
+
+const url = process.env.NEXT_PUBLIC_BACKEND_URL;
+const latest = getLatestRound();
 
 export default function ChartPreview() {
   const [draws, setDraws] = useState<LottoDraw[]>([]);
@@ -27,10 +31,12 @@ export default function ChartPreview() {
     const fetchData = async () => {
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/lotto/frequency?limit=20`
+          `${url}/api/lotto/frequency?start=${latest - 19}&end=${latest}`
         );
         const result = await res.json();
-        if (Array.isArray(result.data)) setDraws(result.data);
+
+        if (Array.isArray(result.data.roundResults))
+          setDraws(result.data.roundResults);
       } catch (err) {
         console.error(err);
       } finally {
@@ -47,12 +53,14 @@ export default function ChartPreview() {
 
   draws.forEach((draw) => {
     draw.numbers.forEach((n) => {
-      if (!freqData[n]) freqData[n] = { count: 0, rounds: [] };
+      if (!freqData[n]) {
+        freqData[n] = { count: 0, rounds: [] };
+      }
       freqData[n].count++;
       freqData[n].rounds.push(draw.drwNo);
-
       // 홀짝 카운트
-      n % 2 ? oddCount++ : evenCount++;
+      if (n % 2 === 0) evenCount++;
+      else oddCount++;
     });
   });
 
@@ -67,6 +75,7 @@ export default function ChartPreview() {
   ];
 
   const maxFreq = Math.max(...Object.values(freqData).map((v) => v.count), 1);
+  const minFreq = Math.min(...Object.values(freqData).map((v) => v.count), 1);
 
   return (
     <div className="bg-white shadow-md rounded-lg p-6 flex flex-col items-center">
@@ -114,22 +123,28 @@ export default function ChartPreview() {
           <div className="w-full">
             <h4 className="text-sm font-semibold mb-2">번호 등장 히트맵</h4>
             <div className="grid grid-cols-6 gap-1">
-              {Object.entries(freqData).map(([num, { count, rounds }]) => (
-                <HeatmapCell
-                  key={num}
-                  number={+num}
-                  count={count}
-                  rounds={rounds}
-                  maxCount={maxFreq}
-                />
-              ))}
+              {Array.from({ length: 45 }, (_, i) => {
+                const number = i + 1;
+                const item = freqData[number] || { count: 0, rounds: [] };
+
+                return (
+                  <HeatmapCell
+                    key={number}
+                    number={number}
+                    count={item.count}
+                    rounds={item.rounds}
+                    maxCount={maxFreq}
+                    minCount={minFreq}
+                  />
+                );
+              })}
             </div>
           </div>
 
           <Tooltip
             id="lotto-tooltip"
             place="top"
-            className="!bg-transparent !p-0 !shadow-none"
+            className="bg-transparent! p-0! shadow-none!"
           />
         </>
       )}

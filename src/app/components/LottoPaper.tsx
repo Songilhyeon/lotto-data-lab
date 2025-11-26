@@ -1,3 +1,5 @@
+"use client";
+
 import { LottoNumber } from "@/app/types/lotto";
 
 export default function LottoPaper({ data }: { data: LottoNumber | null }) {
@@ -12,10 +14,13 @@ export default function LottoPaper({ data }: { data: LottoNumber | null }) {
     data.drwtNo6,
     data.bnusNo,
   ];
+
   return (
-    <div className="p-4 rounded-xl shadow-md bg-[#f9f9f4] w-full max-w-md mx-auto">
-      <h2 className="text-lg sm:text-xl font-bold mb-2">{data.drwNo} 회</h2>
-      <div className="grid grid-cols-7 gap-0.5 text-center">
+    <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl shadow-lg p-4 sm:p-6 max-w-xl mx-auto">
+      <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-3 text-center">
+        {data.drwNo} 회
+      </h2>
+      <div className="grid grid-cols-7 gap-1 sm:gap-2 text-center">
         {[...Array(45)].map((_, i) => {
           const num = i + 1;
           const isHit = numbers.includes(num) && data.bnusNo !== num;
@@ -24,16 +29,16 @@ export default function LottoPaper({ data }: { data: LottoNumber | null }) {
             <div
               key={num}
               className={`
-            w-8 h-8 flex items-center justify-center border border-gray-300 rounded-sm
-            text-sm font-semibold
-            ${
-              isHit
-                ? "bg-yellow-300 text-black"
-                : isBonus
-                ? "bg-green-300 text-black"
-                : "bg-white text-gray-400"
-            }
-          `}
+                w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center
+                border rounded-full font-semibold text-xs sm:text-sm
+                ${
+                  isHit
+                    ? "bg-yellow-400 text-black"
+                    : isBonus
+                    ? "bg-green-400 text-black"
+                    : "bg-white text-gray-400"
+                }
+              `}
             >
               {num}
             </div>

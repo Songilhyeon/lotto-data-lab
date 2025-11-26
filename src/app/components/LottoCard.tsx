@@ -3,44 +3,82 @@
 import { LottoNumber } from "@/app/types/lotto";
 import LottoBall from "./LottoBall";
 
+const formatNumber = (num: number) => {
+  return new Intl.NumberFormat("ko-KR").format(num);
+};
+
 export default function LottoCard({ data }: { data: LottoNumber | null }) {
-  if (!data) return <div>표시할 로또 정보가 존재하지 않습니다.</div>;
+  if (!data) {
+    return (
+      <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 flex items-center justify-center min-h-[200px] max-w-xl mx-auto">
+        <p className="text-gray-400 text-sm sm:text-base">
+          데이터를 불러오는 중...
+        </p>
+      </div>
+    );
+  }
+
+  const numbers = [
+    data.drwtNo1,
+    data.drwtNo2,
+    data.drwtNo3,
+    data.drwtNo4,
+    data.drwtNo5,
+    data.drwtNo6,
+  ];
 
   return (
-    <div className="p-3 sm:p-4 border rounded-xl shadow-md bg-white w-full max-w-md mx-auto">
-      <h2 className="text-lg sm:text-xl font-bold mb-2">{data.drwNo} 회</h2>
-
-      <p className="text-sm mb-2">
-        추첨일: {new Date(data.drwNoDate).toLocaleDateString()}
-      </p>
-
-      {/* 번호 출력 */}
-      <div className="flex flex-wrap items-center gap-2 mb-3">
-        {[
-          data.drwtNo1,
-          data.drwtNo2,
-          data.drwtNo3,
-          data.drwtNo4,
-          data.drwtNo5,
-          data.drwtNo6,
-        ].map((n) => (
-          <LottoBall key={n} number={n} className="w-8 h-8 sm:w-10 sm:h-10" />
-        ))}
-
-        <span className="px-1 font-bold text-lg">+</span>
-
-        <LottoBall
-          key={data.bnusNo}
-          number={data.bnusNo}
-          className="w-8 h-8 sm:w-10 sm:h-10"
-        />
+    <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl shadow-lg p-4 sm:p-6 border-t-4 border-yellow-500 max-w-xl mx-auto">
+      <div className="mb-4">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-1">
+          🎰 당첨 번호 ({data.drwNo}회)
+        </h2>
+        <p className="text-xs sm:text-sm text-gray-600">
+          {new Date(data.drwNoDate).toLocaleDateString()}
+        </p>
       </div>
 
-      <div className="text-sm sm:text-base leading-relaxed space-y-1">
-        <p>총 판매액: {Number(data.totSellamnt).toLocaleString()}원</p>
-        <p>1등 총 당첨금: {Number(data.firstAccumamnt).toLocaleString()}원</p>
-        <p>1등 당첨금: {Number(data.firstWinamnt).toLocaleString()}원</p>
-        <p>1등 인원: {data.firstPrzwnerCo}명</p>
+      <div className="flex flex-wrap gap-2 sm:gap-3 justify-center mb-4">
+        {numbers.map((num, idx) => (
+          <LottoBall key={idx} number={num} size="responsive" />
+        ))}
+      </div>
+
+      <div className="flex items-center justify-center gap-2 sm:gap-3 py-2 border-t border-gray-200">
+        <span className="text-xs sm:text-sm text-gray-600">보너스</span>
+        <LottoBall number={data.bnusNo} size="small" />
+      </div>
+
+      <div className="mt-4 pt-4 border-t border-gray-200 space-y-1 sm:space-y-2 text-sm sm:text-base">
+        <div className="flex justify-between">
+          <span className="text-gray-600">1등 당첨금</span>
+          <span className="font-bold text-yellow-600">
+            {formatNumber(Number(data.firstWinamnt))}원
+          </span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-gray-600">1등 당첨자 수</span>
+          <span className="font-bold text-gray-800">
+            {data.firstPrzwnerCo}명
+          </span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-gray-600">1등 총 당첨금</span>
+          <span className="font-bold text-gray-800">
+            {data.firstAccumamnt !== "0"
+              ? Number(data.firstAccumamnt).toLocaleString()
+              : (
+                  Number(data.firstPrzwnerCo) * Number(data.firstWinamnt)
+                ).toLocaleString()}
+            원
+          </span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-gray-600">총 판매액</span>
+          <span className="font-bold text-gray-800">
+            {Number(data.totSellamnt).toLocaleString()}원
+          </span>
+        </div>
       </div>
     </div>
   );

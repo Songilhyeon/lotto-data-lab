@@ -5,10 +5,12 @@ interface RangeFilterBarProps {
   end: number;
   latest: number;
   includeBonus?: boolean; // optional
+  selectedRecent: number | null;
   setStart: (v: number) => void;
   setEnd: (v: number) => void;
   setIncludeBonus?: (v: boolean) => void; // optional
   onRecentSelect: (count: number) => void;
+  clearRecentSelect: () => void;
   showCheckBox?: boolean; // optional
 }
 
@@ -17,10 +19,12 @@ export default function RangeFilterBar({
   end,
   latest,
   includeBonus = true,
+  selectedRecent,
   setStart,
   setEnd,
   setIncludeBonus,
   onRecentSelect,
+  clearRecentSelect,
   showCheckBox = true,
 }: RangeFilterBarProps) {
   return (
@@ -33,7 +37,10 @@ export default function RangeFilterBar({
           value={start}
           min={1}
           max={latest}
-          onChange={(e) => setStart(Number(e.target.value))}
+          onChange={(e) => {
+            clearRecentSelect();
+            setStart(Number(e.target.value));
+          }}
           onBlur={() => {
             if (start < 1) setStart(1);
             else if (start > latest) setStart(latest);
@@ -83,7 +90,7 @@ export default function RangeFilterBar({
       <div className="flex flex-wrap gap-2 w-full sm:w-auto">
         {[10, 20, 50, 100, latest].map((n) => {
           const label = n === latest ? "전체" : `최근 ${n}개`;
-          const isActive = n === end - start + 1; // 선택 상태에 따라 조정 가능
+          const isActive = n === selectedRecent; // 선택 상태에 따라 조정 가능
           return (
             <button
               key={n}
