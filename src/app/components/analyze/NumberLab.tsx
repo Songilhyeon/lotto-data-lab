@@ -11,6 +11,8 @@ import {
   Tooltip as RechartTooltip,
 } from "recharts";
 
+import { apiUrl } from "@/app/utils/getUtils";
+
 interface MatchResult {
   round: number;
   numbers: number[];
@@ -24,8 +26,6 @@ interface ComboEntry {
   count: number;
   rounds: number[];
 }
-
-const url = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 export default function NumberLab() {
   const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
@@ -56,14 +56,12 @@ export default function NumberLab() {
     if (selectedNumbers.length === 0) return;
     setLoading(true);
     try {
-      const res = await fetch(`${url}/api/lotto/numberlab`, {
+      const res = await fetch(`${apiUrl}/api/lotto/numberlab`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ numbers: selectedNumbers }),
       });
       const data = await res.json();
-
-      console.log(data);
 
       // 안전 파싱(백엔드 하위호환을 위해)
       const matchGroups = data.matchGroups || data.results || {};
@@ -197,23 +195,6 @@ export default function NumberLab() {
           </div>
         </div>
 
-        {/* Next frequency */}
-        {Object.keys(frequencyNext).length > 0 && (
-          <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 mb-6">
-            <h2 className="text-xl font-bold mb-4">📊 다음 회차 출현 빈도</h2>
-            <div style={{ width: "100%", height: 220 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={barChartData}>
-                  <XAxis dataKey="number" tick={{ fontSize: 10 }} />
-                  <YAxis tick={{ fontSize: 12 }} />
-                  <RechartTooltip />
-                  <Bar dataKey="count" fill="#3B82F6" radius={[6, 6, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        )}
-
         {/* Match results (unchanged core) */}
         {Object.keys(analysisResult).length > 0 && (
           <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 mb-6">
@@ -248,11 +229,11 @@ export default function NumberLab() {
                           {matchCount}개 일치
                         </h3>
                         <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
-                          {list.length}회
+                          {list.length}개 회차 검색됨
                         </span>
                       </div>
 
-                      {list && Number(matchCount) >= 3 ? (
+                      {list && Number(matchCount) >= 3 && (
                         <div>
                           <div>
                             <button
@@ -264,18 +245,31 @@ export default function NumberLab() {
 
                             {isOpen &&
                               list.map((item) => (
-                                <div key={item.round}>{item.round}</div>
+                                <span key={item.round}>{item.round}회 </span>
                               ))}
                           </div>
                         </div>
-                      ) : (
-                        <p className="text-sm text-gray-500">
-                          해당하는 회차가 없습니다
-                        </p>
                       )}
                     </div>
                   );
                 })}
+            </div>
+          </div>
+        )}
+
+        {/* Next frequency */}
+        {Object.keys(frequencyNext).length > 0 && (
+          <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 mb-6">
+            <h2 className="text-xl font-bold mb-4">📊 다음 회차 출현 빈도</h2>
+            <div style={{ width: "100%", height: 220 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={barChartData}>
+                  <XAxis dataKey="number" tick={{ fontSize: 10 }} />
+                  <YAxis tick={{ fontSize: 12 }} />
+                  <RechartTooltip />
+                  <Bar dataKey="count" fill="#3B82F6" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
         )}

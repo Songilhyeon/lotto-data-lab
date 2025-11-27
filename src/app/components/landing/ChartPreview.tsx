@@ -13,15 +13,12 @@ import {
   Cell,
 } from "recharts";
 import HeatmapCell from "@/app/components/HeatmapCell";
-import { getLatestRound } from "@/app/utils/getLatestRound";
+import { apiUrl, latestRound } from "@/app/utils/getUtils";
 
 interface LottoDraw {
   drwNo: number;
   numbers: number[];
 }
-
-const url = process.env.NEXT_PUBLIC_BACKEND_URL;
-const latest = getLatestRound();
 
 export default function ChartPreview() {
   const [draws, setDraws] = useState<LottoDraw[]>([]);
@@ -31,7 +28,9 @@ export default function ChartPreview() {
     const fetchData = async () => {
       try {
         const res = await fetch(
-          `${url}/api/lotto/frequency?start=${latest - 19}&end=${latest}`
+          `${apiUrl}/api/lotto/frequency?start=${
+            latestRound - 19
+          }&end=${latestRound}`
         );
         const result = await res.json();
 

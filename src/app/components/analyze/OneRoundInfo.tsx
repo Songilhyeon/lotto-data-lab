@@ -5,14 +5,11 @@ import { LottoNumber } from "@/app/types/lotto";
 import LottoPaper from "@/app/components/LottoPaper";
 import LottoCard from "@/app/components/LottoCard";
 import SimplePattern from "@/app/components/SimplePattern";
-import { getLatestRound } from "@/app/utils/getLatestRound";
-
-const latest = getLatestRound();
-const url = process.env.NEXT_PUBLIC_BACKEND_URL;
+import { apiUrl, latestRound } from "@/app/utils/getUtils";
 
 export default function OneRoundInfo() {
-  const [round, setRound] = useState(latest);
-  const [inputRound, setInputRound] = useState(String(latest));
+  const [round, setRound] = useState(latestRound);
+  const [inputRound, setInputRound] = useState(String(latestRound));
   const [lottoData, setLottoData] = useState<LottoNumber | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -22,7 +19,7 @@ export default function OneRoundInfo() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`${url}/api/lotto/round/${round}`);
+        const res = await fetch(`${apiUrl}/api/lotto/round/${round}`);
         const json = await res.json();
         setLottoData(json.data);
       } catch (err) {
@@ -42,14 +39,14 @@ export default function OneRoundInfo() {
       setInputRound(val);
       return;
     }
-    const corrected = Math.min(Math.max(num, 1), latest);
+    const corrected = Math.min(Math.max(num, 1), latestRound);
     setRound(corrected);
     setInputRound(String(corrected));
   };
 
   const changeRound = (delta: number) => {
     setRound((prev) => {
-      const newRound = Math.min(Math.max(prev + delta, 1), latest);
+      const newRound = Math.min(Math.max(prev + delta, 1), latestRound);
       setInputRound(String(newRound));
       return newRound;
     });
@@ -89,7 +86,7 @@ export default function OneRoundInfo() {
                 value={inputRound}
                 onChange={(e) => handleInputChange(e.target.value)}
                 min={1}
-                max={latest}
+                max={latestRound}
                 className="w-24 sm:w-28 text-center border-2 border-gray-300 rounded-xl px-3 py-2 text-sm sm:text-base font-bold shadow-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
               <span className="text-gray-600 font-medium text-sm sm:text-base">
@@ -99,9 +96,9 @@ export default function OneRoundInfo() {
 
             <button
               onClick={() => changeRound(1)}
-              disabled={round >= latest}
+              disabled={round >= latestRound}
               className={`px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold text-sm sm:text-base shadow-md transition-all ${
-                round >= latest
+                round >= latestRound
                   ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                   : "bg-linear-to-r from-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700 hover:shadow-lg"
               }`}
@@ -122,8 +119,8 @@ export default function OneRoundInfo() {
             </button>
             <button
               onClick={() => {
-                setRound(latest);
-                setInputRound(String(latest));
+                setRound(latestRound);
+                setInputRound(String(latestRound));
               }}
               className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm sm:text-base font-medium transition"
             >
@@ -131,7 +128,7 @@ export default function OneRoundInfo() {
             </button>
             <button
               onClick={() => {
-                const random = Math.floor(Math.random() * latest) + 1;
+                const random = Math.floor(Math.random() * latestRound) + 1;
                 setRound(random);
                 setInputRound(String(random));
               }}

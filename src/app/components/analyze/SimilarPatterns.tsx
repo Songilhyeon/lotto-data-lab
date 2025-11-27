@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react";
 import LottoBall from "../LottoBall";
 import RangeFilterBar from "../RangeFilterBar";
-import { getLatestRound } from "@/app/utils/getLatestRound";
-import { ApiResponse } from "@/app/types/api";
 import {
   ResponsiveContainer,
   BarChart,
@@ -13,6 +11,8 @@ import {
   YAxis,
   Tooltip as RechartTooltip,
 } from "recharts";
+import SimilarPagination from "./SimilarPagination";
+import { apiUrl, latestRound } from "@/app/utils/getUtils";
 
 interface AnalysisResult {
   numbers: number[];
@@ -20,26 +20,23 @@ interface AnalysisResult {
   nextNumbers: number[];
 }
 
-interface ApiPayload {
-  selectedRound: AnalysisResult;
-  results: AnalysisResult[];
-  nextFrequency: Record<number, number>;
+interface LottoDraw {
+  drwNo: number;
+  numbers: number[];
 }
-
-const url = process.env.NEXT_PUBLIC_BACKEND_URL;
-const latest = getLatestRound();
 
 export default function SimilarPatterns() {
   const [results, setResults] = useState<AnalysisResult[]>([]);
   const [selectedRound, setSelectedRound] = useState<AnalysisResult | null>(
     null
   );
+  const [nextRound, setNextRound] = useState<LottoDraw | null>(null);
   const [frequency, setFrequency] = useState<Record<number, number>>({});
   const [loading, setLoading] = useState(false);
 
   const [minMatch, setMinMatch] = useState(2);
-  const [start, setStart] = useState(latest - 9);
-  const [end, setEnd] = useState(latest);
+  const [start, setStart] = useState(latestRound - 9);
+  const [end, setEnd] = useState(latestRound);
   const [includeBonus, setIncludeBonus] = useState(false);
   const [selectedRecent, setSelectedRecent] = useState<number | null>(10);
 
@@ -48,22 +45,25 @@ export default function SimilarPatterns() {
       setLoading(true);
       try {
         const res = await fetch(
-          `${url}/api/lotto/similar?start=${start}&end=${end}&includeBonus=${includeBonus}&minMatch=${minMatch}`
+          `${apiUrl}/api/lotto/similar?start=${start}&end=${end}&includeBonus=${includeBonus}&minMatch=${minMatch}`
         );
         const json = await res.json();
 
         if (!json.success || !json.data) {
           setSelectedRound(null);
           setResults([]);
+          setNextRound(null);
           setFrequency({});
           return;
         }
 
+        setNextRound(json.data.nextRound);
         setSelectedRound(json.data.selectedRound);
         setResults(json.data.results);
         setFrequency(json.data.nextFrequency);
       } catch (err) {
         console.error(err);
+        setNextRound(null);
         setSelectedRound(null);
         setResults([]);
         setFrequency({});
@@ -88,7 +88,8 @@ export default function SimilarPatterns() {
 
   const handleRecent = (count: number) => {
     setSelectedRecent(count);
-    setStart(end - count + 1);
+    setStart(Math.max(1, end - count + 1));
+    if (count === latestRound) setEnd(count);
   };
 
   const clearRecentSelect = () => setSelectedRecent(null);
@@ -119,7 +120,7 @@ export default function SimilarPatterns() {
         <RangeFilterBar
           start={start}
           end={end}
-          latest={latest}
+          latest={latestRound}
           includeBonus={includeBonus}
           selectedRecent={selectedRecent}
           setStart={handleStartChange}
@@ -184,6 +185,7 @@ export default function SimilarPatterns() {
         {!loading && selectedRound && (
           <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6">
             <div className="flex flex-col lg:flex-row gap-4">
+              {/* 기준 회차 */}
               <div className="flex-1 bg-linear-to-br from-green-50 to-emerald-50 rounded-xl p-4 border-2 border-green-200">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-lg font-bold text-gray-800">
@@ -197,6 +199,23 @@ export default function SimilarPatterns() {
                 </div>
               </div>
 
+              {/* 🔵 다음 회차 (있을 경우만 표시) */}
+              {nextRound && (
+                <div className="flex-1 bg-linear-to-br from-sky-50 to-blue-50 rounded-xl p-4 border-2 border-sky-200">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-lg font-bold text-gray-800">
+                      ⏭️ 다음 회차: {nextRound.drwNo}회
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2 justify-center">
+                    {nextRound.numbers.map((num) => (
+                      <LottoBall key={num} number={num} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 검색 결과 카드 */}
               <div className="flex-1 bg-linear-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border-2 border-blue-200 flex items-center justify-center">
                 <div className="text-center">
                   <p className="text-sm text-gray-600 mb-1">검색 결과</p>
@@ -282,53 +301,10 @@ export default function SimilarPatterns() {
 
         {/* Results List */}
         {!loading && results.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-6">
-              🎯 검색된 회차
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {results.map((item) => (
-                <div
-                  key={item.round}
-                  className="bg-linear-to-br from-gray-50 to-gray-100 rounded-xl p-4 border-2 border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all"
-                >
-                  <div className="mb-3">
-                    <span className="inline-block bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-bold">
-                      {item.round}회
-                    </span>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-xs text-gray-600 mb-2 font-medium">
-                        당첨 번호
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {item.numbers.map((num) => (
-                          <LottoBall
-                            key={num}
-                            number={num}
-                            isSelected={selectedRound?.numbers.includes(num)}
-                          />
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <p className="text-xs text-gray-600 mb-2 font-medium">
-                        다음 회차
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {item.nextNumbers.map((num) => (
-                          <LottoBall key={num} number={num} isNext={true} />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <SimilarPagination
+            results={results}
+            selectedRound={selectedRound ?? undefined}
+          />
         )}
       </div>
     </div>

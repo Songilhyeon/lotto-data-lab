@@ -5,9 +5,7 @@ import type { LottoNumber } from "@/app/types/lotto";
 import ResultCard from "@/app/components/lotto-history/ResultCard";
 import { queryOptions } from "@/app/utils/queryOptions";
 import RangeFilterBar from "@/app/components/RangeFilterBar";
-import { getLatestRound } from "@/app/utils/getLatestRound";
-
-const url = process.env.NEXT_PUBLIC_BACKEND_URL;
+import { apiUrl, latestRound } from "@/app/utils/getUtils";
 
 export default function LottoHistoryPage() {
   // 클라이언트 전용으로 초기값 설정
@@ -18,10 +16,11 @@ export default function LottoHistoryPage() {
   const [query, setQuery] = useState<string>(queryOptions[0].value);
   const [limit, setLimit] = useState<number>(5);
   const [loading, setLoading] = useState<boolean>(false);
+  const [selectedRecent, setSelectedRecent] = useState<number | null>(10);
 
   // latest 초기값 세팅
   useEffect(() => {
-    const round = getLatestRound();
+    const round = latestRound;
     setLatest(round);
     setStart(round - 9);
     setEnd(round);
@@ -41,7 +40,7 @@ export default function LottoHistoryPage() {
         params.append("end", String(end));
 
         const res = await fetch(
-          `${url}/api/lotto/history?${params.toString()}`
+          `${apiUrl}/api/lotto/history?${params.toString()}`
         );
         const result = await res.json();
 
@@ -60,9 +59,11 @@ export default function LottoHistoryPage() {
 
   const handleRecent = (count: number) => {
     if (!latest) return;
-    setStart(latest - count + 1);
-    setEnd(latest);
+    setStart(Math.max(1, end - count + 1));
+    if (count === latest) setEnd(count);
   };
+
+  const clearRecentSelect = () => setSelectedRecent(null);
 
   // SSR에서 렌더링 시 초기 UI는 단순히 로딩 표시
   if (latest === null) {
@@ -86,7 +87,9 @@ export default function LottoHistoryPage() {
         setStart={setStart}
         setEnd={setEnd}
         latest={latest}
+        selectedRecent={selectedRecent}
         onRecentSelect={handleRecent}
+        clearRecentSelect={clearRecentSelect}
         showCheckBox={false}
       />
 

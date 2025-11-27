@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getLatestRound } from "@/app/utils/getLatestRound";
 import RangeFilterBar from "@/app/components/RangeFilterBar";
+import { apiUrl, latestRound } from "@/app/utils/getUtils";
 
 interface MultiRoundResponse {
   start: number;
@@ -17,33 +17,34 @@ interface LottoDraw {
   numbers: number[];
 }
 
-const url = process.env.NEXT_PUBLIC_BACKEND_URL;
-const latest = getLatestRound();
-
 export default function NumberFrequency() {
-  const [start, setStart] = useState(latest - 9);
-  const [end, setEnd] = useState(latest);
+  const [start, setStart] = useState(latestRound - 9);
+  const [end, setEnd] = useState(latestRound);
   const [includeBonus, setIncludeBonus] = useState(false);
   const [results, setResults] = useState<MultiRoundResponse | null>(null);
   const [draws, setDraws] = useState<LottoDraw[]>([]);
   const [loading, setLoading] = useState(false);
   const [hoveredNumber, setHoveredNumber] = useState<number | null>(null);
   const [selectedRecent, setSelectedRecent] = useState<number | null>(10);
+  const [nextRound, setNextRound] = useState<LottoDraw | null>(null);
 
   useEffect(() => {
     const fetchStatistics = async () => {
       setLoading(true);
       try {
         const res = await fetch(
-          `${url}/api/lotto/frequency?start=${start}&end=${end}&includeBonus=${includeBonus}`
+          `${apiUrl}/api/lotto/frequency?start=${start}&end=${end}&includeBonus=${includeBonus}`
         );
         const data = await res.json();
+
         setResults(data.data);
         setDraws(data.data.roundResults || []);
+        setNextRound(data.data.nextRound || null);
       } catch (err) {
         console.error(err);
         setResults(null);
         setDraws([]);
+        setNextRound(null);
       } finally {
         setLoading(false);
       }
@@ -65,7 +66,8 @@ export default function NumberFrequency() {
 
   const handleRecent = (count: number) => {
     setSelectedRecent(count);
-    setStart(end - count + 1);
+    setStart(Math.max(1, end - count + 1));
+    if (count === latestRound) setEnd(count);
   };
 
   const clearRecentSelect = () => setSelectedRecent(null);
@@ -114,7 +116,7 @@ export default function NumberFrequency() {
         <RangeFilterBar
           start={start}
           end={end}
-          latest={latest}
+          latest={latestRound}
           includeBonus={includeBonus}
           selectedRecent={selectedRecent}
           setStart={handleStartChange}
@@ -167,18 +169,21 @@ export default function NumberFrequency() {
           <>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
               {/* 선택 회차 */}
-              <div className="bg-white rounded-2xl shadow-xl p-6 text-center border-t-4 border-blue-500">
-                <div className="text-4xl mb-2">🎯</div>
-                <h3 className="text-sm text-gray-500 mb-2 font-medium">
+              <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 text-center border-t-4 border-blue-500">
+                <div className="text-3xl sm:text-4xl mb-1 sm:mb-2">🎯</div>
+
+                <h3 className="text-xs sm:text-sm text-gray-500 mb-1 sm:mb-2 font-medium">
                   선택 회차
                 </h3>
-                <p className="text-2xl sm:text-3xl font-bold text-gray-800 mb-1">
+
+                <p className="text-xl sm:text-3xl font-bold text-gray-800 mb-1">
                   {results.start} ~ {results.end}
+                  <span className="ml-1 text-[10px] sm:text-base text-gray-600 font-semibold">
+                    (총 {results.end - results.start + 1}회)
+                  </span>
                 </p>
-                <p className="text-base text-gray-600 font-semibold">
-                  총 {results.end - results.start + 1}회
-                </p>
-                <p className="text-xs text-gray-500 mt-2">
+
+                <p className="text-[10px] sm:text-xs text-gray-500 mt-1 sm:mt-2">
                   {results.includeBonus
                     ? "보너스 번호 포함"
                     : "보너스 번호 제외"}
@@ -186,32 +191,38 @@ export default function NumberFrequency() {
               </div>
 
               {/* 가장 자주 나온 번호 */}
-              <div className="bg-linear-to-br from-red-50 to-orange-50 rounded-2xl shadow-xl p-6 text-center border-t-4 border-red-500">
-                <div className="text-4xl mb-2">🔥</div>
-                <h3 className="text-sm text-gray-600 mb-2 font-medium">
+              <div className="bg-linear-to-br from-red-50 to-orange-50 rounded-2xl shadow-xl p-4 sm:p-6 text-center border-t-4 border-red-500">
+                <div className="text-3xl sm:text-4xl mb-1 sm:mb-2">🔥</div>
+
+                <h3 className="text-xs sm:text-sm text-gray-600 mb-1 sm:mb-2 font-medium">
                   가장 자주 나온 번호
                 </h3>
-                <p className="text-3xl sm:text-4xl font-bold text-red-600">
+
+                <p className="text-2xl sm:text-4xl font-bold text-red-600">
                   {most.join(", ")}
                 </p>
-                {most.length > 0 && results.frequency[most[0]] && (
-                  <p className="text-sm text-gray-600 mt-2">
+
+                {most.length > 0 && (
+                  <p className="text-[10px] sm:text-sm text-gray-600 mt-1 sm:mt-2">
                     {results.frequency[most[0]]}회 출현
                   </p>
                 )}
               </div>
 
               {/* 가장 적게 나온 번호 */}
-              <div className="bg-linear-to-br from-blue-50 to-cyan-50 rounded-2xl shadow-xl p-6 text-center border-t-4 border-blue-500">
-                <div className="text-4xl mb-2">❄️</div>
-                <h3 className="text-sm text-gray-600 mb-2 font-medium">
+              <div className="bg-linear-to-br from-blue-50 to-cyan-50 rounded-2xl shadow-xl p-4 sm:p-6 text-center border-t-4 border-blue-500">
+                <div className="text-3xl sm:text-4xl mb-1 sm:mb-2">❄️</div>
+
+                <h3 className="text-xs sm:text-sm text-gray-600 mb-1 sm:mb-2 font-medium">
                   가장 적게 나온 번호
                 </h3>
-                <p className="text-3xl sm:text-4xl font-bold text-blue-600">
+
+                <p className="text-2xl sm:text-4xl font-bold text-blue-600">
                   {least.join(", ")}
                 </p>
-                {least.length > 0 && results.frequency[least[0]] && (
-                  <p className="text-sm text-gray-600 mt-2">
+
+                {least.length > 0 && (
+                  <p className="text-[10px] sm:text-sm text-gray-600 mt-1 sm:mt-2">
                     {results.frequency[least[0]]}회 출현
                   </p>
                 )}
@@ -220,15 +231,44 @@ export default function NumberFrequency() {
 
             {/* Heat Map */}
             <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8">
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3 sm:gap-0">
+                {/* 제목 영역 */}
                 <div>
-                  <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-1">
+                  <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 mb-1">
                     🗺️ 출현 빈도 히트맵
                   </h2>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-xs sm:text-sm text-gray-600">
                     색이 진할수록 많이 출현한 번호입니다
                   </p>
                 </div>
+
+                {/* nextRound 영역 */}
+                {nextRound && (
+                  <div className="flex flex-col sm:flex-row sm:items-center text-sm sm:text-lg text-gray-600">
+                    <span className="font-medium mb-1 sm:mb-0 sm:mr-2">
+                      {nextRound.drwNo} 회 :
+                    </span>
+
+                    <p className="flex gap-1 flex-wrap text-base sm:text-lg">
+                      {nextRound.numbers.map((num: number) => {
+                        const isMost = most.includes(num);
+                        const isLeast = least.includes(num);
+
+                        const colorClass = isMost
+                          ? "text-red-600 font-bold"
+                          : isLeast
+                          ? "text-blue-600 font-bold"
+                          : "text-gray-600";
+
+                        return (
+                          <span key={num} className={colorClass}>
+                            {num}
+                          </span>
+                        );
+                      })}
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Legend */}

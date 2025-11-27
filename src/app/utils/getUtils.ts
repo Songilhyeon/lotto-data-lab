@@ -1,4 +1,4 @@
-export const getLatestRound = () => {
+const getLatestRound = () => {
   const firstDrawDate = new Date("2002-12-07");
   const today = new Date();
   return (
@@ -7,3 +7,8 @@ export const getLatestRound = () => {
     ) + 1
   );
 };
+
+const getApiUrl = () => process.env.NEXT_PUBLIC_API_URL;
+
+export const apiUrl = getApiUrl();
+export const latestRound = getLatestRound();
