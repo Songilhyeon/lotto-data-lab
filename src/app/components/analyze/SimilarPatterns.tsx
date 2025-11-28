@@ -12,7 +12,7 @@ import {
   Tooltip as RechartTooltip,
 } from "recharts";
 import SimilarPagination from "./SimilarPagination";
-import { apiUrl, latestRound } from "@/app/utils/getUtils";
+import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
 
 interface AnalysisResult {
   numbers: number[];
@@ -35,17 +35,33 @@ export default function SimilarPatterns() {
   const [loading, setLoading] = useState(false);
 
   const [minMatch, setMinMatch] = useState(2);
-  const [start, setStart] = useState(latestRound - 9);
-  const [end, setEnd] = useState(latestRound);
+  const [start, setStart] = useState(getLatestRound() - 9);
+  const [end, setEnd] = useState(getLatestRound());
   const [includeBonus, setIncludeBonus] = useState(false);
   const [selectedRecent, setSelectedRecent] = useState<number | null>(10);
+
+  const latestRound = getLatestRound();
+
+  // 🔹 디바운스 상태
+  const [debouncedStart, setDebouncedStart] = useState(start);
+  const [debouncedEnd, setDebouncedEnd] = useState(end);
+
+  // 디바운스 적용
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedStart(Math.min(start, end)); // 유효 범위 보정
+      setDebouncedEnd(Math.max(start, end));
+    }, 500); // 500ms 동안 입력이 없으면 적용
+
+    return () => clearTimeout(handler);
+  }, [start, end]);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
         const res = await fetch(
-          `${apiUrl}/api/lotto/similar?start=${start}&end=${end}&includeBonus=${includeBonus}&minMatch=${minMatch}`
+          `${apiUrl}/api/lotto/similar?start=${debouncedStart}&end=${debouncedEnd}&includeBonus=${includeBonus}&minMatch=${minMatch}`
         );
         const json = await res.json();
 
@@ -72,16 +88,18 @@ export default function SimilarPatterns() {
       }
     };
     fetchData();
-  }, [minMatch, start, end, includeBonus]);
+  }, [minMatch, debouncedStart, debouncedEnd, includeBonus]);
 
   // --- end 입력 시 recent 선택 해제 ---
   const handleEndChange = (value: number) => {
+    if (value < start) setStart(value);
     setEnd(value);
     setSelectedRecent(null); // 수동 변경 시 recent 해제
   };
 
   // --- start 직접 수정 ---
   const handleStartChange = (value: number) => {
+    if (value > end) setEnd(value);
     setStart(value);
     setSelectedRecent(null); // 수동 변경 시 recent 해제
   };

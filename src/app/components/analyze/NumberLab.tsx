@@ -275,49 +275,52 @@ export default function NumberLab() {
         )}
 
         {/* 🔥 전체 조합 탐색(옵션): 모든 k 탭 형태 */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 mb-6">
-          <h2 className="text-xl font-bold mb-4">
-            🔥 각 번호 조합 출현 빈도 (중복 회차 포함)
-          </h2>
+        {(Object.keys(appearRounds).length > 0 ||
+          Object.keys(comboTop).length > 0) && (
+          <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 mb-6">
+            <h2 className="text-xl font-bold mb-4">
+              🔥 각 번호 조합 출현 빈도 (중복 회차 포함)
+            </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[1, 2, 3, 4, 5, 6].map((k) => {
-              // 1개 조합은 appearRounds, 나머지는 comboTop
-              const list =
-                k === 1
-                  ? Object.keys(appearRounds)
-                      .filter((num) => appearRounds[Number(num)].length > 0)
-                      .map((num) => ({
-                        key: num,
-                        count: appearRounds[Number(num)].length,
-                      }))
-                  : comboTop[k] || [];
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[1, 2, 3, 4, 5, 6].map((k) => {
+                // 1개 조합은 appearRounds, 나머지는 comboTop
+                const list =
+                  k === 1
+                    ? Object.keys(appearRounds)
+                        .filter((num) => appearRounds[Number(num)].length > 0)
+                        .map((num) => ({
+                          key: num,
+                          count: appearRounds[Number(num)].length,
+                        }))
+                    : comboTop[k] || [];
 
-              if (list.length === 0) return null;
+                if (list.length === 0) return null;
 
-              return (
-                <div key={k} className="p-4 rounded-lg border bg-gray-50">
-                  <h3 className="font-semibold mb-2">{k}개 조합</h3>
-                  <div className="space-y-2 max-h-56 overflow-auto">
-                    {list.map((item, idx) => (
-                      <div
-                        key={item.key}
-                        className="flex items-center justify-between bg-white p-2 rounded border"
-                      >
-                        <div className="text-sm font-medium">
-                          {idx + 1}. [{item.key}]
+                return (
+                  <div key={k} className="p-4 rounded-lg border bg-gray-50">
+                    <h3 className="font-semibold mb-2">{k}개 조합</h3>
+                    <div className="space-y-2 max-h-56 overflow-auto">
+                      {list.map((item, idx) => (
+                        <div
+                          key={item.key}
+                          className="flex items-center justify-between bg-white p-2 rounded border"
+                        >
+                          <div className="text-sm font-medium">
+                            {idx + 1}. [{item.key}]
+                          </div>
+                          <div className="text-sm text-blue-600">
+                            {item.count}회
+                          </div>
                         </div>
-                        <div className="text-sm text-blue-600">
-                          {item.count}회
-                        </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

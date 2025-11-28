@@ -6,13 +6,13 @@ import LottoCard from "@/app/components/LottoCard";
 import SimplePattern from "@/app/components/SimplePattern";
 import RangeFilterBar from "@/app/components/RangeFilterBar";
 import { LottoNumber } from "@/app/types/lotto";
-import { apiUrl, latestRound } from "@/app/utils/getUtils";
+import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
 
 const PAGE_SIZE = 12; // 한 페이지에 보여줄 개수
 
 export default function MultiRoundInfo() {
-  const [start, setStart] = useState(latestRound - 9);
-  const [end, setEnd] = useState(latestRound);
+  const [start, setStart] = useState(getLatestRound() - 9);
+  const [end, setEnd] = useState(getLatestRound());
   const [lottoData, setLottoData] = useState<LottoNumber[] | null>([]);
   const [viewType, setViewType] = useState<"card" | "pattern" | "paper">(
     "card"
@@ -20,12 +20,29 @@ export default function MultiRoundInfo() {
   const [selectedRecent, setSelectedRecent] = useState<number | null>(10);
   const [currentPage, setCurrentPage] = useState(1);
 
+  const latestRound = getLatestRound();
+
+  // 🔹 디바운스 상태
+  const [debouncedStart, setDebouncedStart] = useState(start);
+  const [debouncedEnd, setDebouncedEnd] = useState(end);
+
+  // 디바운스 적용
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedStart(Math.min(start, end)); // 유효 범위 보정
+      setDebouncedEnd(Math.max(start, end));
+    }, 500); // 500ms 동안 입력이 없으면 적용
+
+    return () => clearTimeout(handler);
+  }, [start, end]);
+
   useEffect(() => {
     let isMounted = true;
+
     const fetchData = async () => {
       try {
         const res = await fetch(
-          `${apiUrl}/api/lotto/rounds?start=${start}&end=${end}`
+          `${apiUrl}/api/lotto/rounds?start=${debouncedStart}&end=${debouncedEnd}`
         );
         const json = await res.json();
 
@@ -38,7 +55,7 @@ export default function MultiRoundInfo() {
         if (!isMounted) return;
         const sorted = [...json.data].sort((a, b) => b.drwNo - a.drwNo);
         setLottoData(sorted);
-        setCurrentPage(1); // 초기 페이지
+        setCurrentPage(1);
       } catch (err) {
         console.error(err);
         if (!isMounted) return;
@@ -50,16 +67,18 @@ export default function MultiRoundInfo() {
     return () => {
       isMounted = false;
     };
-  }, [start, end]);
+  }, [debouncedStart, debouncedEnd]);
 
   // --- end 입력 시 recent 선택 해제 ---
   const handleEndChange = (value: number) => {
+    if (value < start) setStart(value);
     setEnd(value);
     setSelectedRecent(null); // 수동 변경 시 recent 해제
   };
 
   // --- start 직접 수정 ---
   const handleStartChange = (value: number) => {
+    if (value > end) setEnd(value);
     setStart(value);
     setSelectedRecent(null); // 수동 변경 시 recent 해제
   };

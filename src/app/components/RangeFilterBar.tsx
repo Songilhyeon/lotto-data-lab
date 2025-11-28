@@ -86,18 +86,21 @@ export default function RangeFilterBar({
           </div>
         )}
 
-      {/* 최근 버튼들 */}
-      <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+      {/* 최근/전체 회차 선택 버튼 그룹 */}
+      <div className="flex flex-wrap gap-2 w-full sm:w-auto items-center">
+        {/* <span className="mr-2 text-sm font-medium text-gray-600">
+          조회 기간:
+        </span> */}
         {[10, 20, 50, 100, latest].map((n) => {
-          const label = n === latest ? "전체" : `최근 ${n}개`;
-          const isActive = n === selectedRecent; // 선택 상태에 따라 조정 가능
+          const label = n === latest ? "전체" : `이전 ${n}회`;
+          const isActive = n === selectedRecent;
+
           return (
             <button
               key={n}
               onClick={() => onRecentSelect(n)}
               className={`
-          px-4 py-2 rounded-lg text-sm font-semibold
-          transition transform
+          px-4 py-2 rounded-lg text-sm font-semibold transition transform
           ${
             isActive
               ? "bg-blue-500 text-white shadow-md"

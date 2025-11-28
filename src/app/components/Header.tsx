@@ -1,23 +1,21 @@
+// components/Header.tsx
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAuth } from "@/app/context/AuthContext";
-import Logo from "./Logo";
+import { useAuth } from "@/app/context/authContext";
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
-  const toggleMenu = () => setIsOpen(!isOpen);
-
   const {
     user,
-    loading,
-    logout,
+    setUser,
     openLoginModal,
-    isLoginModalOpen,
     closeLoginModal,
+    isLoginModalOpen,
+    logout,
   } = useAuth();
 
   const oauthUrls = {
@@ -29,59 +27,92 @@ export default function Header() {
   const navLinks = [
     { name: "홈", href: "/" },
     { name: "분석", href: "/analyze" },
-    { name: "히스토리", href: "/lotto-history" },
-    { name: "대시보드", href: "/dashboard" },
+    { name: "게시판", href: "/board" },
+    { name: "로또기록", href: "/lotto-history" },
   ];
+
+  const handleTestLogin = async () => {
+    try {
+      const res = await fetch("http://localhost:4000/api/auth/test-login", {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Test login failed");
+      const data = await res.json();
+      setUser(data.user);
+      alert("테스트 로그인 완료! 1시간 PREMIUM 상태입니다.");
+    } catch (err) {
+      console.error(err);
+      alert("테스트 로그인 실패");
+    }
+  };
 
   return (
     <>
       <header className="bg-white bg-opacity-95 backdrop-blur-sm shadow-md sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
-          <Logo />
+          <h1 className="font-bold text-xl">Lotto Analysis</h1>
 
           {/* 데스크톱 네비 */}
-          <nav className="hidden md:flex space-x-8 text-sm font-semibold text-gray-700">
-            {navLinks.map((link) => {
-              const isActive = pathname === link.href;
-              return (
-                <Link
-                  key={link.name}
-                  href={link.href}
-                  className={`relative group px-2 py-1 transition-colors duration-200 ${
-                    isActive ? "text-blue-600" : "hover:text-blue-600"
+          <nav className="hidden md:flex space-x-6 text-sm font-semibold text-gray-700 items-center">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`relative group px-2 py-1 transition-colors duration-200 ${
+                  pathname === link.href
+                    ? "text-blue-600"
+                    : "hover:text-blue-600"
+                }`}
+              >
+                {link.name}
+                <span
+                  className={`absolute left-0 -bottom-1 h-0.5 bg-blue-600 transition-all ${
+                    pathname === link.href ? "w-full" : "w-0 group-hover:w-full"
+                  }`}
+                ></span>
+              </Link>
+            ))}
+
+            {user ? (
+              <div className="flex items-center gap-3">
+                <span
+                  className={`font-bold ${
+                    user.role === "PREMIUM" ? "text-green-600" : "text-gray-500"
                   }`}
                 >
-                  {link.name}
-                  <span
-                    className={`absolute left-0 -bottom-1 h-0.5 bg-blue-600 transition-all ${
-                      isActive ? "w-full" : "w-0 group-hover:w-full"
-                    }`}
-                  ></span>
-                </Link>
-              );
-            })}
-
-            {!loading && user ? (
-              <button
-                onClick={logout}
-                className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition"
-              >
-                로그아웃
-              </button>
+                  {user.role ?? "FREE"}
+                </span>
+                <span>{user.name}</span>
+                <button
+                  onClick={logout}
+                  className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition"
+                >
+                  로그아웃
+                </button>
+              </div>
             ) : (
-              <button
-                onClick={openLoginModal}
-                className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition"
-              >
-                로그인
-              </button>
+              <>
+                <button
+                  onClick={openLoginModal}
+                  className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition"
+                >
+                  로그인
+                </button>
+                <button
+                  onClick={handleTestLogin}
+                  className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+                >
+                  테스트 로그인
+                </button>
+              </>
             )}
           </nav>
 
           {/* 모바일 햄버거 */}
           <div className="md:hidden flex items-center">
             <button
-              onClick={toggleMenu}
+              onClick={() => setIsOpen(!isOpen)}
               className="p-2 rounded-md text-gray-600 hover:bg-gray-100"
             >
               {isOpen ? "✕" : "☰"}
@@ -91,80 +122,100 @@ export default function Header() {
       </header>
 
       {/* 모바일 메뉴 */}
-      <div
-        className={`fixed top-0 right-0 h-full w-64 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${
-          isOpen ? "translate-x-0" : "translate-x-full"
-        }`}
-      >
-        <div className="flex justify-end p-4">
-          <button
-            onClick={toggleMenu}
-            className="p-2 rounded-md text-gray-600 hover:bg-gray-100"
-          >
-            ✕
-          </button>
+      {isOpen && (
+        <div className="fixed top-0 right-0 h-full w-64 bg-white shadow-2xl z-50 flex flex-col">
+          <div className="flex justify-end p-4">
+            <button onClick={() => setIsOpen(false)}>✕</button>
+          </div>
+          <nav className="flex flex-col mt-8 space-y-6 px-6 text-lg font-semibold">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setIsOpen(false)}
+              >
+                {link.name}
+              </Link>
+            ))}
+
+            {user ? (
+              <>
+                <span
+                  className={`font-bold ${
+                    user.role === "PREMIUM" ? "text-green-600" : "text-gray-500"
+                  }`}
+                >
+                  {user.role ?? "FREE"}
+                </span>
+                <span>{user.name}</span>
+                <button
+                  onClick={() => {
+                    logout();
+                    setIsOpen(false);
+                  }}
+                  className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition"
+                >
+                  로그아웃
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => (window.location.href = oauthUrls.google)}
+                  className="px-3 py-1 bg-red-500 text-white rounded"
+                >
+                  Google
+                </button>
+                <button
+                  onClick={() => (window.location.href = oauthUrls.naver)}
+                  className="px-3 py-1 bg-green-500 text-white rounded"
+                >
+                  Naver
+                </button>
+                <button
+                  onClick={() => (window.location.href = oauthUrls.kakao)}
+                  className="px-3 py-1 bg-yellow-400 text-black rounded"
+                >
+                  Kakao
+                </button>
+                <button
+                  onClick={handleTestLogin}
+                  className="px-3 py-1 bg-blue-500 text-white rounded"
+                >
+                  테스트 로그인
+                </button>
+              </>
+            )}
+          </nav>
         </div>
-        <nav className="flex flex-col mt-8 space-y-6 px-6 text-lg font-semibold text-gray-700">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setIsOpen(false)}
-            >
-              {link.name}
-            </Link>
-          ))}
+      )}
 
-          {!loading && user ? (
-            <button
-              onClick={() => {
-                logout();
-                setIsOpen(false);
-              }}
-              className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition"
-            >
-              로그아웃
-            </button>
-          ) : (
-            <button
-              onClick={() => {
-                openLoginModal();
-                setIsOpen(false);
-              }}
-              className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition"
-            >
-              로그인
-            </button>
-          )}
-        </nav>
-      </div>
-
-      {/* 모달형 로그인 */}
-      {isLoginModalOpen && (
+      {/* 모달 로그인 */}
+      {isLoginModalOpen && !user && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg p-6 w-80 flex flex-col gap-4">
             <h2 className="text-xl font-bold text-center">로그인</h2>
             <button
               onClick={() => (window.location.href = oauthUrls.google)}
-              className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
+              className="bg-red-500 text-white px-4 py-2 rounded"
             >
               Google
             </button>
             <button
               onClick={() => (window.location.href = oauthUrls.naver)}
-              className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition"
+              className="bg-green-500 text-white px-4 py-2 rounded"
             >
               Naver
             </button>
             <button
               onClick={() => (window.location.href = oauthUrls.kakao)}
-              className="bg-yellow-400 text-black px-4 py-2 rounded hover:bg-yellow-500 transition"
+              className="bg-yellow-400 text-black px-4 py-2 rounded"
             >
               Kakao
             </button>
             <button
               onClick={closeLoginModal}
-              className="mt-4 px-4 py-2 rounded border hover:bg-gray-100 transition"
+              className="mt-4 px-4 py-2 border rounded"
             >
               취소
             </button>

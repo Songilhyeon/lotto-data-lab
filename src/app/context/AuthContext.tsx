@@ -1,62 +1,55 @@
+// app/context/authContext.tsx
 "use client";
 
-import React, {
+import {
   createContext,
   useContext,
-  useEffect,
   useState,
+  useEffect,
   ReactNode,
 } from "react";
 
-interface User {
+// ---------------------------
+// User 타입
+// ---------------------------
+export interface User {
   id: string;
   name: string;
   email?: string;
+  role?: "FREE" | "PREMIUM";
+  subscriptionExpiresAt?: string | Date;
 }
 
+// ---------------------------
+// Context 타입
+// ---------------------------
 interface AuthContextType {
   user: User | null;
-  loading: boolean;
-  refreshUser: () => Promise<void>;
-  logout: () => Promise<void>;
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
   openLoginModal: () => void;
   closeLoginModal: () => void;
   isLoginModalOpen: boolean;
+  logout: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  loading: true,
-  refreshUser: async () => {},
-  logout: async () => {},
-  openLoginModal: () => {},
-  closeLoginModal: () => {},
-  isLoginModalOpen: false,
-});
+// ---------------------------
+// Context 생성
+// ---------------------------
+export const AuthContext = createContext<AuthContextType | null>(null);
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
+// ---------------------------
+// Provider Props
+// ---------------------------
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+// ---------------------------
+// Provider 구현
+// ---------------------------
+export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-
-  const refreshUser = async () => {
-    try {
-      const res = await fetch("http://localhost:4000/api/auth/protected", {
-        credentials: "include",
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setUser(data.user);
-      } else {
-        setUser(null);
-      }
-    } catch (err) {
-      console.error(err);
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const logout = async () => {
     try {
@@ -74,19 +67,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const closeLoginModal = () => setIsLoginModalOpen(false);
 
   useEffect(() => {
-    refreshUser();
+    const fetchUser = async () => {
+      try {
+        const res = await fetch("http://localhost:4000/api/auth/me", {
+          credentials: "include",
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data.user ?? null);
+        } else {
+          setUser(null);
+        }
+      } catch (err) {
+        console.error(err);
+        setUser(null);
+      }
+    };
+    fetchUser();
   }, []);
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        loading,
-        refreshUser,
-        logout,
+        setUser,
         openLoginModal,
         closeLoginModal,
         isLoginModalOpen,
+        logout,
       }}
     >
       {children}
@@ -94,4 +102,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+// ---------------------------
+// 커스텀 훅
+// ---------------------------
+export const useAuth = () => {
+  const auth = useContext(AuthContext);
+  if (!auth) throw new Error("useAuth must be used within AuthProvider");
+  return auth;
+};

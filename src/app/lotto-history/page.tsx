@@ -5,39 +5,43 @@ import type { LottoNumber } from "@/app/types/lotto";
 import ResultCard from "@/app/components/lotto-history/ResultCard";
 import { queryOptions } from "@/app/utils/queryOptions";
 import RangeFilterBar from "@/app/components/RangeFilterBar";
-import { apiUrl, latestRound } from "@/app/utils/getUtils";
+import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
 
 export default function LottoHistoryPage() {
   // 클라이언트 전용으로 초기값 설정
-  const [latest, setLatest] = useState<number | null>(null);
-  const [start, setStart] = useState<number>(0);
-  const [end, setEnd] = useState<number>(0);
+  const [start, setStart] = useState<number>(getLatestRound() - 9);
+  const [end, setEnd] = useState<number>(getLatestRound());
   const [results, setResults] = useState<LottoNumber[]>([]);
   const [query, setQuery] = useState<string>(queryOptions[0].value);
   const [limit, setLimit] = useState<number>(5);
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedRecent, setSelectedRecent] = useState<number | null>(10);
 
-  // latest 초기값 세팅
-  useEffect(() => {
-    const round = latestRound;
-    setLatest(round);
-    setStart(round - 9);
-    setEnd(round);
-  }, []);
+  const latestRound = getLatestRound();
 
-  // 데이터 fetch (latest가 세팅된 후)
-  useEffect(() => {
-    if (latest === null || !query) return;
+  // 🔹 디바운스 상태
+  const [debouncedStart, setDebouncedStart] = useState(start);
+  const [debouncedEnd, setDebouncedEnd] = useState(end);
 
+  // 디바운스 적용
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedStart(Math.min(start, end)); // 유효 범위 보정
+      setDebouncedEnd(Math.max(start, end));
+    }, 500); // 500ms 동안 입력이 없으면 적용
+
+    return () => clearTimeout(handler);
+  }, [start, end]);
+
+  useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
         const params = new URLSearchParams();
         params.append("query", query);
         params.append("limit", String(limit));
-        params.append("start", String(start));
-        params.append("end", String(end));
+        params.append("start", String(debouncedStart));
+        params.append("end", String(debouncedEnd));
 
         const res = await fetch(
           `${apiUrl}/api/lotto/history?${params.toString()}`
@@ -55,27 +59,32 @@ export default function LottoHistoryPage() {
     };
 
     fetchData();
-  }, [query, limit, start, end, latest]);
+  }, [query, limit, debouncedStart, debouncedEnd]);
+
+  // --- end 입력 시 recent 선택 해제 ---
+  const handleEndChange = (value: number) => {
+    if (value < start) setStart(value);
+    setEnd(value);
+    setSelectedRecent(null); // 수동 변경 시 recent 해제
+  };
+
+  // --- start 직접 수정 ---
+  const handleStartChange = (value: number) => {
+    if (value > end) setEnd(value);
+    setStart(value);
+    setSelectedRecent(null); // 수동 변경 시 recent 해제
+  };
 
   const handleRecent = (count: number) => {
-    if (!latest) return;
+    setSelectedRecent(count);
     setStart(Math.max(1, end - count + 1));
-    if (count === latest) setEnd(count);
+    if (count === latestRound) setEnd(count);
   };
 
   const clearRecentSelect = () => setSelectedRecent(null);
 
-  // SSR에서 렌더링 시 초기 UI는 단순히 로딩 표시
-  if (latest === null) {
-    return (
-      <div className="w-full px-4 sm:px-6 max-w-full sm:max-w-6xl mx-auto">
-        <p className="text-center text-gray-500 py-10">로딩 중...</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="w-full px-4 sm:px-6 max-w-full sm:max-w-6xl mx-auto">
+    <div className="w-full pt-6 px-4 sm:px-6 max-w-full sm:max-w-6xl mx-auto">
       <header className="mb-4 sm:mb-6 text-center sm:text-left">
         <h1 className="text-xl sm:text-2xl font-bold">로또 히스토리</h1>
       </header>
@@ -84,9 +93,9 @@ export default function LottoHistoryPage() {
       <RangeFilterBar
         start={start}
         end={end}
-        setStart={setStart}
-        setEnd={setEnd}
-        latest={latest}
+        setStart={handleStartChange}
+        setEnd={handleEndChange}
+        latest={latestRound}
         selectedRecent={selectedRecent}
         onRecentSelect={handleRecent}
         clearRecentSelect={clearRecentSelect}

@@ -1,8 +1,18 @@
 "use client";
 
+import { Tooltip } from "react-tooltip";
 import { useEffect, useState } from "react";
 import RangeFilterBar from "@/app/components/RangeFilterBar";
-import { apiUrl, latestRound } from "@/app/utils/getUtils";
+import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip as RechartTooltip,
+} from "recharts";
+import HeatmapCell from "@/app/components/HeatmapCell";
 
 interface MultiRoundResponse {
   start: number;
@@ -18,22 +28,37 @@ interface LottoDraw {
 }
 
 export default function NumberFrequency() {
-  const [start, setStart] = useState(latestRound - 9);
-  const [end, setEnd] = useState(latestRound);
+  const [start, setStart] = useState(getLatestRound() - 9);
+  const [end, setEnd] = useState(getLatestRound());
   const [includeBonus, setIncludeBonus] = useState(false);
   const [results, setResults] = useState<MultiRoundResponse | null>(null);
   const [draws, setDraws] = useState<LottoDraw[]>([]);
   const [loading, setLoading] = useState(false);
-  const [hoveredNumber, setHoveredNumber] = useState<number | null>(null);
   const [selectedRecent, setSelectedRecent] = useState<number | null>(10);
   const [nextRound, setNextRound] = useState<LottoDraw | null>(null);
+
+  const latestRound = getLatestRound();
+
+  // 🔹 디바운스 상태
+  const [debouncedStart, setDebouncedStart] = useState(start);
+  const [debouncedEnd, setDebouncedEnd] = useState(end);
+
+  // 디바운스 적용
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedStart(Math.min(start, end)); // 유효 범위 보정
+      setDebouncedEnd(Math.max(start, end));
+    }, 500); // 500ms 동안 입력이 없으면 적용
+
+    return () => clearTimeout(handler);
+  }, [start, end]);
 
   useEffect(() => {
     const fetchStatistics = async () => {
       setLoading(true);
       try {
         const res = await fetch(
-          `${apiUrl}/api/lotto/frequency?start=${start}&end=${end}&includeBonus=${includeBonus}`
+          `${apiUrl}/api/lotto/frequency?start=${debouncedStart}&end=${debouncedEnd}&includeBonus=${includeBonus}`
         );
         const data = await res.json();
 
@@ -50,16 +75,18 @@ export default function NumberFrequency() {
       }
     };
     fetchStatistics();
-  }, [start, end, includeBonus]);
+  }, [debouncedStart, debouncedEnd, includeBonus]);
 
   // --- end 입력 시 recent 선택 해제 ---
   const handleEndChange = (value: number) => {
+    if (value < start) setStart(value);
     setEnd(value);
     setSelectedRecent(null); // 수동 변경 시 recent 해제
   };
 
   // --- start 직접 수정 ---
   const handleStartChange = (value: number) => {
+    if (value > end) setEnd(value);
     setStart(value);
     setSelectedRecent(null); // 수동 변경 시 recent 해제
   };
@@ -97,6 +124,16 @@ export default function NumberFrequency() {
       freqData[n].count++;
       freqData[n].rounds.push(draw.drwNo);
     });
+  });
+
+  const freqValues = Object.values(results?.frequency || {});
+  const maxFreq = Math.max(...freqValues);
+  const minFreq = Math.min(...freqValues);
+
+  // bar chart data for "frequencyNext" (unchanged)
+  const barChartData = Array.from({ length: 45 }, (_, i) => {
+    const num = i + 1;
+    return { number: num, count: results?.frequency[num] ?? 0 };
   });
 
   return (
@@ -167,23 +204,20 @@ export default function NumberFrequency() {
 
         {!loading && results && (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
               {/* 선택 회차 */}
-              <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 text-center border-t-4 border-blue-500">
-                <div className="text-3xl sm:text-4xl mb-1 sm:mb-2">🎯</div>
-
-                <h3 className="text-xs sm:text-sm text-gray-500 mb-1 sm:mb-2 font-medium">
+              <div className="bg-white rounded-2xl shadow-xl p-3 md:p-4 text-center border-t-4 border-blue-500">
+                <div className="text-2xl md:text-3xl mb-1 md:mb-1.5">🎯</div>
+                <h3 className="text-[10px] md:text-xs text-gray-500 mb-1 md:mb-1 font-medium">
                   선택 회차
                 </h3>
-
-                <p className="text-xl sm:text-3xl font-bold text-gray-800 mb-1">
+                <p className="text-lg md:text-2xl font-bold text-gray-800 mb-1">
                   {results.start} ~ {results.end}
-                  <span className="ml-1 text-[10px] sm:text-base text-gray-600 font-semibold">
+                  <span className="ml-1 text-[8px] md:text-[10px] text-gray-600 font-semibold">
                     (총 {results.end - results.start + 1}회)
                   </span>
                 </p>
-
-                <p className="text-[10px] sm:text-xs text-gray-500 mt-1 sm:mt-2">
+                <p className="text-[8px] md:text-[10px] text-gray-500 mt-1 md:mt-1">
                   {results.includeBonus
                     ? "보너스 번호 포함"
                     : "보너스 번호 제외"}
@@ -191,38 +225,32 @@ export default function NumberFrequency() {
               </div>
 
               {/* 가장 자주 나온 번호 */}
-              <div className="bg-linear-to-br from-red-50 to-orange-50 rounded-2xl shadow-xl p-4 sm:p-6 text-center border-t-4 border-red-500">
-                <div className="text-3xl sm:text-4xl mb-1 sm:mb-2">🔥</div>
-
-                <h3 className="text-xs sm:text-sm text-gray-600 mb-1 sm:mb-2 font-medium">
+              <div className="bg-linear-to-br from-red-50 to-orange-50 rounded-2xl shadow-xl p-3 md:p-4 text-center border-t-4 border-red-500">
+                <div className="text-2xl md:text-3xl mb-1 md:mb-1.5">🔥</div>
+                <h3 className="text-[10px] md:text-xs text-gray-600 mb-1 md:mb-1 font-medium">
                   가장 자주 나온 번호
                 </h3>
-
-                <p className="text-2xl sm:text-4xl font-bold text-red-600">
+                <p className="text-xl md:text-2xl font-bold text-red-600">
                   {most.join(", ")}
                 </p>
-
                 {most.length > 0 && (
-                  <p className="text-[10px] sm:text-sm text-gray-600 mt-1 sm:mt-2">
+                  <p className="text-[8px] md:text-[10px] text-gray-600 mt-1 md:mt-1">
                     {results.frequency[most[0]]}회 출현
                   </p>
                 )}
               </div>
 
               {/* 가장 적게 나온 번호 */}
-              <div className="bg-linear-to-br from-blue-50 to-cyan-50 rounded-2xl shadow-xl p-4 sm:p-6 text-center border-t-4 border-blue-500">
-                <div className="text-3xl sm:text-4xl mb-1 sm:mb-2">❄️</div>
-
-                <h3 className="text-xs sm:text-sm text-gray-600 mb-1 sm:mb-2 font-medium">
+              <div className="bg-linear-to-br from-blue-50 to-cyan-50 rounded-2xl shadow-xl p-3 md:p-4 text-center border-t-4 border-blue-500">
+                <div className="text-2xl md:text-3xl mb-1 md:mb-1.5">❄️</div>
+                <h3 className="text-[10px] md:text-xs text-gray-600 mb-1 md:mb-1 font-medium">
                   가장 적게 나온 번호
                 </h3>
-
-                <p className="text-2xl sm:text-4xl font-bold text-blue-600">
+                <p className="text-xl md:text-2xl font-bold text-blue-600">
                   {least.join(", ")}
                 </p>
-
                 {least.length > 0 && (
-                  <p className="text-[10px] sm:text-sm text-gray-600 mt-1 sm:mt-2">
+                  <p className="text-[8px] md:text-[10px] text-gray-600 mt-1 md:mt-1">
                     {results.frequency[least[0]]}회 출현
                   </p>
                 )}
@@ -280,82 +308,47 @@ export default function NumberFrequency() {
 
               {/* Number Grid */}
               <div className="grid grid-cols-5 sm:grid-cols-9 lg:grid-cols-15 gap-2 sm:gap-3">
-                {(() => {
-                  const freqValues = Object.values(results.frequency);
-                  const max = Math.max(...freqValues);
-                  const min = Math.min(...freqValues);
+                {Array.from({ length: 45 }, (_, i) => {
+                  const number = i + 1;
+                  const item = freqData[number] || { count: 0, rounds: [] };
 
-                  return Array.from({ length: 45 }, (_, i) => {
-                    const number = i + 1;
-                    const count = results.frequency[number] || 0;
-                    const rounds = freqData[number]?.rounds || [];
-
-                    const ratio = max === min ? 0 : (count - min) / (max - min);
-
-                    const r = Math.round(239 * ratio + 59 * (1 - ratio));
-                    const g = Math.round(68 * ratio + 130 * (1 - ratio));
-                    const b = Math.round(68 * ratio + 246 * (1 - ratio));
-
-                    const color = `rgb(${r}, ${g}, ${b})`;
-                    const isHovered = hoveredNumber === number;
-
-                    return (
-                      <div
-                        key={number}
-                        className={`relative flex flex-col items-center justify-center p-3 sm:p-4 rounded-xl text-white cursor-pointer transition-all transform ${
-                          isHovered
-                            ? "scale-110 shadow-2xl z-10 ring-4 ring-white"
-                            : "shadow-md hover:scale-105"
-                        }`}
-                        style={{ backgroundColor: color }}
-                        onMouseEnter={() => setHoveredNumber(number)}
-                        onMouseLeave={() => setHoveredNumber(null)}
-                      >
-                        <span className="text-xs font-medium opacity-90">
-                          #{number}
-                        </span>
-                        <span className="text-base sm:text-lg font-bold">
-                          {count}
-                        </span>
-
-                        {/* Tooltip */}
-                        {isHovered && (
-                          <div
-                            className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 px-4 py-3 rounded-lg shadow-2xl text-white text-sm leading-relaxed whitespace-nowrap z-50 animate-fadeIn"
-                            style={{ backgroundColor: color }}
-                          >
-                            <div className="font-semibold text-base mb-1">
-                              번호 {number}
-                            </div>
-                            <div className="text-sm">
-                              등장:{" "}
-                              <span className="font-semibold">{count}회</span>
-                            </div>
-                            {rounds.length > 0 && (
-                              <div className="mt-2 pt-2 border-t border-white/30">
-                                <div className="text-xs opacity-90 mb-1">
-                                  등장 회차:
-                                </div>
-                                <div className="text-xs opacity-90 max-w-xs">
-                                  {rounds.slice(0, 10).join(", ")}
-                                  {rounds.length > 10 && "..."}
-                                </div>
-                              </div>
-                            )}
-                            {/* Arrow */}
-                            <div
-                              className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-8 border-r-8 border-t-8 border-transparent"
-                              style={{ borderTopColor: color }}
-                            ></div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  });
-                })()}
+                  return (
+                    <HeatmapCell
+                      key={number}
+                      number={number}
+                      count={item.count}
+                      rounds={item.rounds}
+                      maxCount={maxFreq}
+                      minCount={minFreq}
+                    />
+                  );
+                })}
               </div>
             </div>
+
+            <Tooltip
+              id="lotto-tooltip"
+              place="top"
+              className="bg-transparent! p-0! shadow-none!"
+            />
           </>
+        )}
+
+        {/* bar chart for "frequency" */}
+        {results && Object.keys(results.frequency).length > 0 && (
+          <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 mb-6">
+            <h2 className="text-xl font-bold mb-4">📊 출현 빈도 그래프</h2>
+            <div style={{ width: "100%", height: 220 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={barChartData}>
+                  <XAxis dataKey="number" tick={{ fontSize: 10 }} />
+                  <YAxis tick={{ fontSize: 12 }} />
+                  <RechartTooltip />
+                  <Bar dataKey="count" fill="#3B82F6" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         )}
       </div>
 

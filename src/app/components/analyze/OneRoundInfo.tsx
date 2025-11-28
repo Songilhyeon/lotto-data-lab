@@ -5,13 +5,15 @@ import { LottoNumber } from "@/app/types/lotto";
 import LottoPaper from "@/app/components/LottoPaper";
 import LottoCard from "@/app/components/LottoCard";
 import SimplePattern from "@/app/components/SimplePattern";
-import { apiUrl, latestRound } from "@/app/utils/getUtils";
+import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
 
 export default function OneRoundInfo() {
-  const [round, setRound] = useState(latestRound);
-  const [inputRound, setInputRound] = useState(String(latestRound));
+  const [round, setRound] = useState(getLatestRound());
+  const [inputRound, setInputRound] = useState(String(getLatestRound()));
   const [lottoData, setLottoData] = useState<LottoNumber | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const latestRound = getLatestRound();
 
   useEffect(() => {
     if (!round) return;

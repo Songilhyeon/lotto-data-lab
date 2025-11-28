@@ -1,6 +1,5 @@
 // components/history/ResultCard.tsx
 "use client";
-import React from "react";
 import { FaPlus } from "react-icons/fa";
 import type { LottoNumber } from "@/app/types/lotto";
 import LottoBall from "@/app/components/LottoBall";

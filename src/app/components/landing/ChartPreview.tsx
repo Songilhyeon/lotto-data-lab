@@ -13,7 +13,7 @@ import {
   Cell,
 } from "recharts";
 import HeatmapCell from "@/app/components/HeatmapCell";
-import { apiUrl, latestRound } from "@/app/utils/getUtils";
+import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
 
 interface LottoDraw {
   drwNo: number;
@@ -23,6 +23,8 @@ interface LottoDraw {
 export default function ChartPreview() {
   const [draws, setDraws] = useState<LottoDraw[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const latestRound = getLatestRound();
 
   useEffect(() => {
     const fetchData = async () => {
