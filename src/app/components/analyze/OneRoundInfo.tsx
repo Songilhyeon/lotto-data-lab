@@ -12,6 +12,7 @@ export default function OneRoundInfo() {
   const [inputRound, setInputRound] = useState(String(getLatestRound()));
   const [lottoData, setLottoData] = useState<LottoNumber | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const latestRound = getLatestRound();
 
@@ -23,6 +24,13 @@ export default function OneRoundInfo() {
       try {
         const res = await fetch(`${apiUrl}/api/lotto/round/${round}`);
         const json = await res.json();
+
+        if (json.success !== true) {
+          setError(json.message);
+          setLottoData(null);
+          return;
+        }
+        setError(null);
         setLottoData(json.data);
       } catch (err) {
         console.error(err);
@@ -173,11 +181,18 @@ export default function OneRoundInfo() {
         )}
 
         {/* Cards */}
-        {!loading && (
+        {!loading && !error && (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             <LottoCard data={lottoData} />
             <SimplePattern data={lottoData} />
             <LottoPaper data={lottoData} />
+          </div>
+        )}
+
+        {/* Error */}
+        {!loading && error && (
+          <div className="bg-red-100 text-red-700 rounded-2xl shadow-xl p-8 sm:p-12 text-center">
+            <p className="text-base sm:text-lg font-medium">{error}</p>
           </div>
         )}
       </div>
