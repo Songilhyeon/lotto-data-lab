@@ -8,7 +8,7 @@ import {
   useEffect,
   ReactNode,
 } from "react";
-
+import { apiUrl } from "@/app/utils/getUtils";
 // ---------------------------
 // User 타입
 // ---------------------------
@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const logout = async () => {
     try {
-      await fetch(process.env.NEXT_PUBLIC_API_URL + "/auth/logout", {
+      await fetch(apiUrl + "/auth/logout", {
         method: "POST",
         credentials: "include",
       });
