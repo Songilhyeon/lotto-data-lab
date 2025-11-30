@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 export function Logo({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
   const sizeMap: Record<string, string> = {
     sm: "w-8 h-8",
