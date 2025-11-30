@@ -56,7 +56,7 @@ export default function NumberLab() {
     if (selectedNumbers.length === 0) return;
     setLoading(true);
     try {
-      const res = await fetch(`${apiUrl}/api/lotto/numberlab`, {
+      const res = await fetch(`${apiUrl}/lotto/numberlab`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ numbers: selectedNumbers }),

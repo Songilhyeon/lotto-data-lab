@@ -65,10 +65,10 @@ const LottoPatterns: React.FC = () => {
 
         const [patternRes, statsRes] = await Promise.all([
           fetch(
-            `${apiUrl}/api/lotto/pattern?lookback=${lookback}&topK=${topK}&minConsec=2&includeBonus=${includeBonus}`
+            `${apiUrl}/lotto/pattern?lookback=${lookback}&topK=${topK}&minConsec=2&includeBonus=${includeBonus}`
           ),
           fetch(
-            `${apiUrl}/api/lotto/frequency?start=${start}&end=${end}&includeBonus=${includeBonus}`
+            `${apiUrl}/lotto/frequency?start=${start}&end=${end}&includeBonus=${includeBonus}`
           ),
         ]);
 

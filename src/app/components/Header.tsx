@@ -34,7 +34,7 @@ export default function Header() {
   const handleTestLogin = async () => {
     try {
       const res = await fetch(
-        process.env.NEXT_PUBLIC_API_URL + "/api/auth/test-login",
+        process.env.NEXT_PUBLIC_API_URL + "/auth/test-login",
         {
           method: "POST",
           credentials: "include",

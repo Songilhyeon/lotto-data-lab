@@ -30,7 +30,7 @@ export default function ChartPreview() {
     const fetchData = async () => {
       try {
         const res = await fetch(
-          `${apiUrl}/api/lotto/frequency?start=${
+          `${apiUrl}/lotto/frequency?start=${
             latestRound - 19
           }&end=${latestRound}`
         );

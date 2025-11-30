@@ -42,7 +42,7 @@ export default function MultiRoundInfo() {
     const fetchData = async () => {
       try {
         const res = await fetch(
-          `${apiUrl}/api/lotto/rounds?start=${debouncedStart}&end=${debouncedEnd}`
+          `${apiUrl}/lotto/rounds?start=${debouncedStart}&end=${debouncedEnd}`
         );
         const json = await res.json();
 

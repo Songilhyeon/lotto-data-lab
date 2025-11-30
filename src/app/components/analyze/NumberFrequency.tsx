@@ -58,7 +58,7 @@ export default function NumberFrequency() {
       setLoading(true);
       try {
         const res = await fetch(
-          `${apiUrl}/api/lotto/frequency?start=${debouncedStart}&end=${debouncedEnd}&includeBonus=${includeBonus}`
+          `${apiUrl}/lotto/frequency?start=${debouncedStart}&end=${debouncedEnd}&includeBonus=${includeBonus}`
         );
         const data = await res.json();
 

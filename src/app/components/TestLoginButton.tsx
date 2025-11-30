@@ -2,7 +2,7 @@
 
 import { useContext } from "react";
 import { AuthContext } from "@/app/context/authContext";
-
+import { apiUrl } from "@/app/utils/getUtils";
 export default function TestLoginButton() {
   const auth = useContext(AuthContext);
   if (!auth) return null; // Context 없으면 렌더링 안함
@@ -10,7 +10,7 @@ export default function TestLoginButton() {
 
   const handleTestLogin = async () => {
     try {
-      const res = await fetch("http://localhost:4000/api/auth/test-login", {
+      const res = await fetch(apiUrl + "/auth/test-login", {
         method: "POST",
         credentials: "include",
       });

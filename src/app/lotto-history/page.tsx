@@ -43,9 +43,7 @@ export default function LottoHistoryPage() {
         params.append("start", String(debouncedStart));
         params.append("end", String(debouncedEnd));
 
-        const res = await fetch(
-          `${apiUrl}/api/lotto/history?${params.toString()}`
-        );
+        const res = await fetch(`${apiUrl}/lotto/history?${params.toString()}`);
         const result = await res.json();
 
         if (Array.isArray(result.data)) setResults(result.data);

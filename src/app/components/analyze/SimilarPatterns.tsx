@@ -61,7 +61,7 @@ export default function SimilarPatterns() {
       setLoading(true);
       try {
         const res = await fetch(
-          `${apiUrl}/api/lotto/similar?start=${debouncedStart}&end=${debouncedEnd}&includeBonus=${includeBonus}&minMatch=${minMatch}`
+          `${apiUrl}/lotto/similar?start=${debouncedStart}&end=${debouncedEnd}&includeBonus=${includeBonus}&minMatch=${minMatch}`
         );
         const json = await res.json();
 
