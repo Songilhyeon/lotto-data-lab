@@ -19,9 +19,9 @@ export default function Header() {
   } = useAuth();
 
   const oauthUrls = {
-    google: "http://localhost:4000/api/auth/google",
-    naver: "http://localhost:4000/api/auth/naver",
-    kakao: "http://localhost:4000/api/auth/kakao",
+    google: process.env.NEXT_PUBLIC_GOOGLE_API_URI,
+    naver: process.env.NEXT_PUBLIC_NAVER_API_URI,
+    kakao: process.env.NEXT_PUBLIC_KAKAO_API_URI,
   };
 
   const navLinks = [
@@ -33,10 +33,13 @@ export default function Header() {
 
   const handleTestLogin = async () => {
     try {
-      const res = await fetch("http://localhost:4000/api/auth/test-login", {
-        method: "POST",
-        credentials: "include",
-      });
+      const res = await fetch(
+        process.env.NEXT_PUBLIC_API_URL + "/api/auth/test-login",
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
       if (!res.ok) throw new Error("Test login failed");
       const data = await res.json();
       setUser(data.user);
@@ -161,19 +164,21 @@ export default function Header() {
             ) : (
               <>
                 <button
-                  onClick={() => (window.location.href = oauthUrls.google)}
+                  onClick={() =>
+                    (window.location.href = oauthUrls.google ?? "")
+                  }
                   className="px-3 py-1 bg-red-500 text-white rounded"
                 >
                   Google
                 </button>
                 <button
-                  onClick={() => (window.location.href = oauthUrls.naver)}
+                  onClick={() => (window.location.href = oauthUrls.naver ?? "")}
                   className="px-3 py-1 bg-green-500 text-white rounded"
                 >
                   Naver
                 </button>
                 <button
-                  onClick={() => (window.location.href = oauthUrls.kakao)}
+                  onClick={() => (window.location.href = oauthUrls.kakao ?? "")}
                   className="px-3 py-1 bg-yellow-400 text-black rounded"
                 >
                   Kakao
@@ -196,19 +201,19 @@ export default function Header() {
           <div className="bg-white rounded-lg p-6 w-80 flex flex-col gap-4">
             <h2 className="text-xl font-bold text-center">로그인</h2>
             <button
-              onClick={() => (window.location.href = oauthUrls.google)}
+              onClick={() => (window.location.href = oauthUrls.google ?? "")}
               className="bg-red-500 text-white px-4 py-2 rounded"
             >
               Google
             </button>
             <button
-              onClick={() => (window.location.href = oauthUrls.naver)}
+              onClick={() => (window.location.href = oauthUrls.naver ?? "")}
               className="bg-green-500 text-white px-4 py-2 rounded"
             >
               Naver
             </button>
             <button
-              onClick={() => (window.location.href = oauthUrls.kakao)}
+              onClick={() => (window.location.href = oauthUrls.kakao ?? "")}
               className="bg-yellow-400 text-black px-4 py-2 rounded"
             >
               Kakao

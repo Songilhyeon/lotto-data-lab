@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const logout = async () => {
     try {
-      await fetch("http://localhost:4000/api/auth/logout", {
+      await fetch(process.env.NEXT_PUBLIC_API_URL + "/api/auth/logout", {
         method: "POST",
         credentials: "include",
       });
@@ -69,9 +69,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch("http://localhost:4000/api/auth/me", {
-          credentials: "include",
-        });
+        const res = await fetch(
+          process.env.NEXT_PUBLIC_API_URL + "/api/auth/me",
+          {
+            credentials: "include",
+          }
+        );
         if (res.ok) {
           const data = await res.json();
           setUser(data.user ?? null);
