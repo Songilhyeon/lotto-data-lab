@@ -4,7 +4,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAuth } from "@/app/context/authContext";
+import { useAuth } from "@/app/contexts/authContext";
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);

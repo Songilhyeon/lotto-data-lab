@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "@/app/context/authContext";
+import { useAuth } from "@/app/contexts/authContext";
 
 import OneRoundInfo from "@/app/components/analyze/OneRoundInfo";
 import MultiRoundInfo from "@/app/components/analyze/MultiRoundInfo";
