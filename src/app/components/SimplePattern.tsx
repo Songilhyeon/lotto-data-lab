@@ -56,7 +56,8 @@ export default function SimplePattern({ data }: { data: LottoNumber | null }) {
   if (tempGroup.length > 1) consecutiveGroups.push(tempGroup);
 
   return (
-    <div className="bg-linear-to-br from-blue-50 to-cyan-50 rounded-2xl shadow-lg p-4 sm:p-6 border-t-4 border-blue-500 max-w-xl mx-auto">
+    // <div className="bg-linear-to-br from-blue-50 to-cyan-50 rounded-2xl shadow-lg p-4 sm:p-6 border-t-4 border-blue-500 max-w-xl mx-auto">
+    <div className="max-w-xl mx-auto rounded-2xl shadow-lg p-5 sm:p-6 border bg-linear-to-br from-blue-50 to-cyan-50 border-blue-500 ">
       <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">
         📊 패턴 분석 ({data.drwNo}회)
       </h2>

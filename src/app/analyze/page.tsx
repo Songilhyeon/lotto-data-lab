@@ -6,18 +6,20 @@ import { useAuth } from "@/app/context/authContext";
 import OneRoundInfo from "@/app/components/analyze/OneRoundInfo";
 import MultiRoundInfo from "@/app/components/analyze/MultiRoundInfo";
 import NumberFrequency from "@/app/components/analyze/NumberFrequency";
-import SimilarRounds from "@/app/components/analyze/SimilarPatterns";
+import NextPatterns from "@/app/components/analyze/NextPatterns";
 import NumberLab from "@/app/components/analyze/NumberLab";
 import LottoPatterns from "../components/analyze/LottoPatterns";
+import NumberRangeMatch from "@/app/components/analyze/NumberRange";
 
 // 모든 탭 정의
 const allTabs = [
   { id: "oneRound", label: "회차 정보", premiumOnly: false },
   { id: "multiRound", label: "기간별 정보", premiumOnly: false },
   { id: "numberFrequency", label: "번호별 빈도수", premiumOnly: false },
-  { id: "similar", label: "유사 회차", premiumOnly: true }, // PREMIUM만 보기
+  { id: "numberRange", label: "번호 구간", premiumOnly: false },
+  { id: "similar", label: "다음 회차", premiumOnly: true }, // PREMIUM만 보기
   { id: "numberLab", label: "번호 실험실", premiumOnly: true }, // PREMIUM만 보기
-  { id: "test", label: "테스트", primiumOnly: false },
+  { id: "test", label: "테스트 중", primiumOnly: false },
 ];
 
 export default function LottoAnalysisPage() {
@@ -37,8 +39,10 @@ export default function LottoAnalysisPage() {
         return <MultiRoundInfo />;
       case "numberFrequency":
         return <NumberFrequency />;
+      case "numberRange":
+        return <NumberRangeMatch />;
       case "similar":
-        return <SimilarRounds />;
+        return <NextPatterns />;
       case "numberLab":
         return <NumberLab />;
       case "test":

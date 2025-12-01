@@ -342,7 +342,7 @@ export default function NumberFrequency() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={barChartData}>
                   <XAxis dataKey="number" tick={{ fontSize: 10 }} />
-                  <YAxis tick={{ fontSize: 12 }} />
+                  <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
                   <RechartTooltip />
                   <Bar dataKey="count" fill="#3B82F6" radius={[6, 6, 0, 0]} />
                 </BarChart>

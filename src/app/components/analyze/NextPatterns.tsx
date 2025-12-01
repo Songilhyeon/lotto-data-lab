@@ -129,8 +129,8 @@ export default function SimilarPatterns() {
             🔮 다음 회차 번호 분석
           </h1>
           <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
-            특정 회차에서 번호가 얼마나 일치했는지에 따라, 다음 회차에서 어떤
-            번호가 자주 등장했는지 분석한 통계입니다.
+            특정 회차 당첨 번호가 과거 회차에 등장한 경우, 그 다음 회차에서 나온
+            번호들의 출현 횟수를 보여줍니다.
           </p>
         </div>
 
@@ -151,7 +151,7 @@ export default function SimilarPatterns() {
         {/* Match Count Tabs */}
         <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6">
           <h2 className="text-lg font-semibold text-gray-800 mb-3">
-            최소 일치 개수
+            기준 회차와 당첨 번호 일치 개수
           </h2>
           <div className="flex flex-wrap gap-2">
             {[1, 2, 3, 4].map((match) => (
@@ -267,10 +267,7 @@ export default function SimilarPatterns() {
                     tick={{ fontSize: 10 }}
                     interval="preserveStartEnd"
                   />
-                  <YAxis
-                    tick={{ fontSize: 12 }}
-                    tickFormatter={(value) => value.toFixed(0)}
-                  />
+                  <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
                   <RechartTooltip
                     contentStyle={{
                       backgroundColor: "rgba(255, 255, 255, 0.95)",
@@ -300,8 +297,8 @@ export default function SimilarPatterns() {
             </div>
             <p className="text-center text-sm sm:text-base text-gray-600 bg-purple-50 rounded-lg p-3">
               {minMatch === 4
-                ? "4개 이상 일치하는 회차 다음에 많이 나온 번호"
-                : `${minMatch}개 일치하는 회차 다음에 많이 나온 번호`}
+                ? "당첨 번호가 4개 이상 일치하는 회차의 다음 회차에 많이 나온 번호"
+                : `당첨 번호가 ${minMatch}개 일치하는 회차의 다음 회차에 많이 나온 번호`}
             </p>
           </div>
         )}

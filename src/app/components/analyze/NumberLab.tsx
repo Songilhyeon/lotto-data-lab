@@ -32,9 +32,9 @@ export default function NumberLab() {
   const [analysisResult, setAnalysisResult] = useState<
     Record<number, MatchResult[]>
   >({});
-  const [frequencyNext, setFrequencyNext] = useState<Record<number, number>>(
-    {}
-  );
+  const [frequencyNext, setFrequencyNext] = useState<
+    Record<string, Record<number, number>>
+  >({});
   const [appearRounds, setAppearRounds] = useState<Record<number, number[]>>(
     {}
   );
@@ -44,6 +44,15 @@ export default function NumberLab() {
 
   const [loading, setLoading] = useState(false);
   const [openCards, setOpenCards] = useState<Record<string, boolean>>({});
+
+  const matchTabs = [
+    { key: "1", label: "1개", description: "1개 일치" },
+    { key: "2", label: "2개", description: "2개 일치" },
+    { key: "3", label: "3개", description: "3개 일치" },
+    { key: "4+", label: "4+", description: "4개 이상 일치" },
+    { key: "all", label: "전체", description: "전체 합산" },
+  ];
+  const [activeTab, setActiveTab] = useState("all");
 
   const toggleNumber = (num: number) => {
     if (selectedNumbers.length >= 6 && !selectedNumbers.includes(num)) return;
@@ -68,6 +77,8 @@ export default function NumberLab() {
       // ensure keys 1..6 exist
       const fixed: Record<number, MatchResult[]> = {};
       for (let i = 1; i <= 6; i++) fixed[i] = matchGroups[i] || [];
+
+      console.log("data", data);
 
       setAnalysisResult(fixed);
       setFrequencyNext(data.frequencyNext || {});
@@ -114,11 +125,40 @@ export default function NumberLab() {
     }
   };
 
-  // bar chart data for "frequencyNext" (unchanged)
-  const barChartData = Array.from({ length: 45 }, (_, i) => {
-    const num = i + 1;
-    return { number: num, count: frequencyNext[num] ?? 0 };
-  });
+  // bar chart data
+  function getChartData() {
+    const keyMap: Record<string, string> = {
+      "1": "1",
+      "2": "2",
+      "3": "3",
+      "4+": "4+",
+    };
+
+    if (activeTab === "all") {
+      const base: Record<number, number> = {};
+      for (let n = 1; n <= 45; n++) base[n] = 0;
+
+      ["1", "2", "3", "4+"].forEach((k) => {
+        const row = frequencyNext[k] || {};
+        for (let n = 1; n <= 45; n++) {
+          base[n] += row[n] || 0;
+        }
+      });
+
+      return Array.from({ length: 45 }, (_, i) => {
+        const num = i + 1;
+        return { number: num, count: base[num] };
+      });
+    } else {
+      const activeKey = keyMap[activeTab];
+      const dataSource = frequencyNext[activeKey] || {};
+
+      return Array.from({ length: 45 }, (_, i) => {
+        const num = i + 1;
+        return { number: num, count: dataSource[num] ?? 0 };
+      });
+    }
+  }
 
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 p-4 sm:p-6 lg:p-8">
@@ -176,7 +216,7 @@ export default function NumberLab() {
             </div>
           </div>
 
-          <div className="bg-linear-to-br from-gray-50 to-gray-100 rounded-xl p-3">
+          <div className="max-w-xl mx-auto rounded-2xl shadow-lg p-5 sm:p-6 border bg-linear-to-br from-gray-50 to-gray-100">
             <div className="grid grid-cols-7 gap-2">
               {Array.from({ length: 45 }, (_, i) => i + 1).map((num) => (
                 <button
@@ -261,11 +301,32 @@ export default function NumberLab() {
         {Object.keys(frequencyNext).length > 0 && (
           <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 mb-6">
             <h2 className="text-xl font-bold mb-4">📊 다음 회차 출현 빈도</h2>
+
+            {/* Tabs */}
+            <div className="flex flex-col gap-2 mb-4">
+              <div className="flex gap-2">
+                {matchTabs.map((tab) => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setActiveTab(tab.key)}
+                    className={`px-4 py-2 rounded-full text-sm font-bold border ${
+                      activeTab === tab.key
+                        ? "bg-blue-500 text-white border-blue-500"
+                        : "bg-white text-gray-600 border-gray-300"
+                    }`}
+                  >
+                    {tab.description}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Bar Chart */}
             <div style={{ width: "100%", height: 220 }}>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={barChartData}>
+                <BarChart data={getChartData()}>
                   <XAxis dataKey="number" tick={{ fontSize: 10 }} />
-                  <YAxis tick={{ fontSize: 12 }} />
+                  <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
                   <RechartTooltip />
                   <Bar dataKey="count" fill="#3B82F6" radius={[6, 6, 0, 0]} />
                 </BarChart>
