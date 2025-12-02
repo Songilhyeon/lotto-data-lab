@@ -10,7 +10,7 @@ export default function HowItWorks() {
         </h2>
         <p className="text-gray-700 text-lg mb-4">1. 최근 N회 회차 선택</p>
         <p className="text-gray-700 text-lg mb-4">
-          2. 정렬, 보너스 포함 여부, 패턴 분석 옵션 활용
+          2. 보너스 포함 여부, 패턴 분석 옵션 활용
         </p>
         <p className="text-gray-700 text-lg mb-8">
           3. 로또 용지 UI와 히트맵으로 번호별 등장 빈도 확인

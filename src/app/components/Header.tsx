@@ -53,8 +53,6 @@ export default function Header() {
     }
   };
 
-  console.log(user);
-
   return (
     <>
       <header className="bg-white bg-opacity-95 backdrop-blur-sm shadow-md sticky top-0 z-50">
@@ -207,7 +205,10 @@ export default function Header() {
 
             {/* Google 로그인 버튼 */}
             <button
-              onClick={() => (window.location.href = oauthUrls.google ?? "")}
+              onClick={() => {
+                const redirectUrl = encodeURIComponent(window.location.origin);
+                window.location.href = `${oauthUrls.google}?state=${redirectUrl}`;
+              }}
               className="flex items-center justify-center gap-2 bg-white border border-gray-300 hover:bg-gray-100 text-gray-800 px-4 py-2 rounded shadow"
             >
               <FcGoogle className="w-5 h-5" />
@@ -216,13 +217,15 @@ export default function Header() {
 
             {/* Naver 로그인 버튼 */}
             <button
-              onClick={() => (window.location.href = oauthUrls.naver ?? "")}
+              onClick={() => {
+                const redirectUrl = encodeURIComponent(window.location.origin);
+                window.location.href = `${oauthUrls.naver}?state=${redirectUrl}`;
+              }}
               className="flex items-center justify-center gap-2 bg-[#03C75A] hover:bg-[#02b14b] text-white px-4 py-2 rounded shadow"
             >
               <SiNaver className="w-5 h-5" />
               <span>Naver로 로그인</span>
             </button>
-
             {/* 취소 버튼 */}
             <button
               onClick={closeLoginModal}
