@@ -53,13 +53,13 @@ export default function Header() {
     }
   };
 
+  console.log(user);
+
   return (
     <>
       <header className="bg-white bg-opacity-95 backdrop-blur-sm shadow-md sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
           <Logo />
-          <h1 className="font-bold text-xl">Lotto Data Lab</h1>
-
           {/* 데스크톱 네비 */}
           <nav className="hidden md:flex space-x-6 text-sm font-semibold text-gray-700 items-center">
             {navLinks.map((link) => (
