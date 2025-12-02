@@ -1,7 +1,7 @@
 "use client";
 
 import { useContext } from "react";
-import { AuthContext } from "@/app/contexts/authContext";
+import { AuthContext } from "@/app/context/authContext";
 import { apiUrl } from "@/app/utils/getUtils";
 export default function TestLoginButton() {
   const auth = useContext(AuthContext);

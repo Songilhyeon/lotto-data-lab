@@ -22,7 +22,6 @@ export default function OneRoundInfo() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        console.log(`${apiUrl}/lotto/round/${round}`);
         const res = await fetch(`${apiUrl}/lotto/round/${round}`);
         const json = await res.json();
 

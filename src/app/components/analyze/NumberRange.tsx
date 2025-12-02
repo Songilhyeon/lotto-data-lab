@@ -63,7 +63,6 @@ export default function NumberRangeMatch() {
         );
 
         const json = await res.json();
-        console.log(json);
         if (json.success && json.data) {
           setData(json.data);
           setSelectedRound(json.data.selectedRound);

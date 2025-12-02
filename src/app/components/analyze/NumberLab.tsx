@@ -78,8 +78,6 @@ export default function NumberLab() {
       const fixed: Record<number, MatchResult[]> = {};
       for (let i = 1; i <= 6; i++) fixed[i] = matchGroups[i] || [];
 
-      console.log("data", data);
-
       setAnalysisResult(fixed);
       setFrequencyNext(data.frequencyNext || {});
       setAppearRounds(data.appear || {});

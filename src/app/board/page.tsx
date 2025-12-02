@@ -1,5 +1,5 @@
 "use client";
-import { useAuth } from "@/app/contexts/authContext";
+import { useAuth } from "@/app/context/authContext";
 
 export default function BoardPage() {
   const { user, openLoginModal } = useAuth();

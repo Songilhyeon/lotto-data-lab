@@ -4,7 +4,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAuth } from "@/app/contexts/authContext";
+import { useAuth } from "@/app/context/authContext";
+import { Logo } from "./Footer";
+import { FcGoogle } from "react-icons/fc";
+import { SiNaver } from "react-icons/si";
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
@@ -27,8 +30,8 @@ export default function Header() {
   const navLinks = [
     { name: "홈", href: "/" },
     { name: "분석", href: "/analyze" },
-    { name: "게시판", href: "/board" },
     { name: "로또기록", href: "/lotto-history" },
+    { name: "게시판", href: "/board" },
   ];
 
   const handleTestLogin = async () => {
@@ -54,7 +57,8 @@ export default function Header() {
     <>
       <header className="bg-white bg-opacity-95 backdrop-blur-sm shadow-md sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
-          <h1 className="font-bold text-xl">Lotto Analysis</h1>
+          <Logo />
+          <h1 className="font-bold text-xl">Lotto Data Lab</h1>
 
           {/* 데스크톱 네비 */}
           <nav className="hidden md:flex space-x-6 text-sm font-semibold text-gray-700 items-center">
@@ -200,27 +204,29 @@ export default function Header() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg p-6 w-80 flex flex-col gap-4">
             <h2 className="text-xl font-bold text-center">로그인</h2>
+
+            {/* Google 로그인 버튼 */}
             <button
               onClick={() => (window.location.href = oauthUrls.google ?? "")}
-              className="bg-red-500 text-white px-4 py-2 rounded"
+              className="flex items-center justify-center gap-2 bg-white border border-gray-300 hover:bg-gray-100 text-gray-800 px-4 py-2 rounded shadow"
             >
-              Google
+              <FcGoogle className="w-5 h-5" />
+              <span>Google로 로그인</span>
             </button>
+
+            {/* Naver 로그인 버튼 */}
             <button
               onClick={() => (window.location.href = oauthUrls.naver ?? "")}
-              className="bg-green-500 text-white px-4 py-2 rounded"
+              className="flex items-center justify-center gap-2 bg-[#03C75A] hover:bg-[#02b14b] text-white px-4 py-2 rounded shadow"
             >
-              Naver
+              <SiNaver className="w-5 h-5" />
+              <span>Naver로 로그인</span>
             </button>
-            <button
-              onClick={() => (window.location.href = oauthUrls.kakao ?? "")}
-              className="bg-yellow-400 text-black px-4 py-2 rounded"
-            >
-              Kakao
-            </button>
+
+            {/* 취소 버튼 */}
             <button
               onClick={closeLoginModal}
-              className="mt-4 px-4 py-2 border rounded"
+              className="mt-4 px-4 py-2 border rounded hover:bg-gray-100"
             >
               취소
             </button>
