@@ -92,7 +92,7 @@ export default function PremiumAnalysis() {
   const latest = getLatestRound();
   const [round, setRound] = useState(latest);
   const [recentCount, setRecentCount] = useState(10);
-  const [includeBonus, setIncludeBonus] = useState(false);
+  const [bonusIncluded, setBonusIncluded] = useState(false);
   const [result, setResult] = useState<PremiumAnalysisData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -101,7 +101,7 @@ export default function PremiumAnalysis() {
   const prevParamsRef = useRef({
     round: -1,
     recentCount: -1,
-    includeBonus: !includeBonus,
+    bonusIncluded: !bonusIncluded,
   });
 
   const fetchData = async () => {
@@ -109,7 +109,7 @@ export default function PremiumAnalysis() {
     if (
       prev.round === round &&
       prev.recentCount === recentCount &&
-      prev.includeBonus === includeBonus
+      prev.bonusIncluded === bonusIncluded
     )
       return;
 
@@ -128,7 +128,7 @@ export default function PremiumAnalysis() {
 
     try {
       const res = await fetch(
-        `${apiUrl}/lotto/premium/analysis?round=${round}&includeBonus=${includeBonus}&recent=${recentCount}`,
+        `${apiUrl}/lotto/premium/analysis?round=${round}&bonusIncluded=${bonusIncluded}&recent=${recentCount}`,
         { credentials: "include" }
       );
       if (!res.ok) throw new Error(`Error ${res.status}`);
@@ -140,7 +140,7 @@ export default function PremiumAnalysis() {
       setError(err instanceof Error ? err.message : "알 수 없는 에러");
     } finally {
       setLoading(false);
-      prevParamsRef.current = { round, includeBonus, recentCount };
+      prevParamsRef.current = { round, bonusIncluded, recentCount };
     }
   };
 
@@ -172,9 +172,9 @@ export default function PremiumAnalysis() {
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <input
             type="checkbox"
-            id="includeBonus"
-            checked={includeBonus}
-            onChange={(e) => setIncludeBonus(e.target.checked)}
+            id="bonusIncluded"
+            checked={bonusIncluded}
+            onChange={(e) => setBonusIncluded(e.target.checked)}
             className="w-4 h-4"
           />
           <label htmlFor="includeBonus" className="text-sm text-gray-700">
@@ -220,10 +220,15 @@ export default function PremiumAnalysis() {
                   <LottoBall key={num} number={num} />
                 ))}
               </div>
+
               {result.nextRound.bonus && (
-                <span className="bg-blue-500 text-white font-bold px-2 py-1 rounded-full">
-                  +{result.nextRound.bonus}
-                </span>
+                <>
+                  {" "}
+                  <span className="text-sm font-medium text-yellow-800">/</span>
+                  <span className="bg-blue-500 text-white font-bold px-2 py-1 rounded-full">
+                    {result.nextRound.bonus}
+                  </span>
+                </>
               )}
             </div>
           )}
