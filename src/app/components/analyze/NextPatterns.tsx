@@ -14,6 +14,7 @@ import {
 } from "recharts";
 import SimilarPagination from "./SimilarPagination";
 import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
+import DraggableNextRound from "./DraggableNextRound";
 
 interface AnalysisResult {
   numbers: number[];
@@ -22,8 +23,9 @@ interface AnalysisResult {
 }
 
 interface LottoDraw {
-  drwNo: number;
+  round: number;
   numbers: number[];
+  bonus?: number;
 }
 
 export default function SimilarPatterns() {
@@ -223,7 +225,7 @@ export default function SimilarPatterns() {
         {/* Selected Round Info */}
         {!loading && selectedRound && (
           <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6">
-            <div className="flex flex-col lg:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-4">
               {/* 기준 회차 */}
               <div className="flex-1 bg-linear-to-br from-green-50 to-emerald-50 rounded-xl p-4 border-2 border-green-200">
                 <div className="flex items-center justify-between mb-3">
@@ -231,28 +233,23 @@ export default function SimilarPatterns() {
                     📌 기준 회차: {selectedRound.round}회
                   </span>
                 </div>
-                <div className="flex flex-wrap gap-2 justify-center">
-                  {selectedRound.numbers.map((num) => (
-                    <LottoBall key={num} number={num} />
+                <div className="flex flex-wrap gap-2 justify-center items-center">
+                  {selectedRound.numbers.map((num, index) => (
+                    <>
+                      {" "}
+                      {index === 6 && (
+                        <span className="text-sm font-medium text-yellow-800">
+                          /
+                        </span>
+                      )}
+                      <LottoBall key={index} number={num} />
+                    </>
                   ))}
                 </div>
               </div>
 
               {/* 🔵 다음 회차 (있을 경우만 표시) */}
-              {nextRound && (
-                <div className="flex-1 bg-linear-to-br from-sky-50 to-blue-50 rounded-xl p-4 border-2 border-sky-200">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-lg font-bold text-gray-800">
-                      ⏭️ 다음 회차: {nextRound.drwNo}회
-                    </span>
-                  </div>
-                  <div className="flex flex-wrap gap-2 justify-center">
-                    {nextRound.numbers.map((num) => (
-                      <LottoBall key={num} number={num} />
-                    ))}
-                  </div>
-                </div>
-              )}
+              {nextRound && <DraggableNextRound nextRound={nextRound} />}
 
               {/* 검색 결과 카드 */}
               <div className="flex-1 bg-linear-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border-2 border-blue-200 flex items-center justify-center">

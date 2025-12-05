@@ -27,6 +27,7 @@ interface ApiData {
 interface LottoDraw {
   round: number;
   numbers: number[];
+  bonus: number;
 }
 
 export default function NumberRangeMatch() {
@@ -155,10 +156,27 @@ export default function NumberRangeMatch() {
                 📌 기준 회차: {selectedRound?.round || "N/A"}회
               </span>
             </div>
-            <div className="flex flex-wrap gap-2 justify-center">
-              {selectedRound?.numbers.map((num) => (
-                <LottoBall key={num} number={num} />
-              ))}
+            <div className="flex flex-row justify-center">
+              <div className="flex flex-wrap gap-2 justify-center items-center">
+                {selectedRound?.numbers.map((num, index) => (
+                  <>
+                    {" "}
+                    {index === 6 && (
+                      <span className="text-sm font-medium text-yellow-800">
+                        /
+                      </span>
+                    )}
+                    <LottoBall key={num} number={num} />
+                  </>
+                ))}
+              </div>
+
+              {selectedRound?.bonus != null && (
+                <>
+                  <span className="text-sm font-medium text-yellow-800">/</span>
+                  <LottoBall number={selectedRound.bonus} />
+                </>
+              )}
             </div>
           </div>
 
@@ -170,10 +188,21 @@ export default function NumberRangeMatch() {
                   ⏭️ 다음 회차: {nextRound.round}회
                 </span>
               </div>
-              <div className="flex flex-wrap gap-2 justify-center">
-                {nextRound.numbers.map((num) => (
-                  <LottoBall key={num} number={num} />
-                ))}
+              <div className="flex flex-row justify-center items-center">
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {nextRound.numbers.map((num) => (
+                    <LottoBall key={num} number={num} />
+                  ))}
+                </div>
+
+                {nextRound.bonus != null && (
+                  <>
+                    <span className="text-sm font-medium text-yellow-800">
+                      /
+                    </span>
+                    <LottoBall number={nextRound.bonus} />
+                  </>
+                )}
               </div>
             </div>
           )}

@@ -1,18 +1,55 @@
 "use client";
 
-import React, { useState, useRef, useMemo } from "react";
+import React, { useState, useRef } from "react";
 import { useAuth } from "@/app/context/authContext";
 import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip as RechartTooltip,
-  Cell,
-} from "recharts";
 import LottoBall from "@/app/components/LottoBall";
+import DraggableNextRound from "@/app/components/analyze/DraggableNextRound";
+import { FreqChart } from "@/app/components/analyze/FreqChartComponent";
+
+/* -------------------------------
+      Single-Open Accordion
+--------------------------------*/
+const Accordion = ({
+  title,
+  chartKey,
+  openKey,
+  setOpenKey,
+  defaultOpen = false,
+  children,
+}: {
+  title: React.ReactNode;
+  chartKey: string;
+  openKey: string | null;
+  setOpenKey: (key: string | null) => void;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) => {
+  const isOpen = openKey === chartKey;
+
+  const handleToggle = () => {
+    if (isOpen) setOpenKey(null);
+    else setOpenKey(chartKey);
+  };
+
+  return (
+    <div className="border border-gray-200 rounded-xl mb-3 overflow-hidden shadow-sm">
+      <button
+        onClick={handleToggle}
+        className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 text-left"
+      >
+        <span className="font-semibold text-gray-800">{title}</span>
+        <span className="text-lg">{isOpen ? "▲" : "▼"}</span>
+      </button>
+
+      {isOpen && <div className="p-3 bg-white">{children}</div>}
+    </div>
+  );
+};
+
+/* -------------------------------
+      메인 페이지
+--------------------------------*/
 
 interface PremiumAnalysisData {
   round: number;
@@ -29,65 +66,6 @@ interface PremiumAnalysisData {
   };
 }
 
-// ----------------- 차트 컴포넌트 최적화 -----------------
-interface FreqChartProps {
-  record?: Record<number, number>;
-  title?: React.ReactNode;
-  color?: string;
-  height?: number;
-}
-// 1️⃣ 먼저 이름 있는 컴포넌트 정의
-const FreqChartComponent = ({
-  record,
-  title,
-  color = "#3b82f6",
-  height = 200,
-}: FreqChartProps) => {
-  const chartData = useMemo(() => {
-    if (!record) return [];
-    return Object.entries(record).map(([num, freq]) => ({
-      number: Number(num),
-      count: freq,
-    }));
-  }, [record]);
-
-  if (!record) return null;
-
-  const maxValue = Math.max(...chartData.map((d) => d.count));
-  const minValue = Math.min(...chartData.map((d) => d.count)); // (원하면 사용)
-
-  return (
-    <div className="mb-4">
-      <strong>{title}</strong>
-      <ResponsiveContainer width="100%" height={height}>
-        <BarChart data={chartData}>
-          <XAxis dataKey="number" />
-          <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
-          <RechartTooltip />
-
-          <Bar dataKey="count" radius={[6, 6, 0, 0]}>
-            {chartData.map((d, index) => {
-              // 강조 규칙
-              const isMax = d.count === maxValue;
-              const isMin = d.count === minValue; // (사용 선택)
-
-              let barColor = color;
-
-              if (isMax) barColor = "#ef4444"; // (최댓값 강조)
-              if (isMin) barColor = "#facc15"; // (최솟값 강조) ← 선택
-
-              return <Cell key={index} fill={barColor} />;
-            })}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
-  );
-};
-
-export const FreqChart = React.memo(FreqChartComponent);
-
-// ----------------- 메인 컴포넌트 -----------------
 export default function PremiumAnalysis() {
   const latest = getLatestRound();
   const [round, setRound] = useState(latest);
@@ -97,6 +75,9 @@ export default function PremiumAnalysis() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
+
+  // 🔥 현재 열린 아코디언 key (하나만 열림)
+  const [openKey, setOpenKey] = useState<string | null>("recent");
 
   const prevParamsRef = useRef({
     round: -1,
@@ -131,6 +112,7 @@ export default function PremiumAnalysis() {
         `${apiUrl}/lotto/premium/analysis?round=${round}&bonusIncluded=${bonusIncluded}&recent=${recentCount}`,
         { credentials: "include" }
       );
+
       if (!res.ok) throw new Error(`Error ${res.status}`);
       const json = await res.json();
 
@@ -152,7 +134,7 @@ export default function PremiumAnalysis() {
         프리미엄 분석
       </span>
 
-      {/* ----------------- 컨트롤 바 ----------------- */}
+      {/* --- 컨트롤 바 --- */}
       <div className="flex flex-wrap items-center gap-2 sm:gap-4 justify-center w-full sm:w-auto">
         <div className="flex items-center gap-2">
           <label className="font-medium text-sm sm:text-base">회차 선택:</label>
@@ -177,7 +159,7 @@ export default function PremiumAnalysis() {
             onChange={(e) => setBonusIncluded(e.target.checked)}
             className="w-4 h-4"
           />
-          <label htmlFor="includeBonus" className="text-sm text-gray-700">
+          <label htmlFor="bonusIncluded" className="text-sm text-gray-700">
             보너스 번호 포함
           </label>
         </div>
@@ -206,76 +188,86 @@ export default function PremiumAnalysis() {
       {loading && <div>분석 중...</div>}
       {error && <div className="text-red-500">{error}</div>}
 
-      {/* ----------------- 분석 결과 ----------------- */}
+      {/* --- 분석 결과 출력 --- */}
       {result && (
         <div>
           <h2 className="text-xl font-semibold mb-2">회차 {round} 분석</h2>
           {result?.nextRound && (
-            <div className="fixed top-35 left-1/2 transform -translate-x-1/2 bg-yellow-100 border border-yellow-400 rounded-xl px-4 py-2 shadow-md z-50 flex items-center gap-2">
-              <span className="font-bold">
-                다음 회차 {result.nextRound.round} 당첨번호:
-              </span>
-              <div className="flex flex-wrap gap-2 justify-center">
-                {result.nextRound.numbers.map((num) => (
-                  <LottoBall key={num} number={num} />
-                ))}
-              </div>
-
-              {result.nextRound.bonus && (
-                <>
-                  {" "}
-                  <span className="text-sm font-medium text-yellow-800">/</span>
-                  <span className="bg-blue-500 text-white font-bold px-2 py-1 rounded-full">
-                    {result.nextRound.bonus}
-                  </span>
-                </>
-              )}
-            </div>
+            <DraggableNextRound nextRound={result.nextRound} />
           )}
 
-          {/* 최근 빈도 차트 */}
-          <FreqChart
-            record={result.recentFreq}
-            title={`이전 ${recentCount}회 빈도`}
-            color="#10b981"
-            height={250}
-          />
-
-          {/* perNumberNextFreq 차트 */}
-          {Object.entries(result.perNumberNextFreq).map(([num, freq]) => (
+          {/* 최근 빈도 (기본 오픈 key = "recent") */}
+          <Accordion
+            title={`최근 ${recentCount}회 번호 빈도`}
+            chartKey="recent"
+            openKey={openKey}
+            setOpenKey={setOpenKey}
+          >
             <FreqChart
-              key={num}
-              record={freq}
-              title={
-                <div className="flex flex-row items-center justify-start text-center">
-                  <LottoBall number={Number(num)} /> 당첨 다음 회차 번호 빈도
-                </div>
-              }
-              color="#3b82f6"
+              record={result.recentFreq}
+              color="#10b981"
+              height={260}
             />
-          ))}
+          </Accordion>
+
+          {/* perNumberNextFreq */}
+          <Accordion
+            title="번호별 다음 회차 패턴 (45개)"
+            chartKey="perNumber"
+            openKey={openKey}
+            setOpenKey={setOpenKey}
+          >
+            {Object.entries(result.perNumberNextFreq).map(([num, freq]) => (
+              <div key={num} className="mb-4">
+                <FreqChart
+                  record={freq}
+                  title={
+                    <div className="flex flex-row items-center gap-2">
+                      <LottoBall number={Number(num)} />
+                      <span>→ 다음 회차 번호 빈도</span>
+                    </div>
+                  }
+                />
+              </div>
+            ))}
+          </Accordion>
 
           {/* kMatchNextFreq */}
-          {["1", "2", "3", "4+"].map((k) => (
+          <Accordion
+            title="일치 개수별 다음 회차 패턴"
+            chartKey="kmatch"
+            openKey={openKey}
+            setOpenKey={setOpenKey}
+          >
+            {["1", "2", "3", "4+"].map((k) => (
+              <div key={k} className="mb-4">
+                <FreqChart
+                  record={result.kMatchNextFreq[k]}
+                  title={`${k}개 일치 → 다음 회차 번호 빈도`}
+                  color="#10b981"
+                />
+              </div>
+            ))}
+          </Accordion>
+
+          {/* 패턴 */}
+          <Accordion
+            title="패턴별 다음 회차 패턴"
+            chartKey="pattern"
+            openKey={openKey}
+            setOpenKey={setOpenKey}
+          >
             <FreqChart
-              key={k}
-              record={result.kMatchNextFreq[k]}
-              title={`${k}개 일치 다음 회차 빈도`}
+              record={result.pattern10NextFreq.freq}
+              title={`10패턴 (${result.pattern10NextFreq.patternKey})`}
+              color="#3b82f6"
+            />
+            <FreqChart
+              record={result.pattern7NextFreq.freq}
+              title={`7패턴 (${result.pattern7NextFreq.patternKey})`}
               color="#10b981"
             />
-          ))}
-
-          {/* 패턴 차트 */}
-          <FreqChart
-            record={result.pattern10NextFreq.freq}
-            title={`10패턴 (${result.pattern10NextFreq.patternKey}) 다음 회차 빈도`}
-            color="#3b82f6"
-          />
-          <FreqChart
-            record={result.pattern7NextFreq.freq}
-            title={`7패턴 (${result.pattern7NextFreq.patternKey}) 다음 회차 빈도`}
-            color="#10b981"
-          />
+          </Accordion>
         </div>
       )}
     </div>

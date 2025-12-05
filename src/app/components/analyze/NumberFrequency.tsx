@@ -14,6 +14,7 @@ import {
   Cell,
 } from "recharts";
 import HeatmapCell from "@/app/components/HeatmapCell";
+import DraggableNextRound from "./DraggableNextRound";
 
 interface MultiRoundResponse {
   start: number;
@@ -24,8 +25,9 @@ interface MultiRoundResponse {
 }
 
 interface LottoDraw {
-  drwNo: number;
+  round: number;
   numbers: number[];
+  bonus?: number;
 }
 
 export default function NumberFrequency() {
@@ -126,7 +128,7 @@ export default function NumberFrequency() {
     draw.numbers.forEach((n) => {
       if (!freqData[n]) freqData[n] = { count: 0, rounds: [] };
       freqData[n].count++;
-      freqData[n].rounds.push(draw.drwNo);
+      freqData[n].rounds.push(draw.round);
     });
   });
 
@@ -154,6 +156,8 @@ export default function NumberFrequency() {
             특정 기간 동안 각 번호가 얼마나 자주 출현했는지 분석합니다.
           </p>
         </div>
+
+        {nextRound && <DraggableNextRound nextRound={nextRound} />}
 
         {/* Range Filter */}
         <RangeFilterBar
@@ -285,34 +289,6 @@ export default function NumberFrequency() {
                     색이 진할수록 많이 출현한 번호입니다
                   </p>
                 </div>
-
-                {/* nextRound 영역 */}
-                {nextRound && (
-                  <div className="flex flex-col sm:flex-row sm:items-center text-sm sm:text-lg text-gray-600">
-                    <span className="font-medium mb-1 sm:mb-0 sm:mr-2">
-                      {nextRound.drwNo} 회 :
-                    </span>
-
-                    <p className="flex gap-1 flex-wrap text-base sm:text-lg">
-                      {nextRound.numbers.map((num: number) => {
-                        const isMost = most.includes(num);
-                        const isLeast = least.includes(num);
-
-                        const colorClass = isMost
-                          ? "text-red-600 font-bold"
-                          : isLeast
-                          ? "text-blue-600 font-bold"
-                          : "text-gray-600";
-
-                        return (
-                          <span key={num} className={colorClass}>
-                            {num}
-                          </span>
-                        );
-                      })}
-                    </p>
-                  </div>
-                )}
               </div>
 
               {/* Legend */}
