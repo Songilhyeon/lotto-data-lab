@@ -44,13 +44,13 @@ export default function LottoCard({ data }: { data: LottoNumber | null }) {
 
       <div className="flex flex-wrap gap-2 sm:gap-3 justify-center mb-4">
         {numbers.map((num, idx) => (
-          <LottoBall key={idx} number={num} size="responsive" />
+          <LottoBall key={idx} number={num} size="lg" />
         ))}
       </div>
 
       <div className="flex items-center justify-center gap-2 sm:gap-3 py-2 border-t border-gray-200">
         <span className="text-xs sm:text-sm text-gray-600">보너스</span>
-        <LottoBall number={data.bnusNo} size="small" />
+        <LottoBall number={data.bnusNo} size="md" />
       </div>
 
       <div className="mt-4 pt-4 border-t border-gray-200 space-y-1 sm:space-y-2 text-sm sm:text-base">
