@@ -235,7 +235,7 @@ export default function SimilarPatterns() {
                 </div>
                 <div className="flex flex-wrap gap-2 justify-center items-center">
                   {selectedRound.numbers.map((num, index) => (
-                    <>
+                    <div key={index}>
                       {" "}
                       {index === 6 && (
                         <span className="text-sm font-medium text-yellow-800">
@@ -243,7 +243,7 @@ export default function SimilarPatterns() {
                         </span>
                       )}
                       <LottoBall key={index} number={num} />
-                    </>
+                    </div>
                   ))}
                 </div>
               </div>

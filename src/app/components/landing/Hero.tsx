@@ -2,37 +2,71 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
+import LottoBall from "@/app/components/LottoBall";
 
 export default function Hero() {
+  // 샘플 추천 번호 (MVP는 랜덤 or 고정)
+  const sampleNumbers = [3, 11, 19, 28, 37, 42];
+
   return (
-    <header className="bg-paper-pattern shadow-md">
-      <div className="max-w-6xl mx-auto px-6 py-16 text-center">
+    <header className="bg-linear-to-b from-blue-50 to-white shadow-sm border-b">
+      <div className="max-w-6xl mx-auto px-6 py-20 text-center">
+        {/* 상단 Sub Text */}
+        <motion.span
+          className="inline-block text-blue-600 font-semibold text-sm mb-3 tracking-wide"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6 }}
+        >
+          이번 주 로또 데이터 기반 추천
+        </motion.span>
+
+        {/* 메인 타이틀 */}
         <motion.h1
-          className="text-4xl md:text-5xl font-bold text-black mb-4"
-          initial={{ y: -50, opacity: 0 }}
+          className="text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight mb-4"
+          initial={{ y: -40, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.8 }}
         >
-          로또 데이터 실험실
+          더 똑똑하게 번호를 선택하세요
         </motion.h1>
+
+        {/* 서브 타이틀 */}
         <motion.p
-          className="text-black text-lg md:text-xl mb-8"
+          className="text-gray-600 text-lg md:text-xl mb-10 max-w-2xl mx-auto"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: 0.2, duration: 0.7 }}
         >
-          최신 당첨 회차 분석, 번호 패턴, 통계까지 한눈에 확인하세요.
+          당첨 번호 패턴 · 최근 10주 빈도 · 일치 패턴 · 다음 회차 예측까지 로또
+          데이터 실험실에서 분석한 핵심 결과를 제공합니다.
         </motion.p>
+
+        {/* 추천 번호 샘플 */}
         <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
+          className="flex justify-center gap-3 mb-10"
+          initial={{ scale: 0.85, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.6 }}
+          transition={{ delay: 0.45, duration: 0.6 }}
+        >
+          {sampleNumbers.map((n) => (
+            <LottoBall key={n} number={n} size="lg" pulse={true} />
+          ))}
+        </motion.div>
+
+        {/* CTA 버튼 */}
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.8, duration: 0.5 }}
         >
           <Link
             href="/analyze"
-            className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg text-lg font-semibold shadow-md hover:bg-blue-700 transition"
+            className="inline-block bg-blue-600 text-white px-8 py-4 rounded-xl 
+                       text-lg font-bold shadow-lg hover:bg-blue-700 hover:shadow-xl 
+                       transition active:scale-95"
           >
-            분석 시작하기
+            무료 분석 시작하기 →
           </Link>
         </motion.div>
       </div>

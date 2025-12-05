@@ -159,7 +159,7 @@ export default function NumberRangeMatch() {
             <div className="flex flex-row justify-center">
               <div className="flex flex-wrap gap-2 justify-center items-center">
                 {selectedRound?.numbers.map((num, index) => (
-                  <>
+                  <div key={index}>
                     {" "}
                     {index === 6 && (
                       <span className="text-sm font-medium text-yellow-800">
@@ -167,7 +167,7 @@ export default function NumberRangeMatch() {
                       </span>
                     )}
                     <LottoBall key={num} number={num} />
-                  </>
+                  </div>
                 ))}
               </div>
 
