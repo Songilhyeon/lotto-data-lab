@@ -1,6 +1,7 @@
 "use client";
 
 import { LottoNumber } from "@/app/types/lotto";
+import { cardWidth } from "../utils/getUtils";
 
 export default function LottoPaper({ data }: { data: LottoNumber | null }) {
   if (!data) return null;
@@ -20,8 +21,8 @@ export default function LottoPaper({ data }: { data: LottoNumber | null }) {
 
   return (
     <div
-      className="max-w-xl mx-auto rounded-2xl shadow-lg p-5 sm:p-6 border border-orange-300
-        bg-[url('https://www.transparenttextures.com/patterns/paper-fibers.png')]"
+      className={`${cardWidth} mx-auto rounded-2xl shadow-lg p-5 sm:p-6 border border-orange-300
+        bg-[url('https://www.transparenttextures.com/patterns/paper-fibers.png')]`}
     >
       {/* Header */}
       <div className="mb-3 text-center">

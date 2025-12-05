@@ -1,6 +1,7 @@
 "use client";
 
 import { LottoNumber } from "@/app/types/lotto";
+import { cardWidth } from "../utils/getUtils";
 import LottoBall from "./LottoBall";
 
 const formatNumber = (num: number) => {
@@ -29,7 +30,9 @@ export default function LottoCard({ data }: { data: LottoNumber | null }) {
 
   return (
     // <div className="bg-linear-to-br from-yellow-50 to-orange-50 rounded-2xl shadow-lg p-4 sm:p-6 border-t-4 border-yellow-500 max-w-xl mx-auto">
-    <div className="max-w-xl mx-auto rounded-2xl shadow-lg p-5 sm:p-6 border bg-linear-to-br from-yellow-50 to-orange-50 border-yellow-500">
+    <div
+      className={`${cardWidth}  mx-auto rounded-2xl shadow-lg p-5 sm:p-6 border bg-linear-to-br from-yellow-50 to-orange-50 border-yellow-500`}
+    >
       <div className="mb-4">
         <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-1">
           🎰 당첨 번호 ({data.drwNo}회)

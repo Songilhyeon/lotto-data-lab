@@ -20,3 +20,5 @@ export const getLatestRound = () => {
 
 const getApiUrl = () => process.env.NEXT_PUBLIC_API_URL;
 export const apiUrl = getApiUrl();
+
+export const cardWidth = "min-w-90";

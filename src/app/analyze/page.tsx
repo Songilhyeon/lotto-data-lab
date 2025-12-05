@@ -10,6 +10,7 @@ import NextPatterns from "@/app/components/analyze/NextPatterns";
 import NumberLab from "@/app/components/analyze/NumberLab";
 import LottoPatterns from "../components/analyze/LottoPatterns";
 import NumberRangeMatch from "@/app/components/analyze/NumberRange";
+import PremiumAnalysis from "@/app/components/analyze/PremiumAnalysis";
 
 // 모든 탭 정의
 const allTabs = [
@@ -17,8 +18,9 @@ const allTabs = [
   { id: "multiRound", label: "기간별 정보", premiumOnly: false },
   { id: "numberFrequency", label: "번호별 빈도수", premiumOnly: false },
   { id: "numberRange", label: "번호 구간", premiumOnly: false },
-  { id: "similar", label: "다음 회차", premiumOnly: true }, // PREMIUM만 보기
-  { id: "numberLab", label: "번호 실험실", premiumOnly: true }, // PREMIUM만 보기
+  { id: "similar", label: "다음 회차", premiumOnly: false },
+  { id: "numberLab", label: "번호 실험실", premiumOnly: false },
+  { id: "premiumAnalysis", label: "통합 분석", premiumOnly: true }, // PREMIUM 탭
   { id: "test", label: "테스트 중", primiumOnly: false },
 ];
 
@@ -31,6 +33,7 @@ export default function LottoAnalysisPage() {
     (tab) => !tab.premiumOnly || user?.role === "PREMIUM"
   );
 
+  // 탭 콘텐츠 렌더링
   const renderContent = () => {
     switch (activeTab) {
       case "oneRound":
@@ -41,6 +44,8 @@ export default function LottoAnalysisPage() {
         return <NumberFrequency />;
       case "numberRange":
         return <NumberRangeMatch />;
+      case "premiumAnalysis":
+        return <PremiumAnalysis />; // PremiumAnalysis 컴포넌트 자체에서 round 드롭다운 포함
       case "similar":
         return <NextPatterns />;
       case "numberLab":

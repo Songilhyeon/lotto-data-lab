@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import LottoBall from "../LottoBall";
 import RangeFilterBar from "../RangeFilterBar";
 import {
@@ -10,6 +10,7 @@ import {
   XAxis,
   YAxis,
   Tooltip as RechartTooltip,
+  Cell,
 } from "recharts";
 import SimilarPagination from "./SimilarPagination";
 import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
@@ -26,6 +27,7 @@ interface LottoDraw {
 }
 
 export default function SimilarPatterns() {
+  const latestRound = getLatestRound();
   const [results, setResults] = useState<AnalysisResult[]>([]);
   const [selectedRound, setSelectedRound] = useState<AnalysisResult | null>(
     null
@@ -35,60 +37,65 @@ export default function SimilarPatterns() {
   const [loading, setLoading] = useState(false);
 
   const [minMatch, setMinMatch] = useState(2);
-  const [start, setStart] = useState(getLatestRound() - 9);
-  const [end, setEnd] = useState(getLatestRound());
+  const [start, setStart] = useState(latestRound - 9);
+  const [end, setEnd] = useState(latestRound);
   const [includeBonus, setIncludeBonus] = useState(false);
   const [selectedRecent, setSelectedRecent] = useState<number | null>(10);
 
-  const latestRound = getLatestRound();
+  const prevParamsRef = useRef({
+    start: -1,
+    end: -1,
+    includeBonus: false,
+    minMatch: 2,
+  });
 
-  // 🔹 디바운스 상태
-  const [debouncedStart, setDebouncedStart] = useState(start);
-  const [debouncedEnd, setDebouncedEnd] = useState(end);
+  /** ️⃣ API 호출 함수 */
+  const fetchData = async () => {
+    const prev = prevParamsRef.current;
+    if (
+      prev.start === start &&
+      prev.end === end &&
+      prev.includeBonus === includeBonus &&
+      prev.minMatch === minMatch
+    ) {
+      console.log("⭐ same params, skip fetch");
+      return; // ← fetch 실행 안 함
+    }
 
-  // 디바운스 적용
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedStart(Math.min(start, end)); // 유효 범위 보정
-      setDebouncedEnd(Math.max(start, end));
-    }, 500); // 500ms 동안 입력이 없으면 적용
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `${apiUrl}/lotto/similar?start=${start}&end=${end}&includeBonus=${includeBonus}&minMatch=${minMatch}`
+      );
+      const json = await res.json();
 
-    return () => clearTimeout(handler);
-  }, [start, end]);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(
-          `${apiUrl}/lotto/similar?start=${debouncedStart}&end=${debouncedEnd}&includeBonus=${includeBonus}&minMatch=${minMatch}`
-        );
-        const json = await res.json();
-
-        if (!json.success || !json.data) {
-          setSelectedRound(null);
-          setResults([]);
-          setNextRound(null);
-          setFrequency({});
-          return;
-        }
-
-        setNextRound(json.data.nextRound);
-        setSelectedRound(json.data.selectedRound);
-        setResults(json.data.results);
-        setFrequency(json.data.nextFrequency);
-      } catch (err) {
-        console.error(err);
-        setNextRound(null);
+      if (!json.success || !json.data) {
         setSelectedRound(null);
         setResults([]);
+        setNextRound(null);
         setFrequency({});
-      } finally {
-        setLoading(false);
+        return;
       }
-    };
+
+      setNextRound(json.data.nextRound);
+      setSelectedRound(json.data.selectedRound);
+      setResults(json.data.results);
+      setFrequency(json.data.nextFrequency);
+    } catch (err) {
+      console.error(err);
+      setNextRound(null);
+      setSelectedRound(null);
+      setResults([]);
+      setFrequency({});
+    } finally {
+      setLoading(false);
+      prevParamsRef.current = { start, end, includeBonus, minMatch }; // ← params 저장
+    }
+  };
+
+  useEffect(() => {
     fetchData();
-  }, [minMatch, debouncedStart, debouncedEnd, includeBonus]);
+  }, []);
 
   // --- end 입력 시 recent 선택 해제 ---
   const handleEndChange = (value: number) => {
@@ -112,13 +119,17 @@ export default function SimilarPatterns() {
 
   const clearRecentSelect = () => setSelectedRecent(null);
 
-  const barChartData = Array.from({ length: 45 }, (_, i) => {
+  const chartData = Array.from({ length: 45 }, (_, i) => {
     const num = i + 1;
     return {
       number: num,
       count: frequency[num] ?? 0,
     };
   });
+
+  const color = "#3b82f6";
+  const maxValue = Math.max(...chartData.map((d) => d.count));
+  const minValue = Math.min(...chartData.map((d) => d.count)); // (원하면 사용)
 
   return (
     <div className="min-h-screen bg-linear-to-br from-purple-50 to-pink-100 p-4 sm:p-6 lg:p-8">
@@ -147,6 +158,16 @@ export default function SimilarPatterns() {
           onRecentSelect={handleRecent}
           clearRecentSelect={clearRecentSelect}
         />
+
+        {/* 조회하기 버튼 */}
+        <div className="flex justify-start mt-2 mb-6">
+          <button
+            onClick={fetchData}
+            className="px-5 py-2 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition"
+          >
+            {loading ? "조회 중..." : "조회하기"}
+          </button>
+        </div>
 
         {/* Match Count Tabs */}
         <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6">
@@ -260,38 +281,26 @@ export default function SimilarPatterns() {
               📊 다음 회차 출현 빈도
             </h2>
             <div className="w-full h-64 sm:h-80 mb-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={barChartData}>
-                  <XAxis
-                    dataKey="number"
-                    tick={{ fontSize: 10 }}
-                    interval="preserveStartEnd"
-                  />
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={chartData}>
+                  <XAxis dataKey="number" />
                   <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
-                  <RechartTooltip
-                    contentStyle={{
-                      backgroundColor: "rgba(255, 255, 255, 0.95)",
-                      border: "1px solid #e5e7eb",
-                      borderRadius: "8px",
-                    }}
-                  />
-                  <Bar
-                    dataKey="count"
-                    fill="url(#colorGradient)"
-                    radius={[8, 8, 0, 0]}
-                  />
-                  <defs>
-                    <linearGradient
-                      id="colorGradient"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop offset="0%" stopColor="#9333ea" stopOpacity={1} />
-                      <stop offset="100%" stopColor="#ec4899" stopOpacity={1} />
-                    </linearGradient>
-                  </defs>
+                  <RechartTooltip />
+
+                  <Bar dataKey="count" radius={[6, 6, 0, 0]}>
+                    {chartData.map((d, index) => {
+                      // 강조 규칙
+                      const isMax = d.count === maxValue;
+                      const isMin = d.count === minValue; // (사용 선택)
+
+                      let barColor = color;
+
+                      if (isMax) barColor = "#ef4444"; // (최댓값 강조)
+                      if (isMin) barColor = "#facc15"; // (최솟값 강조) ← 선택
+
+                      return <Cell key={index} fill={barColor} />;
+                    })}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>

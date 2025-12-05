@@ -115,7 +115,7 @@ export default function LottoHistoryPage() {
           ))}
         </select>
 
-        <label>검색 개수</label>
+        <label>결과 개수</label>
         <input
           type="number"
           min={1}

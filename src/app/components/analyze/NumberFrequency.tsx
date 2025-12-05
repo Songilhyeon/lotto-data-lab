@@ -1,7 +1,7 @@
 "use client";
 
 import { Tooltip } from "react-tooltip";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import RangeFilterBar from "@/app/components/RangeFilterBar";
 import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
 import {
@@ -11,6 +11,7 @@ import {
   XAxis,
   YAxis,
   Tooltip as RechartTooltip,
+  Cell,
 } from "recharts";
 import HeatmapCell from "@/app/components/HeatmapCell";
 
@@ -28,54 +29,57 @@ interface LottoDraw {
 }
 
 export default function NumberFrequency() {
-  const [start, setStart] = useState(getLatestRound() - 9);
-  const [end, setEnd] = useState(getLatestRound());
+  const latestRound = getLatestRound();
+  const [start, setStart] = useState(latestRound - 9);
+  const [end, setEnd] = useState(latestRound);
   const [includeBonus, setIncludeBonus] = useState(false);
   const [results, setResults] = useState<MultiRoundResponse | null>(null);
   const [draws, setDraws] = useState<LottoDraw[]>([]);
-  const [loading, setLoading] = useState(false);
   const [selectedRecent, setSelectedRecent] = useState<number | null>(10);
   const [nextRound, setNextRound] = useState<LottoDraw | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const latestRound = getLatestRound();
+  const prevParamsRef = useRef({
+    start: -1,
+    end: -1,
+    includeBonus: !includeBonus,
+  });
 
-  // 🔹 디바운스 상태
-  const [debouncedStart, setDebouncedStart] = useState(start);
-  const [debouncedEnd, setDebouncedEnd] = useState(end);
+  const fetchData = async () => {
+    const prev = prevParamsRef.current;
+    if (
+      prev.start === start &&
+      prev.end === end &&
+      prev.includeBonus === includeBonus
+    ) {
+      console.log("⭐ same params, skip fetch");
+      return; // ← fetch 실행 안 함
+    }
 
-  // 디바운스 적용
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `${apiUrl}/lotto/frequency?start=${start}&end=${end}&includeBonus=${includeBonus}`
+      );
+      const data = await res.json();
+
+      setResults(data.data);
+      setDraws(data.data.roundResults || []);
+      setNextRound(data.data.nextRound || null);
+    } catch (err) {
+      console.error(err);
+      setResults(null);
+      setDraws([]);
+      setNextRound(null);
+    } finally {
+      setLoading(false);
+      prevParamsRef.current = { start, end, includeBonus };
+    }
+  };
+
   useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedStart(Math.min(start, end)); // 유효 범위 보정
-      setDebouncedEnd(Math.max(start, end));
-    }, 500); // 500ms 동안 입력이 없으면 적용
-
-    return () => clearTimeout(handler);
-  }, [start, end]);
-
-  useEffect(() => {
-    const fetchStatistics = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(
-          `${apiUrl}/lotto/frequency?start=${debouncedStart}&end=${debouncedEnd}&includeBonus=${includeBonus}`
-        );
-        const data = await res.json();
-
-        setResults(data.data);
-        setDraws(data.data.roundResults || []);
-        setNextRound(data.data.nextRound || null);
-      } catch (err) {
-        console.error(err);
-        setResults(null);
-        setDraws([]);
-        setNextRound(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchStatistics();
-  }, [debouncedStart, debouncedEnd, includeBonus]);
+    fetchData();
+  }, []);
 
   // --- end 입력 시 recent 선택 해제 ---
   const handleEndChange = (value: number) => {
@@ -131,10 +135,12 @@ export default function NumberFrequency() {
   const minFreq = Math.min(...freqValues);
 
   // bar chart data for "frequencyNext" (unchanged)
-  const barChartData = Array.from({ length: 45 }, (_, i) => {
+  const chartData = Array.from({ length: 45 }, (_, i) => {
     const num = i + 1;
     return { number: num, count: results?.frequency[num] ?? 0 };
   });
+
+  const color = "#3b82f6";
 
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 to-cyan-100 p-4 sm:p-6 lg:p-8">
@@ -162,6 +168,16 @@ export default function NumberFrequency() {
           onRecentSelect={handleRecent}
           clearRecentSelect={clearRecentSelect}
         />
+
+        {/* 조회하기 버튼 */}
+        <div className="flex justify-start mt-2 mb-6">
+          <button
+            onClick={fetchData}
+            className="px-5 py-2 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition"
+          >
+            {loading ? "조회 중..." : "조회하기"}
+          </button>
+        </div>
 
         {/* Loading State */}
         {loading && (
@@ -340,11 +356,24 @@ export default function NumberFrequency() {
             <h2 className="text-xl font-bold mb-4">📊 출현 빈도 그래프</h2>
             <div style={{ width: "100%", height: 220 }}>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={barChartData}>
+                <BarChart data={chartData}>
                   <XAxis dataKey="number" tick={{ fontSize: 10 }} />
                   <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
                   <RechartTooltip />
-                  <Bar dataKey="count" fill="#3B82F6" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="count" radius={[6, 6, 0, 0]}>
+                    {chartData.map((d, index) => {
+                      // 강조 규칙
+                      const isMax = d.count === maxFreq;
+                      const isMin = d.count === minFreq; // (사용 선택)
+
+                      let barColor = color;
+
+                      if (isMax) barColor = "#ef4444"; // (최댓값 강조)
+                      if (isMin) barColor = "#facc15"; // (최솟값 강조) ← 선택
+
+                      return <Cell key={index} fill={barColor} />;
+                    })}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>

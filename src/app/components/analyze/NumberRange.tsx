@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import RangeFilterBar from "../RangeFilterBar";
 import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
 import SimpleBarChart from "./SimpleBarChart";
@@ -31,7 +31,6 @@ interface LottoDraw {
 
 export default function NumberRangeMatch() {
   const latestRound = getLatestRound();
-
   const [selectedRound, setSelectedRound] = useState<LottoDraw | null>(null);
   const [nextRound, setNextRound] = useState<LottoDraw | null>(null);
   const [start, setStart] = useState(latestRound - 9);
@@ -41,49 +40,54 @@ export default function NumberRangeMatch() {
   const [data, setData] = useState<ApiData | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const [debouncedStart, setDebouncedStart] = useState(start);
-  const [debouncedEnd, setDebouncedEnd] = useState(end);
+  const prevParamsRef = useRef({
+    start: -1,
+    end: -1,
+    includeBonus: !includeBonus,
+  });
 
-  // 디바운스
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedStart(Math.min(start, end));
-      setDebouncedEnd(Math.max(start, end));
-    }, 500);
-    return () => clearTimeout(handler);
-  }, [start, end]);
+  const fetchData = async () => {
+    const prev = prevParamsRef.current;
+    if (
+      prev.start === start &&
+      prev.end === end &&
+      prev.includeBonus === includeBonus
+    ) {
+      console.log("⭐ same params, skip fetch");
+      return; // ← fetch 실행 안 함
+    }
 
-  // fetch
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(
-          `${apiUrl}/lotto/range?start=${debouncedStart}&end=${debouncedEnd}&includeBonus=${includeBonus}`
-        );
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `${apiUrl}/lotto/range?start=${start}&end=${end}&includeBonus=${includeBonus}`
+      );
 
-        const json = await res.json();
-        if (json.success && json.data) {
-          setData(json.data);
-          setSelectedRound(json.data.selectedRound);
-          setNextRound(json.data.nextRound);
-        } else {
-          setData(null);
-          setSelectedRound(null);
-          setNextRound(null);
-        }
-      } catch (err) {
-        console.error(err);
+      const json = await res.json();
+      if (json.success && json.data) {
+        setData(json.data);
+        setSelectedRound(json.data.selectedRound);
+        setNextRound(json.data.nextRound);
+      } else {
         setData(null);
         setSelectedRound(null);
         setNextRound(null);
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (err) {
+      console.error(err);
+      setData(null);
+      setSelectedRound(null);
+      setNextRound(null);
+    } finally {
+      setLoading(false);
+      // 3) fetch가 끝나고 나서 *현재 값을 이전 값으로 저장*
+      prevParamsRef.current = { start, end, includeBonus };
+    }
+  };
 
+  useEffect(() => {
     fetchData();
-  }, [debouncedStart, debouncedEnd, includeBonus]);
+  }, []);
 
   const handleEndChange = (value: number) => {
     if (value < start) setStart(value);
@@ -132,6 +136,16 @@ export default function NumberRangeMatch() {
           onRecentSelect={handleRecent}
           clearRecentSelect={clearRecentSelect}
         />
+
+        {/* 조회하기 버튼 */}
+        <div className="flex justify-start mt-2 mb-6">
+          <button
+            onClick={fetchData}
+            className="px-5 py-2 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition"
+          >
+            {loading ? "조회 중..." : "조회하기"}
+          </button>
+        </div>
 
         <div className="flex flex-col sm:flex-row gap-4">
           {/* 기준 회차 */}

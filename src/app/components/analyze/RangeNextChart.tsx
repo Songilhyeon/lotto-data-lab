@@ -7,6 +7,7 @@ import {
   YAxis,
   Tooltip as RechartTooltip,
   ResponsiveContainer,
+  Cell,
 } from "recharts";
 
 export default function NextFrequencyChart({
@@ -14,7 +15,7 @@ export default function NextFrequencyChart({
   title,
 }: {
   frequency: Record<number, number>;
-  title: string;
+  title: React.ReactNode;
 }) {
   // 데이터 변환
   const getChartData = () => {
@@ -29,6 +30,10 @@ export default function NextFrequencyChart({
 
     return full;
   };
+  const chartData = getChartData();
+  const maxValue = Math.max(...chartData.map((d) => d.count));
+  const minValue = Math.min(...chartData.map((d) => d.count)); // (원하면 사용)
+  const color = "#3B82F6";
 
   return (
     <div className="bg-white rounded-xl shadow p-4 mb-6">
@@ -36,11 +41,24 @@ export default function NextFrequencyChart({
 
       <div style={{ width: "100%", height: 220 }}>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={getChartData()}>
+          <BarChart data={chartData}>
             <XAxis dataKey="number" tick={{ fontSize: 10 }} />
             <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
             <RechartTooltip />
-            <Bar dataKey="count" fill="#3B82F6" radius={[6, 6, 0, 0]} />
+            <Bar dataKey="count" radius={[6, 6, 0, 0]}>
+              {chartData.map((d, index) => {
+                // 강조 규칙
+                const isMax = d.count === maxValue;
+                const isMin = d.count === minValue; // (사용 선택)
+
+                let barColor = color;
+
+                if (isMax) barColor = "#ef4444"; // (최댓값 강조)
+                if (isMin) barColor = "#facc15"; // (최솟값 강조) ← 선택
+
+                return <Cell key={index} fill={barColor} />;
+              })}
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>

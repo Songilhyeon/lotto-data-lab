@@ -1,6 +1,7 @@
 "use client";
 
 import { LottoNumber } from "@/app/types/lotto";
+import { cardWidth } from "@/app/utils/getUtils";
 
 export default function SimplePattern({ data }: { data: LottoNumber | null }) {
   if (!data) {
@@ -23,9 +24,11 @@ export default function SimplePattern({ data }: { data: LottoNumber | null }) {
     data.bnusNo,
   ];
 
+  // 홀짝
   const oddCount = numbers.filter((n) => n % 2 === 1).length;
   const evenCount = numbers.length - oddCount;
 
+  // 구간별 카운트
   const ranges = [0, 0, 0, 0, 0];
   numbers.forEach((n) => {
     if (n <= 10) ranges[0]++;
@@ -35,8 +38,10 @@ export default function SimplePattern({ data }: { data: LottoNumber | null }) {
     else ranges[4]++;
   });
 
+  // 합계
   const sum = numbers.reduce((a, b) => a + b, 0);
 
+  // 연속 숫자
   const consecutiveGroups: number[][] = [];
   let tempGroup: number[] = [];
 
@@ -52,49 +57,53 @@ export default function SimplePattern({ data }: { data: LottoNumber | null }) {
       }
     }
   }
-
   if (tempGroup.length > 1) consecutiveGroups.push(tempGroup);
 
+  // 끝자리 수 카운트 (0~9)
+  const lastDigitCounts = Array(10).fill(0);
+  numbers.forEach((n) => {
+    lastDigitCounts[n % 10]++;
+  });
+
   return (
-    // <div className="bg-linear-to-br from-blue-50 to-cyan-50 rounded-2xl shadow-lg p-4 sm:p-6 border-t-4 border-blue-500 max-w-xl mx-auto">
-    <div className="max-w-xl mx-auto rounded-2xl shadow-lg p-5 sm:p-6 border bg-linear-to-br from-blue-50 to-cyan-50 border-blue-500 ">
+    <div
+      className={`${cardWidth} mx-auto rounded-2xl shadow-lg p-5 sm:p-6 border bg-linear-to-br from-blue-50 to-cyan-50 border-blue-500`}
+    >
       <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">
         📊 패턴 분석 ({data.drwNo}회)
       </h2>
 
-      <div className="space-y-3 sm:space-y-4 text-sm sm:text-base">
+      <div className="space-y-3 sm:space-y-4 text-xs sm:text-sm">
         {/* 홀짝 */}
         <div>
-          <h3 className="text-xs sm:text-sm font-semibold text-gray-700 mb-2">
+          <h3 className="text-xs font-semibold text-gray-700 mb-1">
             홀짝 비율
           </h3>
           <div className="flex gap-2">
-            <div className="flex-1 bg-blue-500 text-white rounded-lg p-2 sm:p-3 text-center">
-              <div className="text-[10px] sm:text-xs mb-1">홀수</div>
-              <div className="text-xl sm:text-2xl font-bold">{oddCount}</div>
+            <div className="flex-1 bg-blue-500 text-white rounded-lg p-2 text-center">
+              <div className="text-[10px] mb-1">홀수</div>
+              <div className="text-lg font-bold">{oddCount}</div>
             </div>
-            <div className="flex-1 bg-red-500 text-white rounded-lg p-2 sm:p-3 text-center">
-              <div className="text-[10px] sm:text-xs mb-1">짝수</div>
-              <div className="text-xl sm:text-2xl font-bold">{evenCount}</div>
+            <div className="flex-1 bg-red-500 text-white rounded-lg p-2 text-center">
+              <div className="text-[10px] mb-1">짝수</div>
+              <div className="text-lg font-bold">{evenCount}</div>
             </div>
           </div>
         </div>
 
         {/* 구간 분포 */}
         <div>
-          <h3 className="text-xs sm:text-sm font-semibold text-gray-700 mb-2">
+          <h3 className="text-xs font-semibold text-gray-700 mb-1">
             구간 분포
           </h3>
-          <div className="grid grid-cols-5 gap-1 sm:gap-2">
+          <div className="grid grid-cols-5 gap-1">
             {["1-10", "11-20", "21-30", "31-40", "41-45"].map((label, idx) => (
               <div
                 key={idx}
-                className="bg-white rounded-lg p-1 sm:p-2 text-center border-2 border-gray-200"
+                className="bg-white rounded-lg p-1.5 text-center border-2 border-gray-200"
               >
-                <div className="text-[9px] sm:text-xs text-gray-600">
-                  {label}
-                </div>
-                <div className="text-lg sm:text-xl font-bold text-gray-800">
+                <div className="text-[9px] text-gray-600">{label}</div>
+                <div className="text-lg font-bold text-gray-800">
                   {ranges[idx]}
                 </div>
               </div>
@@ -102,9 +111,27 @@ export default function SimplePattern({ data }: { data: LottoNumber | null }) {
           </div>
         </div>
 
+        {/* 끝자리 분포 */}
+        <div>
+          <h3 className="text-xs font-semibold text-gray-700 mb-1">
+            끝자리 분포 (0~9)
+          </h3>
+          <div className="grid grid-cols-10 gap-1">
+            {lastDigitCounts.map((count, digit) => (
+              <div
+                key={digit}
+                className="bg-white rounded-md p-1 text-center border border-gray-200"
+              >
+                <div className="text-[8px] text-gray-600">{digit}</div>
+                <div className="text-sm font-bold">{count}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* 연속 숫자 */}
         <div>
-          <p className="text-sm font-semibold text-gray-700 mb-1">연속 숫자</p>
+          <p className="text-xs font-semibold text-gray-700 mb-1">연속 숫자</p>
           {consecutiveGroups.length > 0 ? (
             consecutiveGroups.map((group, idx) => (
               <p key={idx} className="text-sm font-bold text-red-500">
@@ -118,13 +145,11 @@ export default function SimplePattern({ data }: { data: LottoNumber | null }) {
 
         {/* 합계 */}
         <div>
-          <h3 className="text-xs sm:text-sm font-semibold text-gray-700 mb-2">
+          <h3 className="text-xs font-semibold text-gray-700 mb-1">
             번호 합계
           </h3>
-          <div className="bg-white rounded-lg p-2 sm:p-3 text-center border-2 border-gray-200">
-            <div className="text-xl sm:text-2xl font-bold text-gray-800">
-              {sum}
-            </div>
+          <div className="bg-white rounded-lg p-2 text-center border-2 border-gray-200">
+            <div className="text-xl font-bold text-gray-800">{sum}</div>
           </div>
         </div>
       </div>

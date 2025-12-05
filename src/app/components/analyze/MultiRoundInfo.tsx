@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import LottoPaper from "@/app/components/LottoPaper";
 import LottoCard from "@/app/components/LottoCard";
 import SimplePattern from "@/app/components/SimplePattern";
@@ -11,64 +11,58 @@ import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
 const PAGE_SIZE = 12; // 한 페이지에 보여줄 개수
 
 export default function MultiRoundInfo() {
-  const [start, setStart] = useState(getLatestRound() - 9);
-  const [end, setEnd] = useState(getLatestRound());
+  const latestRound = getLatestRound();
+  const [start, setStart] = useState(latestRound - 9);
+  const [end, setEnd] = useState(latestRound);
   const [lottoData, setLottoData] = useState<LottoNumber[] | null>([]);
   const [viewType, setViewType] = useState<"card" | "pattern" | "paper">(
     "card"
   );
   const [selectedRecent, setSelectedRecent] = useState<number | null>(10);
   const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(false);
 
-  const latestRound = getLatestRound();
+  const prevParamsRef = useRef({
+    start: -1,
+    end: -1,
+  });
 
-  // 🔹 디바운스 상태
-  const [debouncedStart, setDebouncedStart] = useState(start);
-  const [debouncedEnd, setDebouncedEnd] = useState(end);
+  /** ️API 호출 함수 */
+  const fetchData = async () => {
+    const prev = prevParamsRef.current;
+    if (prev.start === start && prev.end === end) {
+      console.log("⭐ same params, skip fetch");
+      return; // ← fetch 실행 안 함
+    }
 
-  // 디바운스 적용
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedStart(Math.min(start, end)); // 유효 범위 보정
-      setDebouncedEnd(Math.max(start, end));
-    }, 500); // 500ms 동안 입력이 없으면 적용
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `${apiUrl}/lotto/rounds?start=${start}&end=${end}`
+      );
+      const json = await res.json();
 
-    return () => clearTimeout(handler);
-  }, [start, end]);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchData = async () => {
-      try {
-        const res = await fetch(
-          `${apiUrl}/lotto/rounds?start=${debouncedStart}&end=${debouncedEnd}`
-        );
-        const json = await res.json();
-
-        if (!json.data || !json.success) {
-          if (!isMounted) return;
-          setLottoData([]);
-          return;
-        }
-
-        if (!isMounted) return;
+      if (!json.success || !json.data) {
+        setLottoData([]);
+      } else {
         const sorted = [...json.data].sort((a, b) => b.drwNo - a.drwNo);
         setLottoData(sorted);
-        setCurrentPage(1);
-      } catch (err) {
-        console.error(err);
-        if (!isMounted) return;
-        setLottoData(null);
       }
-    };
+      setCurrentPage(1);
+    } catch (err) {
+      console.error(err);
+      setLottoData(null);
+    } finally {
+      setLoading(false);
+      prevParamsRef.current = { start, end }; // ← params 저장
+    }
+  };
 
+  useEffect(() => {
     fetchData();
-    return () => {
-      isMounted = false;
-    };
-  }, [debouncedStart, debouncedEnd]);
+  }, []);
 
+  /** ️⃣ RangeFilterBar 이벤트 START */
   // --- end 입력 시 recent 선택 해제 ---
   const handleEndChange = (value: number) => {
     if (value < start) setStart(value);
@@ -90,6 +84,7 @@ export default function MultiRoundInfo() {
   };
 
   const clearRecentSelect = () => setSelectedRecent(null);
+  /** ️⃣ RangeFilterBar 이벤트 END */
 
   // --- 페이지네이션 계산 ---
   const totalPages = Math.ceil((lottoData || []).length / PAGE_SIZE);
@@ -112,6 +107,16 @@ export default function MultiRoundInfo() {
         showCheckBox={false}
       />
 
+      {/* 조회하기 버튼 */}
+      <div className="flex justify-start mt-2 mb-6">
+        <button
+          onClick={fetchData}
+          className="px-5 py-2 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition"
+        >
+          {loading ? "조회 중..." : "조회하기"}
+        </button>
+      </div>
+
       {/* viewType 선택 */}
       <div className="flex gap-3 justify-center mt-4">
         {["card", "pattern", "paper"].map((type) => (
@@ -133,8 +138,14 @@ export default function MultiRoundInfo() {
         ))}
       </div>
 
+      {loading && (
+        <div className="text-center text-gray-600 mt-6">
+          데이터 불러오는 중...
+        </div>
+      )}
+
       {/* 데이터 표시 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 justify-center gap-5 mt-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center gap-5 mt-6">
         {pagedData.map((data) => {
           if (viewType === "card")
             return <LottoCard key={data.drwNo} data={data} />;

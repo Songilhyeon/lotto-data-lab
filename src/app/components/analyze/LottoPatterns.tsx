@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   BarChart,
   Bar,
@@ -41,52 +41,69 @@ interface StatisticsResponse {
   };
 }
 
-const LottoPatterns: React.FC = () => {
+export default function LottoPatterns() {
+  const latestRound = getLatestRound();
   const [patternData, setPatternData] = useState<PatternResponse | null>(null);
   const [statisticsData, setStatisticsData] = useState<
     StatisticsResponse["data"] | null
   >(null);
   const [loading, setLoading] = useState(true);
-
-  // 필터 상태
-  const [start, setStart] = useState(getLatestRound() - 19);
-  const [end, setEnd] = useState(getLatestRound());
+  const [start, setStart] = useState(latestRound - 19);
+  const [end, setEnd] = useState(latestRound);
   const [includeBonus, setIncludeBonus] = useState(true);
   const [selectedRecent, setSelectedRecent] = useState<number | null>(20);
   const [topK, setTopK] = useState(10);
 
-  const latestRound = 1100; // 실제 최신 회차로 설정
+  const prevParamsRef = useRef({
+    start: -1,
+    end: -1,
+    topK: -1,
+    includeBonus: !includeBonus,
+  });
+
+  const fetchData = async () => {
+    const prev = prevParamsRef.current;
+    if (
+      prev.start === start &&
+      prev.end === end &&
+      prev.topK === topK &&
+      prev.includeBonus === includeBonus
+    ) {
+      console.log("⭐ same params, skip fetch");
+      return; // ← fetch 실행 안 함
+    }
+
+    setLoading(true);
+    try {
+      const lookback = selectedRecent ?? end - start + 1;
+
+      const [patternRes, statsRes] = await Promise.all([
+        fetch(
+          `${apiUrl}/lotto/pattern?lookback=${lookback}&topK=${topK}&minConsec=2&includeBonus=${includeBonus}`
+        ),
+        fetch(
+          `${apiUrl}/lotto/frequency?start=${start}&end=${end}&includeBonus=${includeBonus}`
+        ),
+      ]);
+
+      const patternJson: PatternResponse = await patternRes.json();
+      const statsJson: StatisticsResponse = await statsRes.json();
+
+      setPatternData(patternJson);
+      setStatisticsData(statsJson.data);
+    } catch (err) {
+      console.error(err);
+      setPatternData(null);
+      setStatisticsData(null);
+    } finally {
+      setLoading(false);
+      prevParamsRef.current = { start, end, topK, includeBonus }; // ← params 저장
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const lookback = selectedRecent ?? end - start + 1;
-
-        const [patternRes, statsRes] = await Promise.all([
-          fetch(
-            `${apiUrl}/lotto/pattern?lookback=${lookback}&topK=${topK}&minConsec=2&includeBonus=${includeBonus}`
-          ),
-          fetch(
-            `${apiUrl}/lotto/frequency?start=${start}&end=${end}&includeBonus=${includeBonus}`
-          ),
-        ]);
-
-        const patternJson: PatternResponse = await patternRes.json();
-        const statsJson: StatisticsResponse = await statsRes.json();
-
-        setPatternData(patternJson);
-        setStatisticsData(statsJson.data);
-      } catch (err) {
-        console.error(err);
-        setPatternData(null);
-        setStatisticsData(null);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchData();
-  }, [start, end, includeBonus, selectedRecent, topK]);
+  }, []);
 
   if (loading) return <p>Loading data...</p>;
   if (!patternData || !statisticsData) return <p>Failed to load data.</p>;
@@ -135,17 +152,27 @@ const LottoPatterns: React.FC = () => {
         clearRecentSelect={clearRecentSelect}
       />
 
-      {/* TopK 설정 */}
-      <div className="mb-6 flex items-center gap-2">
-        <label className="text-sm font-medium">Top 개수:</label>
-        <input
-          type="number"
-          min={1}
-          max={50}
-          value={topK}
-          onChange={(e) => setTopK(Number(e.target.value))}
-          className="border px-2 py-1 rounded w-20"
-        />
+      <div className="flex justify-start mt-2 mb-6">
+        {/* TopK 설정 */}
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium">Top 개수:</label>
+          <input
+            type="number"
+            min={1}
+            max={50}
+            value={topK}
+            onChange={(e) => setTopK(Number(e.target.value))}
+            className="border px-2 py-1 rounded w-20"
+          />
+        </div>
+
+        {/* 조회하기 버튼 */}
+        <button
+          onClick={fetchData}
+          className="ml-4 px-5 py-2 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition"
+        >
+          {loading ? "조회 중..." : "조회하기"}
+        </button>
       </div>
 
       {/* 번호별 출현 빈도 차트 */}
@@ -205,6 +232,4 @@ const LottoPatterns: React.FC = () => {
       </div>
     </div>
   );
-};
-
-export default LottoPatterns;
+}
