@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import RangeFilterBar from "../RangeFilterBar";
 import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
 import SimpleBarChart from "./SimpleBarChart";
-import NextFrequencyChart from "./RangeNextChart"; // 🔥 추가
+import NextFrequencyChart from "./RangeNextChart";
 import LottoBall from "../LottoBall";
 
 interface MatchingRoundInfo {
@@ -21,6 +21,7 @@ interface RangeResult {
 
 interface ApiData {
   selectedRound: { round: number; numbers: number[] };
+  nextRound: { round: number; numbers: number[]; bonus: number } | null;
   ranges: { "10": RangeResult; "7": RangeResult };
 }
 
@@ -37,6 +38,7 @@ export default function NumberRangeMatch() {
   const [start, setStart] = useState(latestRound - 9);
   const [end, setEnd] = useState(latestRound);
   const [includeBonus, setIncludeBonus] = useState(false);
+  const [tolerance, setTolerance] = useState(0); // 🔹 추가
   const [selectedRecent, setSelectedRecent] = useState<number | null>(10);
   const [data, setData] = useState<ApiData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -45,6 +47,7 @@ export default function NumberRangeMatch() {
     start: -1,
     end: -1,
     includeBonus: !includeBonus,
+    tolerance: -1, // 🔹 추가
   });
 
   const fetchData = async () => {
@@ -52,16 +55,17 @@ export default function NumberRangeMatch() {
     if (
       prev.start === start &&
       prev.end === end &&
-      prev.includeBonus === includeBonus
+      prev.includeBonus === includeBonus &&
+      prev.tolerance === tolerance // 🔹 비교
     ) {
       console.log("⭐ same params, skip fetch");
-      return; // ← fetch 실행 안 함
+      return;
     }
 
     setLoading(true);
     try {
       const res = await fetch(
-        `${apiUrl}/lotto/range?start=${start}&end=${end}&includeBonus=${includeBonus}`
+        `${apiUrl}/lotto/range?start=${start}&end=${end}&includeBonus=${includeBonus}&tolerance=${tolerance}`
       );
 
       const json = await res.json();
@@ -81,8 +85,7 @@ export default function NumberRangeMatch() {
       setNextRound(null);
     } finally {
       setLoading(false);
-      // 3) fetch가 끝나고 나서 *현재 값을 이전 값으로 저장*
-      prevParamsRef.current = { start, end, includeBonus };
+      prevParamsRef.current = { start, end, includeBonus, tolerance }; // 🔹 저장
     }
   };
 
@@ -138,14 +141,32 @@ export default function NumberRangeMatch() {
           clearRecentSelect={clearRecentSelect}
         />
 
-        {/* 조회하기 버튼 */}
-        <div className="flex justify-start mt-2 mb-6">
+        {/* 조회하기 + Tolerance 선택 */}
+        <div className="flex flex-col sm:flex-row items-center gap-4 mt-2 mb-6">
+          {/* 조회하기 버튼 */}
           <button
             onClick={fetchData}
-            className="px-5 py-2 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition"
+            className="px-5 py-2 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition flex-shrink-0"
           >
             {loading ? "조회 중..." : "조회하기"}
           </button>
+
+          {/* 🔹 Tolerance 선택 */}
+          <div className="flex items-center gap-2">
+            <label className="font-medium text-gray-700">
+              허용 오차(tolerance):
+            </label>
+            <select
+              className="border rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              value={tolerance}
+              onChange={(e) => setTolerance(Number(e.target.value))}
+            >
+              <option value={0}>0</option>
+              <option value={1}>1</option>
+              <option value={2}>2</option>
+              <option value={3}>3</option>
+            </select>
+          </div>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4">
@@ -160,7 +181,6 @@ export default function NumberRangeMatch() {
               <div className="flex flex-wrap gap-2 justify-center items-center">
                 {selectedRound?.numbers.map((num, index) => (
                   <div key={index}>
-                    {" "}
                     {index === 6 && (
                       <span className="text-sm font-medium text-yellow-800">
                         /
@@ -180,7 +200,7 @@ export default function NumberRangeMatch() {
             </div>
           </div>
 
-          {/* 🔵 다음 회차 (있을 경우만 표시) */}
+          {/* 다음 회차 */}
           {nextRound && (
             <div className="flex-1 bg-linear-to-br from-sky-50 to-blue-50 rounded-xl p-4 border-2 border-sky-200">
               <div className="flex items-center justify-between mb-3">
@@ -207,6 +227,7 @@ export default function NumberRangeMatch() {
             </div>
           )}
         </div>
+
         {loading && <div className="text-center">⏳ 로딩중...</div>}
 
         {!loading && data && (
@@ -215,10 +236,12 @@ export default function NumberRangeMatch() {
             <SimpleBarChart
               title="10단위 구간별 출현"
               data={Object.entries(data.ranges["10"].counts).map(
-                ([label, count]) => ({ label, count })
+                ([label, count]) => ({
+                  label,
+                  count,
+                })
               )}
             />
-
             <div className="text-sm text-gray-700 mb-2">
               매칭 회차 ({data.ranges["10"].matchingRounds.length}개):{" "}
               {data.ranges["10"].matchingRounds.length === 0
@@ -227,8 +250,6 @@ export default function NumberRangeMatch() {
                     .map((r) => r.round)
                     .join(", ")}
             </div>
-
-            {/* 💥 다음 회차 빈도수 — 네 스타일 컴포넌트 */}
             <NextFrequencyChart
               title="10단위 패턴 → 다음 회차 빈도수"
               frequency={data.ranges["10"].nextFrequency}
@@ -238,10 +259,12 @@ export default function NumberRangeMatch() {
             <SimpleBarChart
               title="7단위 구간별 출현"
               data={Object.entries(data.ranges["7"].counts).map(
-                ([label, count]) => ({ label, count })
+                ([label, count]) => ({
+                  label,
+                  count,
+                })
               )}
             />
-
             <div className="text-sm text-gray-700 mb-2">
               매칭 회차 ({data.ranges["7"].matchingRounds.length}개):{" "}
               {data.ranges["7"].matchingRounds.length === 0
@@ -250,7 +273,6 @@ export default function NumberRangeMatch() {
                     .map((r) => r.round)
                     .join(", ")}
             </div>
-
             <NextFrequencyChart
               title="7단위 패턴 → 다음 회차 빈도수"
               frequency={data.ranges["7"].nextFrequency}

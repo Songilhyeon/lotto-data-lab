@@ -1,12 +1,29 @@
 "use client";
 
+import { useEffect, useState, startTransition } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import LottoBall from "@/app/components/LottoBall";
 
+function getRandomLottoNumbers() {
+  const nums: number[] = [];
+  while (nums.length < 6) {
+    const n = Math.floor(Math.random() * 45) + 1;
+    if (!nums.includes(n)) nums.push(n);
+  }
+  return nums.sort((a, b) => a - b);
+}
+
 export default function Hero() {
-  // 샘플 추천 번호 (MVP는 랜덤 or 고정)
-  const sampleNumbers = [3, 11, 19, 28, 37, 42];
+  const [sampleNumbers, setSampleNumbers] = useState<number[] | null>(null);
+
+  // 클라이언트에서만 실행 (SSR 안전)
+  useEffect(() => {
+    // React 19: setState는 transition 안에서 호출해야 경고 없음
+    startTransition(() => {
+      setSampleNumbers(getRandomLottoNumbers());
+    });
+  }, []);
 
   return (
     <header className="bg-linear-to-b from-blue-50 to-white shadow-sm border-b">
@@ -43,16 +60,18 @@ export default function Hero() {
         </motion.p>
 
         {/* 추천 번호 샘플 */}
-        <motion.div
-          className="flex justify-center gap-3 mb-10"
-          initial={{ scale: 0.85, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.45, duration: 0.6 }}
-        >
-          {sampleNumbers.map((n) => (
-            <LottoBall key={n} number={n} size="lg" pulse={true} />
-          ))}
-        </motion.div>
+        {sampleNumbers && (
+          <motion.div
+            className="flex justify-center gap-3 mb-10"
+            initial={{ scale: 0.85, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.45, duration: 0.6 }}
+          >
+            {sampleNumbers.map((n) => (
+              <LottoBall key={n} number={n} size="lg" pulse={true} />
+            ))}
+          </motion.div>
+        )}
 
         {/* CTA 버튼 */}
         <motion.div

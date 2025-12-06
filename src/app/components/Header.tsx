@@ -180,12 +180,6 @@ export default function Header() {
                   Naver
                 </button>
                 <button
-                  onClick={() => (window.location.href = oauthUrls.kakao ?? "")}
-                  className="px-3 py-1 bg-yellow-400 text-black rounded"
-                >
-                  Kakao
-                </button>
-                <button
                   onClick={handleTestLogin}
                   className="px-3 py-1 bg-blue-500 text-white rounded"
                 >
