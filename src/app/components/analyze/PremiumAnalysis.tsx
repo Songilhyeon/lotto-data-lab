@@ -215,7 +215,6 @@ export default function PremiumAnalysis() {
           )}
 
           {/* 최근 빈도 */}
-          {/* 최근 빈도 */}
           <Accordion
             title={`최근 ${recentCount}회 번호 빈도`}
             chartKey="recent"
