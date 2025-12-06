@@ -158,12 +158,7 @@ export default function NumberFrequency() {
         </div>
 
         {nextRound && (
-          <DraggableNextRound
-            nextRound={nextRound}
-            frequency={freqValues}
-            most={most}
-            least={least}
-          />
+          <DraggableNextRound nextRound={nextRound} most={most} least={least} />
         )}
 
         {/* Range Filter */}
