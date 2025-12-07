@@ -20,3 +20,31 @@ export interface AnalysisResult extends LottoNumber {
   highlightLeast: boolean;
   highlightCurrent: boolean;
 }
+
+export interface PremiumAnalysisData {
+  round: number;
+  bonusIncluded: boolean;
+
+  /** 단일 번호 -> 다음 회차 전체 출현 빈도 (Record<number, number>) */
+  perNumberNextFreq: Record<number, number>;
+
+  /** k-매치 */
+  kMatchNextFreq: {
+    "1": Record<number, number>;
+    "2": Record<number, number>;
+    "3": Record<number, number>;
+    "4+": Record<number, number>;
+  };
+
+  /** 패턴 */
+  pattern10NextFreq: Record<number, number>;
+  pattern7NextFreq: Record<number, number>;
+
+  /** 최근 N회 */
+  recentFreq: Record<number, number>;
+
+  /** 다음 회차 번호 배열 */
+  nextRound: number[] | null;
+
+  generatedAt: string;
+}

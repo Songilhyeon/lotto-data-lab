@@ -1,83 +1,14 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import { useState, useRef } from "react";
 import { useAuth } from "@/app/context/authContext";
 import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
 import LottoBall from "@/app/components/LottoBall";
 import DraggableNextRound from "@/app/components/analyze/DraggableNextRound";
 import { FreqChart } from "@/app/components/analyze/FreqChartComponent";
 import PatternNextFreqSection from "@/app/components/analyze/PatternNextFreqSection";
-
-/* -------------------------------
-      Single-Open Accordion
---------------------------------*/
-const Accordion = ({
-  title,
-  chartKey,
-  openKey,
-  setOpenKey,
-  defaultOpen = false,
-  children,
-}: {
-  title: React.ReactNode;
-  chartKey: string;
-  openKey: string | null;
-  setOpenKey: (key: string | null) => void;
-  defaultOpen?: boolean;
-  children: React.ReactNode;
-}) => {
-  const isOpen = openKey === chartKey;
-
-  const handleToggle = () => {
-    if (isOpen) setOpenKey(null);
-    else setOpenKey(chartKey);
-  };
-
-  return (
-    <div className="border border-gray-200 rounded-xl mb-3 overflow-hidden shadow-sm">
-      <button
-        onClick={handleToggle}
-        className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 text-left"
-      >
-        <span className="font-semibold text-gray-800">{title}</span>
-        <span className="text-lg">{isOpen ? "▲" : "▼"}</span>
-      </button>
-
-      {isOpen && <div className="p-3 bg-white">{children}</div>}
-    </div>
-  );
-};
-
-/* -------------------------------
-      프론트 타입 (백엔드와 100% 동일)
---------------------------------*/
-interface PremiumAnalysisData {
-  round: number;
-  bonusIncluded: boolean;
-
-  /** 단일 번호 -> 다음 회차 전체 출현 빈도 (Record<number, number>) */
-  perNumberNextFreq: Record<number, number>;
-
-  /** k-매치 */
-  kMatchNextFreq: {
-    "1": Record<number, number>;
-    "2": Record<number, number>;
-    "3": Record<number, number>;
-    "4+": Record<number, number>;
-  };
-
-  /** 패턴 */
-  pattern10NextFreq: Record<number, number>;
-  pattern7NextFreq: Record<number, number>;
-
-  /** 최근 N회 */
-  recentFreq: Record<number, number>;
-
-  /** 다음 회차 번호 배열 */
-  nextRound: number[] | null;
-
-  generatedAt: string;
-}
+import Accordion from "@/app/components/analyze/SingleOpenAccordion";
+import { PremiumAnalysisData } from "@/app/types/lotto";
 
 export default function PremiumAnalysis() {
   const latest = getLatestRound();
@@ -139,7 +70,108 @@ export default function PremiumAnalysis() {
     }
   };
 
+  // ✅ 최대/최소 번호 수집 함수
+  const getHighlightNumbers = (data: PremiumAnalysisData) => {
+    const maxSet = new Set<number>();
+    const minSet = new Set<number>();
+
+    // 최근 빈도
+    if (data.recentFreq && openKey === "recent") {
+      const values = Object.values(data.recentFreq);
+      const max = Math.max(...values);
+      const min = Math.min(...values);
+
+      if (max >= 1) {
+        Object.entries(data.recentFreq)
+          .filter(([_, v]) => v === max)
+          .forEach(([n]) => maxSet.add(Number(n)));
+      }
+      if (min >= 0) {
+        Object.entries(data.recentFreq)
+          .filter(([_, v]) => v === min)
+          .forEach(([n]) => minSet.add(Number(n)));
+      }
+    }
+
+    // perNumberNextFreq
+    if (openKey === "perNumber") {
+      Object.values(data.perNumberNextFreq).forEach((freqObj) => {
+        const freq = freqObj;
+        const entries = Object.entries(freq);
+        if (!entries.length) return;
+        const values = entries.map(([, v]) => v);
+        const maxValue = Math.max(...values);
+        const minValue = Math.min(...values);
+
+        entries
+          .filter(([, v]) => v === maxValue)
+          .forEach(([k]) => maxSet.add(Number(k)));
+        entries
+          .filter(([, v]) => v === minValue)
+          .forEach(([k]) => minSet.add(Number(k)));
+      });
+    }
+
+    // kMatchNextFreq
+    if (openKey === "kmatch") {
+      Object.values(data.kMatchNextFreq).forEach((record) => {
+        const values = Object.values(record);
+        const maxValue = Math.max(...values);
+        const minValue = Math.min(...values);
+
+        Object.entries(record)
+          .filter(([_, v]) => v === maxValue)
+          .forEach(([n]) => maxSet.add(Number(n)));
+        Object.entries(record)
+          .filter(([_, v]) => v === minValue)
+          .forEach(([n]) => minSet.add(Number(n)));
+      });
+    }
+
+    // pattern10NextFreq
+    if (openKey === "pattern10") {
+      const freq = data.pattern10NextFreq;
+      const entries = Object.entries(freq);
+      if (!entries.length) return;
+      const values = entries.map(([, v]) => v);
+      const maxValue = Math.max(...values);
+      const minValue = Math.min(...values);
+
+      entries
+        .filter(([, v]) => v === maxValue)
+        .forEach(([k]) => maxSet.add(Number(k)));
+      entries
+        .filter(([, v]) => v === minValue)
+        .forEach(([k]) => minSet.add(Number(k)));
+    }
+
+    if (openKey === "pattern7") {
+      const freq = data.pattern7NextFreq;
+      const entries = Object.entries(freq);
+      if (!entries.length) return;
+      const values = entries.map(([, v]) => v);
+      const maxValue = Math.max(...values);
+      const minValue = Math.min(...values);
+
+      entries
+        .filter(([, v]) => v === maxValue)
+        .forEach(([k]) => maxSet.add(Number(k)));
+      entries
+        .filter(([, v]) => v === minValue)
+        .forEach(([k]) => minSet.add(Number(k)));
+    }
+
+    return {
+      maxNumbers: Array.from(maxSet),
+      minNumbers: Array.from(minSet),
+    };
+  };
+
   if (!user) return <div>로그인 후 이용 가능합니다.</div>;
+
+  const highlights = result
+    ? getHighlightNumbers(result)
+    : { maxNumbers: [], minNumbers: [] };
 
   return (
     <div className="bg-white p-4 rounded-2xl shadow-md max-w-3xl mx-auto space-y-4">
@@ -211,7 +243,11 @@ export default function PremiumAnalysis() {
 
           {/* 다음 회차 */}
           {result.nextRound && (
-            <DraggableNextRound nextRound={result.nextRound} />
+            <DraggableNextRound
+              nextRound={result.nextRound}
+              most={highlights?.maxNumbers}
+              least={highlights?.minNumbers}
+            />
           )}
 
           {/* 최근 빈도 */}

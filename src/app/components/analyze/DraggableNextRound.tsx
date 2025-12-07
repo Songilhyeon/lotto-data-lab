@@ -191,7 +191,11 @@ export default function DraggableNextRound({
       {bonusLabel != null && (
         <>
           <span className="text-sm font-medium text-yellow-800">/</span>
-          <LottoBall number={bonusLabel} />
+          <LottoBall
+            number={bonusLabel}
+            highlightMax={most?.includes(bonusLabel) ?? false}
+            highlightMin={least?.includes(bonusLabel) ?? false}
+          />
         </>
       )}
     </div>
