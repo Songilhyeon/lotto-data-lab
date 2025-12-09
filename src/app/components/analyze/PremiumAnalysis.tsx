@@ -173,6 +173,8 @@ export default function PremiumAnalysis() {
     ? getHighlightNumbers(result)
     : { maxNumbers: [], minNumbers: [] };
 
+  console.log(result);
+
   return (
     <div className="bg-white p-4 rounded-2xl shadow-md max-w-3xl mx-auto space-y-4">
       <span className="text-sm text-yellow-600 font-bold block">

@@ -8,7 +8,7 @@ export default function LookUpButton({
   return (
     <button
       onClick={onClick}
-      className="px-5 py-2 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition"
+      className="px-5 py-2 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 active:scale-95 transition"
     >
       {loading ? "조회 중..." : "조회하기"}
     </button>

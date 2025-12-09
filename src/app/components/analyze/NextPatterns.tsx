@@ -159,29 +159,38 @@ export default function SimilarPatterns() {
       </div>
 
       {/* 조회하기 버튼 */}
-      <div className="flex justify-start mt-2 mb-6">
-        <LookUpButton onClick={fetchData} loading={loading} />
-      </div>
+      {/* 전체 컨트롤 영역 */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-2 mb-6">
+        {/* 조회하기 버튼 */}
+        <div className="flex justify-start sm:justify-start">
+          <LookUpButton onClick={fetchData} loading={loading} />
+        </div>
 
-      {/* Match Count Tabs */}
-      <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6">
-        <h2 className="text-lg font-semibold text-gray-800 mb-3">
-          기준 회차와 당첨 번호 일치 개수
-        </h2>
-        <div className="flex flex-wrap gap-2">
-          {[1, 2, 3, 4].map((match) => (
-            <button
-              key={match}
-              onClick={() => setMinMatch(match)}
-              className={`px-6 py-3 rounded-xl font-semibold text-sm transition-all shadow-md ${
-                minMatch === match
-                  ? "bg-linear-to-r from-purple-600 to-pink-600 text-white scale-105 shadow-lg"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105"
-              }`}
-            >
-              {match === 4 ? "4개 이상" : `${match}개`}
-            </button>
-          ))}
+        {/* Match Count Tabs */}
+        <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-5 flex-1">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-center gap-3">
+            {/* 제목 */}
+            <h2 className="text-lg font-semibold text-gray-800 shrink-0">
+              기준 회차와 당첨 번호 일치 개수
+            </h2>
+
+            {/* 버튼 그룹 */}
+            <div className="flex flex-wrap gap-2">
+              {[1, 2, 3, 4].map((match) => (
+                <button
+                  key={match}
+                  onClick={() => setMinMatch(match)}
+                  className={`px-6 py-3 rounded-xl font-semibold text-sm transition-all shadow-md ${
+                    minMatch === match
+                      ? "bg-linear-to-r from-purple-600 to-pink-600 text-white scale-105 shadow-lg"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-105"
+                  }`}
+                >
+                  {match === 4 ? "4개 이상" : `${match}개`}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
