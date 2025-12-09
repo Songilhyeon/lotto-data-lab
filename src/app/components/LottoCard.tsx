@@ -8,7 +8,13 @@ const formatNumber = (num: number) => {
   return new Intl.NumberFormat("ko-KR").format(num);
 };
 
-export default function LottoCard({ data }: { data: LottoNumber | null }) {
+export default function LottoCard({
+  data,
+  includeBonus,
+}: {
+  data: LottoNumber | null;
+  includeBonus: boolean;
+}) {
   if (!data) {
     return (
       <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 flex items-center justify-center min-h-[200px] max-w-xl mx-auto">
@@ -49,8 +55,12 @@ export default function LottoCard({ data }: { data: LottoNumber | null }) {
       </div>
 
       <div className="flex items-center justify-center gap-2 sm:gap-3 py-2 border-t border-gray-200">
-        <span className="text-xs sm:text-sm text-gray-600">보너스</span>
-        <LottoBall number={data.bnusNo} size="md" />
+        {includeBonus && (
+          <>
+            <span className="text-xs sm:text-sm text-gray-600">보너스</span>
+            <LottoBall number={data.bnusNo} size="md" />
+          </>
+        )}
       </div>
 
       <div className="mt-4 pt-4 border-t border-gray-200 space-y-1 sm:space-y-2 text-sm sm:text-base">

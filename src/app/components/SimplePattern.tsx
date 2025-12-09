@@ -3,7 +3,13 @@
 import { LottoNumber } from "@/app/types/lotto";
 import { cardWidth } from "@/app/utils/getUtils";
 
-export default function SimplePattern({ data }: { data: LottoNumber | null }) {
+export default function SimplePattern({
+  data,
+  includeBonus,
+}: {
+  data: LottoNumber | null;
+  includeBonus: boolean;
+}) {
   if (!data) {
     return (
       <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 flex items-center justify-center min-h-[200px] max-w-xl mx-auto">
@@ -21,7 +27,7 @@ export default function SimplePattern({ data }: { data: LottoNumber | null }) {
     data.drwtNo4,
     data.drwtNo5,
     data.drwtNo6,
-    data.bnusNo,
+    ...(includeBonus ? [data.bnusNo] : []),
   ];
 
   // 홀짝

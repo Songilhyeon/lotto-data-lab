@@ -69,22 +69,20 @@ export default function RangeFilterBar({
       </div>
 
       {/* 보너스 포함 체크 */}
-      {showCheckBox &&
-        includeBonus !== undefined &&
-        setIncludeBonus !== undefined && (
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <input
-              type="checkbox"
-              id="includeBonus"
-              checked={includeBonus}
-              onChange={(e) => setIncludeBonus(e.target.checked)}
-              className="w-4 h-4"
-            />
-            <label htmlFor="includeBonus" className="text-sm text-gray-700">
-              보너스 번호 포함
-            </label>
-          </div>
-        )}
+      {includeBonus !== undefined && setIncludeBonus !== undefined && (
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <input
+            type="checkbox"
+            id="includeBonus"
+            checked={includeBonus}
+            onChange={(e) => setIncludeBonus(e.target.checked)}
+            className="w-4 h-4"
+          />
+          <label htmlFor="includeBonus" className="text-sm text-gray-700">
+            보너스 번호 포함
+          </label>
+        </div>
+      )}
 
       {/* 최근/전체 회차 선택 버튼 그룹 */}
       <div className="flex flex-wrap gap-2 w-full sm:w-auto items-center">

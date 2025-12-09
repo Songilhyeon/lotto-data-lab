@@ -7,13 +7,17 @@ import SimplePattern from "@/app/components/SimplePattern";
 import RangeFilterBar from "@/app/components/RangeFilterBar";
 import { LottoNumber } from "@/app/types/lotto";
 import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
+import { analysisDivStyle, rangeFilterDivStyle } from "@/app/utils/getDivStyle";
+import ComponentHeader from "@/app/components/analyze/ComponentHeader";
+import LookUpButton from "@/app/components/analyze/LookUpButton";
 
-const PAGE_SIZE = 12; // 한 페이지에 보여줄 개수
+const PAGE_SIZE = 12;
 
 export default function MultiRoundInfo() {
   const latestRound = getLatestRound();
   const [start, setStart] = useState(latestRound - 9);
   const [end, setEnd] = useState(latestRound);
+  const [includeBonus, setIncludeBonus] = useState(false);
   const [lottoData, setLottoData] = useState<LottoNumber[] | null>([]);
   const [viewType, setViewType] = useState<"card" | "pattern" | "paper">(
     "card"
@@ -25,20 +29,22 @@ export default function MultiRoundInfo() {
   const prevParamsRef = useRef({
     start: -1,
     end: -1,
+    includeBonus: !includeBonus,
   });
 
-  /** ️API 호출 함수 */
   const fetchData = async () => {
     const prev = prevParamsRef.current;
-    if (prev.start === start && prev.end === end) {
-      console.log("⭐ same params, skip fetch");
-      return; // ← fetch 실행 안 함
-    }
+    if (
+      prev.start === start &&
+      prev.end === end &&
+      prev.includeBonus === includeBonus
+    )
+      return;
 
     setLoading(true);
     try {
       const res = await fetch(
-        `${apiUrl}/lotto/rounds?start=${start}&end=${end}`
+        `${apiUrl}/lotto/rounds?start=${start}&end=${end}&includeBonus=${includeBonus}`
       );
       const json = await res.json();
 
@@ -54,7 +60,7 @@ export default function MultiRoundInfo() {
       setLottoData(null);
     } finally {
       setLoading(false);
-      prevParamsRef.current = { start, end }; // ← params 저장
+      prevParamsRef.current = { start, end, includeBonus };
     }
   };
 
@@ -62,19 +68,16 @@ export default function MultiRoundInfo() {
     fetchData();
   }, []);
 
-  /** ️⃣ RangeFilterBar 이벤트 START */
-  // --- end 입력 시 recent 선택 해제 ---
   const handleEndChange = (value: number) => {
     if (value < start) setStart(value);
     setEnd(value);
-    setSelectedRecent(null); // 수동 변경 시 recent 해제
+    setSelectedRecent(null);
   };
 
-  // --- start 직접 수정 ---
   const handleStartChange = (value: number) => {
     if (value > end) setEnd(value);
     setStart(value);
-    setSelectedRecent(null); // 수동 변경 시 recent 해제
+    setSelectedRecent(null);
   };
 
   const handleRecent = (count: number) => {
@@ -84,50 +87,55 @@ export default function MultiRoundInfo() {
   };
 
   const clearRecentSelect = () => setSelectedRecent(null);
-  /** ️⃣ RangeFilterBar 이벤트 END */
 
-  // --- 페이지네이션 계산 ---
   const totalPages = Math.ceil((lottoData || []).length / PAGE_SIZE);
-  const pagedData =
-    lottoData?.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE) ||
-    [];
+  const pagedData = lottoData?.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-green-50 to-purple-100 p-4 sm:p-6 lg:p-8">
-      {/* Range UI */}
-      <RangeFilterBar
-        start={start}
-        end={end}
-        selectedRecent={selectedRecent}
-        setStart={handleStartChange}
-        setEnd={handleEndChange}
-        latest={latestRound}
-        onRecentSelect={handleRecent}
-        clearRecentSelect={clearRecentSelect}
-        showCheckBox={false}
+    <div className={analysisDivStyle("green-50", "purple-100")}>
+      {/* Header */}
+      <ComponentHeader
+        title="📊 기간별 당첨 정보 조회"
+        content="원하는 기간의 로또 정보를 조회하세요."
       />
 
-      {/* 조회하기 버튼 */}
-      <div className="flex justify-start mt-2 mb-6">
-        <button
-          onClick={fetchData}
-          className="px-5 py-2 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition"
-        >
-          {loading ? "조회 중..." : "조회하기"}
-        </button>
+      {/* Range Filter */}
+      <div className={rangeFilterDivStyle}>
+        <RangeFilterBar
+          start={start}
+          end={end}
+          selectedRecent={selectedRecent}
+          includeBonus={includeBonus}
+          setStart={handleStartChange}
+          setEnd={handleEndChange}
+          setIncludeBonus={setIncludeBonus}
+          latest={latestRound}
+          onRecentSelect={handleRecent}
+          clearRecentSelect={clearRecentSelect}
+        />
       </div>
 
-      {/* viewType 선택 */}
-      <div className="flex gap-3 justify-center mt-4">
+      {/* Fetch Button */}
+      <div className="flex justify-start mt-2 mb-6">
+        <LookUpButton onClick={fetchData} loading={loading} />
+      </div>
+
+      {/* View Type Switcher */}
+      <div className="flex gap-2 justify-center">
         {["card", "pattern", "paper"].map((type) => (
           <button
             key={type}
             onClick={() => setViewType(type as "card" | "pattern" | "paper")}
-            className={`px-4 py-2 rounded-lg border ${
-              viewType === type
-                ? "bg-blue-600 text-white border-blue-600"
-                : "bg-white text-gray-700 border-gray-300"
-            }`}
+            className={`px-3 py-1.5 rounded-lg border text-sm font-medium transition-all
+                ${
+                  viewType === type
+                    ? "bg-blue-600 text-white border-blue-600 shadow"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+                }
+              `}
           >
             {type === "card"
               ? "당첨 정보"
@@ -139,40 +147,60 @@ export default function MultiRoundInfo() {
       </div>
 
       {loading && (
-        <div className="text-center text-gray-600 mt-6">
+        <div className="text-center text-gray-600 mt-4 text-sm">
           데이터 불러오는 중...
         </div>
       )}
 
-      {/* 데이터 표시 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center gap-5 mt-6">
-        {pagedData.map((data) => {
+      {/* Data Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mt-4">
+        {pagedData?.map((data) => {
           if (viewType === "card")
-            return <LottoCard key={data.drwNo} data={data} />;
+            return (
+              <LottoCard
+                key={data.drwNo}
+                data={data}
+                includeBonus={includeBonus}
+              />
+            );
           if (viewType === "pattern")
-            return <SimplePattern key={data.drwNo} data={data} />;
+            return (
+              <SimplePattern
+                key={data.drwNo}
+                data={data}
+                includeBonus={includeBonus}
+              />
+            );
           if (viewType === "paper")
-            return <LottoPaper key={data.drwNo} data={data} />;
+            return (
+              <LottoPaper
+                key={data.drwNo}
+                data={data}
+                includeBonus={includeBonus}
+              />
+            );
           return null;
         })}
       </div>
 
-      {/* 페이지네이션 버튼 */}
-      <div className="flex justify-center mt-6 gap-2">
+      {/* Pagination */}
+      <div className="flex justify-center mt-5 gap-2 text-sm">
         <button
           disabled={currentPage === 1}
           onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-          className="px-3 py-1 rounded border bg-white text-gray-700 disabled:opacity-50"
+          className="px-3 py-1 rounded border bg-white text-gray-700 disabled:opacity-50 hover:bg-gray-100"
         >
           이전
         </button>
-        <span className="px-2 py-1">
+
+        <span className="px-2 py-1 text-gray-700 font-medium">
           {currentPage} / {totalPages}
         </span>
+
         <button
           disabled={currentPage === totalPages}
           onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-          className="px-3 py-1 rounded border bg-white text-gray-700 disabled:opacity-50"
+          className="px-3 py-1 rounded border bg-white text-gray-700 disabled:opacity-50 hover:bg-gray-100"
         >
           다음
         </button>

@@ -39,6 +39,7 @@ export interface PremiumAnalysisData {
   /** 패턴 */
   pattern10NextFreq: Record<number, number>;
   pattern7NextFreq: Record<number, number>;
+  pattern5NextFreq: Record<number, number>;
 
   /** 최근 N회 */
   recentFreq: Record<number, number>;
@@ -47,4 +48,15 @@ export interface PremiumAnalysisData {
   nextRound: number[] | null;
 
   generatedAt: string;
+}
+
+export interface NumberScoreDetail {
+  num: number;
+  hot: number;
+  cold: number;
+  streak: number;
+  pattern: number;
+  cluster: number;
+  random: number;
+  final: number;
 }

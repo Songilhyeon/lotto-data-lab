@@ -10,8 +10,9 @@ import {
   YAxis,
   Tooltip as RechartTooltip,
 } from "recharts";
-
 import { apiUrl } from "@/app/utils/getUtils";
+import { analysisDivStyle } from "@/app/utils/getDivStyle";
+import ComponentHeader from "@/app/components/analyze/ComponentHeader";
 
 interface MatchResult {
   round: number;
@@ -159,228 +160,221 @@ export default function NumberLab() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 mb-6">
-          <h1 className="text-2xl sm:text-3xl md:text-3xl xl:text-[2.2rem] font-bold text-gray-800 mb-2">
-            로또 번호 실험실
-          </h1>
-          <p className="text-sm sm:text-base text-gray-600">
-            원하는 6개 이하의 숫자를 선택하고 일치번호 / 조합 패턴을
-            분석해보세요
-          </p>
-        </div>
+    <div className={analysisDivStyle("blue-50", "indigo-100")}>
+      {/* Header */}
+      <ComponentHeader
+        title="🔮 로또 번호 실험실"
+        content="원하는 6개 이하의 숫자를 선택하고 일치번호 / 조합 패턴을 분석해보세요."
+      />
 
-        {/* Selection + Grid (same as before) */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
-              선택한 번호 ({selectedNumbers.length}/6)
-            </h2>
+      {/* Selection + Grid (same as before) */}
+      <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
+            선택한 번호 ({selectedNumbers.length}/6)
+          </h2>
 
-            <div className="mb-4">
-              <div className="flex flex-wrap gap-2">
-                {selectedNumbers
-                  .sort((a, b) => a - b)
-                  .map((n) => (
-                    <div
-                      key={n}
-                      className={`w-9 h-9 rounded-full ${getBallColor(
-                        n
-                      )} text-white flex items-center justify-center font-bold`}
-                    >
-                      {n}
-                    </div>
-                  ))}
-              </div>
-            </div>
-            <div className="flex gap-2">
-              {selectedNumbers.length > 0 && (
-                <button
-                  onClick={() => setSelectedNumbers([])}
-                  className="text-sm text-red-500 hover:text-red-700"
-                >
-                  모두 지우기
-                </button>
-              )}
-              <button
-                onClick={runAnalysis}
-                disabled={loading || selectedNumbers.length === 0}
-                className="ml-2 px-4 py-2 rounded-lg bg-blue-600 text-white"
-              >
-                {loading ? "분석 중..." : "🔬 분석 실행"}
-              </button>
+          <div className="mb-4">
+            <div className="flex flex-wrap gap-2">
+              {selectedNumbers
+                .sort((a, b) => a - b)
+                .map((n) => (
+                  <div
+                    key={n}
+                    className={`w-9 h-9 rounded-full ${getBallColor(
+                      n
+                    )} text-white flex items-center justify-center font-bold`}
+                  >
+                    {n}
+                  </div>
+                ))}
             </div>
           </div>
+          <div className="flex gap-2">
+            {selectedNumbers.length > 0 && (
+              <button
+                onClick={() => setSelectedNumbers([])}
+                className="text-sm text-red-500 hover:text-red-700"
+              >
+                모두 지우기
+              </button>
+            )}
+            <button
+              onClick={runAnalysis}
+              disabled={loading || selectedNumbers.length === 0}
+              className="ml-2 px-4 py-2 rounded-lg bg-blue-600 text-white"
+            >
+              {loading ? "분석 중..." : "🔬 분석 실행"}
+            </button>
+          </div>
+        </div>
 
-          <div className="max-w-xl mx-auto rounded-2xl shadow-lg p-5 sm:p-6 border bg-linear-to-br from-gray-50 to-gray-100">
-            <div className="grid grid-cols-7 gap-2">
-              {Array.from({ length: 45 }, (_, i) => i + 1).map((num) => (
+        <div className="max-w-xl mx-auto rounded-2xl shadow-lg p-5 sm:p-6 border bg-linear-to-br from-gray-50 to-gray-100">
+          <div className="grid grid-cols-7 gap-2">
+            {Array.from({ length: 45 }, (_, i) => i + 1).map((num) => (
+              <button
+                key={num}
+                onClick={() => toggleNumber(num)}
+                className={`rounded-full h-8 w-8 flex items-center justify-center text-xs ${
+                  selectedNumbers.includes(num)
+                    ? `${getBallColor(num)} text-white`
+                    : "bg-white text-gray-700 border border-gray-200"
+                }`}
+              >
+                {num}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Match results (unchanged core) */}
+      {Object.keys(analysisResult).length > 0 && (
+        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 mb-6">
+          <h2 className="text-xl font-bold mb-4">
+            🎯 일치 회차 정보 (중복 회차 미포함)
+          </h2>
+
+          <div className="space-y-4">
+            {Object.keys(analysisResult)
+              .sort((a, b) => Number(b) - Number(a))
+              .filter(
+                (matchCount) => analysisResult[Number(matchCount)].length > 0
+              ) // 🔥 1회 이상만
+              .map((matchCount) => {
+                const list = analysisResult[Number(matchCount)];
+
+                const isOpen = openCards[matchCount] || false;
+
+                const toggleCard = () =>
+                  setOpenCards((prev) => ({
+                    ...prev,
+                    [matchCount]: !prev[matchCount],
+                  }));
+
+                return (
+                  <div
+                    key={matchCount}
+                    className="rounded-xl p-4 sm:p-6 border-l-4 border-blue-500 bg-linear-to-r from-gray-50 to-gray-100"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-lg font-semibold">
+                        {matchCount}개 일치
+                      </h3>
+                      <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
+                        {list.length}개 회차 검색됨
+                      </span>
+                    </div>
+
+                    {list && Number(matchCount) >= 3 && (
+                      <div>
+                        <div>
+                          <button
+                            onClick={toggleCard}
+                            className="text-blue-500 text-sm mb-2"
+                          >
+                            {isOpen ? "숨기기 ▲" : "자세히 보기 ▼"}
+                          </button>
+
+                          {isOpen &&
+                            list.map((item) => (
+                              <span key={item.round}>{item.round}회 </span>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+      )}
+
+      {/* Next frequency */}
+      {Object.keys(frequencyNext).length > 0 && (
+        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 mb-6">
+          <h2 className="text-xl font-bold mb-4">📊 다음 회차 출현 빈도</h2>
+
+          {/* Tabs */}
+          <div className="flex flex-col gap-2 mb-4">
+            <div className="flex gap-2">
+              {matchTabs.map((tab) => (
                 <button
-                  key={num}
-                  onClick={() => toggleNumber(num)}
-                  className={`rounded-full h-8 w-8 flex items-center justify-center text-xs ${
-                    selectedNumbers.includes(num)
-                      ? `${getBallColor(num)} text-white`
-                      : "bg-white text-gray-700 border border-gray-200"
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`px-4 py-2 rounded-full text-sm font-bold border ${
+                    activeTab === tab.key
+                      ? "bg-blue-500 text-white border-blue-500"
+                      : "bg-white text-gray-600 border-gray-300"
                   }`}
                 >
-                  {num}
+                  {tab.description}
                 </button>
               ))}
             </div>
           </div>
+
+          {/* Bar Chart */}
+          <div style={{ width: "100%", height: 220 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={getChartData()}>
+                <XAxis dataKey="number" tick={{ fontSize: 10 }} />
+                <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
+                <RechartTooltip />
+                <Bar dataKey="count" fill="#3B82F6" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
+      )}
 
-        {/* Match results (unchanged core) */}
-        {Object.keys(analysisResult).length > 0 && (
-          <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 mb-6">
-            <h2 className="text-xl font-bold mb-4">
-              🎯 일치 회차 정보 (중복 회차 미포함)
-            </h2>
+      {/* 🔥 전체 조합 탐색(옵션): 모든 k 탭 형태 */}
+      {(Object.keys(appearRounds).length > 0 ||
+        Object.keys(comboTop).length > 0) && (
+        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 mb-6">
+          <h2 className="text-xl font-bold mb-4">
+            🔥 각 번호 조합 출현 빈도 (중복 회차 포함)
+          </h2>
 
-            <div className="space-y-4">
-              {Object.keys(analysisResult)
-                .sort((a, b) => Number(b) - Number(a))
-                .filter(
-                  (matchCount) => analysisResult[Number(matchCount)].length > 0
-                ) // 🔥 1회 이상만
-                .map((matchCount) => {
-                  const list = analysisResult[Number(matchCount)];
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[1, 2, 3, 4, 5, 6].map((k) => {
+              // 1개 조합은 appearRounds, 나머지는 comboTop
+              const list =
+                k === 1
+                  ? Object.keys(appearRounds)
+                      .filter((num) => appearRounds[Number(num)].length > 0)
+                      .map((num) => ({
+                        key: num,
+                        count: appearRounds[Number(num)].length,
+                      }))
+                  : comboTop[k] || [];
 
-                  const isOpen = openCards[matchCount] || false;
+              if (list.length === 0) return null;
 
-                  const toggleCard = () =>
-                    setOpenCards((prev) => ({
-                      ...prev,
-                      [matchCount]: !prev[matchCount],
-                    }));
-
-                  return (
-                    <div
-                      key={matchCount}
-                      className="rounded-xl p-4 sm:p-6 border-l-4 border-blue-500 bg-linear-to-r from-gray-50 to-gray-100"
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-lg font-semibold">
-                          {matchCount}개 일치
-                        </h3>
-                        <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
-                          {list.length}개 회차 검색됨
-                        </span>
+              return (
+                <div key={k} className="p-4 rounded-lg border bg-gray-50">
+                  <h3 className="font-semibold mb-2">{k}개 조합</h3>
+                  <div className="space-y-2 max-h-56 overflow-auto">
+                    {list.map((item, idx) => (
+                      <div
+                        key={item.key}
+                        className="flex items-center justify-between bg-white p-2 rounded border"
+                      >
+                        <div className="text-sm font-medium">
+                          {idx + 1}. [{item.key}]
+                        </div>
+                        <div className="text-sm text-blue-600">
+                          {item.count}회
+                        </div>
                       </div>
-
-                      {list && Number(matchCount) >= 3 && (
-                        <div>
-                          <div>
-                            <button
-                              onClick={toggleCard}
-                              className="text-blue-500 text-sm mb-2"
-                            >
-                              {isOpen ? "숨기기 ▲" : "자세히 보기 ▼"}
-                            </button>
-
-                            {isOpen &&
-                              list.map((item) => (
-                                <span key={item.round}>{item.round}회 </span>
-                              ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-            </div>
-          </div>
-        )}
-
-        {/* Next frequency */}
-        {Object.keys(frequencyNext).length > 0 && (
-          <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 mb-6">
-            <h2 className="text-xl font-bold mb-4">📊 다음 회차 출현 빈도</h2>
-
-            {/* Tabs */}
-            <div className="flex flex-col gap-2 mb-4">
-              <div className="flex gap-2">
-                {matchTabs.map((tab) => (
-                  <button
-                    key={tab.key}
-                    onClick={() => setActiveTab(tab.key)}
-                    className={`px-4 py-2 rounded-full text-sm font-bold border ${
-                      activeTab === tab.key
-                        ? "bg-blue-500 text-white border-blue-500"
-                        : "bg-white text-gray-600 border-gray-300"
-                    }`}
-                  >
-                    {tab.description}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Bar Chart */}
-            <div style={{ width: "100%", height: 220 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={getChartData()}>
-                  <XAxis dataKey="number" tick={{ fontSize: 10 }} />
-                  <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
-                  <RechartTooltip />
-                  <Bar dataKey="count" fill="#3B82F6" radius={[6, 6, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        )}
-
-        {/* 🔥 전체 조합 탐색(옵션): 모든 k 탭 형태 */}
-        {(Object.keys(appearRounds).length > 0 ||
-          Object.keys(comboTop).length > 0) && (
-          <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 mb-6">
-            <h2 className="text-xl font-bold mb-4">
-              🔥 각 번호 조합 출현 빈도 (중복 회차 포함)
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {[1, 2, 3, 4, 5, 6].map((k) => {
-                // 1개 조합은 appearRounds, 나머지는 comboTop
-                const list =
-                  k === 1
-                    ? Object.keys(appearRounds)
-                        .filter((num) => appearRounds[Number(num)].length > 0)
-                        .map((num) => ({
-                          key: num,
-                          count: appearRounds[Number(num)].length,
-                        }))
-                    : comboTop[k] || [];
-
-                if (list.length === 0) return null;
-
-                return (
-                  <div key={k} className="p-4 rounded-lg border bg-gray-50">
-                    <h3 className="font-semibold mb-2">{k}개 조합</h3>
-                    <div className="space-y-2 max-h-56 overflow-auto">
-                      {list.map((item, idx) => (
-                        <div
-                          key={item.key}
-                          className="flex items-center justify-between bg-white p-2 rounded border"
-                        >
-                          <div className="text-sm font-medium">
-                            {idx + 1}. [{item.key}]
-                          </div>
-                          <div className="text-sm text-blue-600">
-                            {item.count}회
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                    ))}
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

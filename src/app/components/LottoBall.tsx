@@ -167,7 +167,8 @@ export default function LottoBall({
       })
     : "";
 
-  const pulseClasses = pulse ? "animate-pulse" : "";
+  // const pulseClasses = pulse ? "animate-pulse" : "";
+  const pulseClasses = highlightMax || highlightMin ? "animate-bounce" : "";
 
   const effectClasses = isSelected
     ? "scale-120 animate-bounce shadow-[0_0_10px_4px_rgba(255,255,0,0.7)]"

@@ -7,15 +7,15 @@ interface ResultItem {
   nextNumbers: number[];
 }
 
-interface AnalysisResult {
+interface LottoDraw {
   numbers: number[];
   round: number;
-  nextNumbers: number[];
+  bonus?: number;
 }
 
 interface ResultsListProps {
   results: ResultItem[];
-  selectedRound?: AnalysisResult;
+  selectedRound?: LottoDraw;
 }
 
 const PAGE_SIZE = 12; // 한 페이지에 보여줄 카드 수

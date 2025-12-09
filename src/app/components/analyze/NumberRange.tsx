@@ -6,6 +6,10 @@ import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
 import SimpleBarChart from "./SimpleBarChart";
 import NextFrequencyChart from "./RangeNextChart";
 import LottoBall from "../LottoBall";
+import { analysisDivStyle, rangeFilterDivStyle } from "@/app/utils/getDivStyle";
+import ComponentHeader from "@/app/components/analyze/ComponentHeader";
+import LookUpButton from "@/app/components/analyze/LookUpButton";
+import DraggableNextRound from "./DraggableNextRound";
 
 interface MatchingRoundInfo {
   round: number;
@@ -20,7 +24,7 @@ interface RangeResult {
 }
 
 interface ApiData {
-  selectedRound: { round: number; numbers: number[] };
+  selectedRound: { round: number; numbers: number[]; bonus: number };
   nextRound: { round: number; numbers: number[]; bonus: number } | null;
   ranges: { "10": RangeResult; "7": RangeResult };
 }
@@ -113,21 +117,45 @@ export default function NumberRangeMatch() {
 
   const clearRecentSelect = () => setSelectedRecent(null);
 
-  return (
-    <div className="min-h-screen bg-linear-to-br from-teal-50 to-pink-100 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            🔮 구간별 출현 패턴 분석
-          </h1>
-          <p className="text-gray-600">
-            특정 회차의 구간별 번호 구성이 동일한 과거 회차를 찾고, 그 다음
-            회차에서 등장한 번호의 빈도를 표시합니다.
-          </p>
-        </div>
+  const getMostAndLeast = () => {
+    if (!data) return { most: [], least: [] };
 
-        {/* Filter */}
+    const calc = (freq: Record<number, number>) => {
+      const values = Object.values(freq);
+      const max = Math.max(...values);
+      const min = Math.min(...values);
+
+      const maxList = Object.entries(freq)
+        .filter(([_, c]) => c === max)
+        .map(([n]) => Number(n));
+
+      const minList = Object.entries(freq)
+        .filter(([_, c]) => c === min)
+        .map(([n]) => Number(n));
+
+      return { maxList, minList };
+    };
+
+    const f10 = calc(data.ranges["10"].nextFrequency);
+    const f7 = calc(data.ranges["7"].nextFrequency);
+
+    return {
+      most: [...f10.maxList, ...f7.maxList],
+      least: [...f10.minList, ...f7.minList],
+    };
+  };
+
+  const { most, least } = getMostAndLeast();
+
+  return (
+    <div className={analysisDivStyle("teal-50", "pink-100")}>
+      {/* Header */}
+      <ComponentHeader
+        title="🔮 구간별 출현 패턴 분석"
+        content="특정 회차의 구간별 번호 구성이 동일한 과거 회차를 찾고, 그 다음 회차에서 등장한 번호의 빈도를 표시합니다."
+      />
+      {/* Filter */}
+      <div className={rangeFilterDivStyle}>
         <RangeFilterBar
           start={start}
           end={end}
@@ -140,146 +168,113 @@ export default function NumberRangeMatch() {
           onRecentSelect={handleRecent}
           clearRecentSelect={clearRecentSelect}
         />
+      </div>
 
-        {/* 조회하기 + Tolerance 선택 */}
-        <div className="flex flex-col sm:flex-row items-center gap-4 mt-2 mb-6">
-          {/* 조회하기 버튼 */}
-          <button
-            onClick={fetchData}
-            className="px-5 py-2 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition flex-shrink-0"
+      {/* 조회하기 + Tolerance 선택 */}
+      <div className="flex flex-col sm:flex-row items-center gap-4 mt-2 mb-6">
+        {/* 조회하기 버튼 */}
+
+        <LookUpButton onClick={fetchData} loading={loading} />
+
+        {/* 🔹 Tolerance 선택 */}
+        <div className="flex items-center gap-2">
+          <label className="font-medium text-gray-700">
+            허용 오차(tolerance):
+          </label>
+          <select
+            className="border rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            value={tolerance}
+            onChange={(e) => setTolerance(Number(e.target.value))}
           >
-            {loading ? "조회 중..." : "조회하기"}
-          </button>
-
-          {/* 🔹 Tolerance 선택 */}
-          <div className="flex items-center gap-2">
-            <label className="font-medium text-gray-700">
-              허용 오차(tolerance):
-            </label>
-            <select
-              className="border rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              value={tolerance}
-              onChange={(e) => setTolerance(Number(e.target.value))}
-            >
-              <option value={0}>0</option>
-              <option value={1}>1</option>
-              <option value={2}>2</option>
-              <option value={3}>3</option>
-            </select>
-          </div>
+            <option value={0}>0</option>
+            <option value={1}>1</option>
+            <option value={2}>2</option>
+            <option value={3}>3</option>
+          </select>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4">
-          {/* 기준 회차 */}
-          <div className="flex-1 bg-linear-to-br from-green-50 to-emerald-50 rounded-xl p-4 border-2 border-green-200">
+          {/* 기준 회차 카드 */}
+          <div className="flex-1 bg-white rounded-xl p-4 border border-emerald-200 shadow-sm">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-lg font-bold text-gray-800">
-                📌 기준 회차: {selectedRound?.round || "N/A"}회
+              <span className="text-lg font-bold text-gray-800 shrink-0">
+                📌 기준 회차: {selectedRound?.round ?? "N/A"}회
               </span>
-            </div>
-            <div className="flex flex-row justify-center">
-              <div className="flex flex-wrap gap-2 justify-center items-center">
+
+              {/* 번호 표시 영역 */}
+              <div className="flex items-center gap-2 flex-wrap justify-end">
                 {selectedRound?.numbers.map((num, index) => (
-                  <div key={index}>
-                    {index === 6 && (
-                      <span className="text-sm font-medium text-yellow-800">
-                        /
-                      </span>
-                    )}
-                    <LottoBall key={num} number={num} />
+                  <div key={index} className="flex items-center">
+                    <LottoBall number={num} />
                   </div>
                 ))}
-              </div>
 
-              {selectedRound?.bonus != null && (
-                <>
-                  <span className="text-sm font-medium text-yellow-800">/</span>
-                  <LottoBall number={selectedRound.bonus} />
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* 다음 회차 */}
-          {nextRound && (
-            <div className="flex-1 bg-linear-to-br from-sky-50 to-blue-50 rounded-xl p-4 border-2 border-sky-200">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-lg font-bold text-gray-800">
-                  ⏭️ 다음 회차: {nextRound.round}회
-                </span>
-              </div>
-              <div className="flex flex-row justify-center items-center">
-                <div className="flex flex-wrap gap-2 justify-center">
-                  {nextRound.numbers.map((num) => (
-                    <LottoBall key={num} number={num} />
-                  ))}
-                </div>
-
-                {nextRound.bonus != null && (
-                  <>
-                    <span className="text-sm font-medium text-yellow-800">
+                {/* 보너스 */}
+                {includeBonus && selectedRound?.bonus && (
+                  <div className="flex items-center">
+                    <span className="mx-1 text-sm font-semibold text-yellow-600">
                       /
                     </span>
-                    <LottoBall number={nextRound.bonus} />
-                  </>
+                    <LottoBall number={selectedRound.bonus} />
+                  </div>
                 )}
               </div>
             </div>
-          )}
+          </div>
         </div>
-
-        {loading && <div className="text-center">⏳ 로딩중...</div>}
-
-        {!loading && data && (
-          <>
-            {/* 10단위 */}
-            <SimpleBarChart
-              title="10단위 구간별 출현"
-              data={Object.entries(data.ranges["10"].counts).map(
-                ([label, count]) => ({
-                  label,
-                  count,
-                })
-              )}
-            />
-            <div className="text-sm text-gray-700 mb-2">
-              매칭 회차 ({data.ranges["10"].matchingRounds.length}개):{" "}
-              {data.ranges["10"].matchingRounds.length === 0
-                ? "없음"
-                : data.ranges["10"].matchingRounds
-                    .map((r) => r.round)
-                    .join(", ")}
-            </div>
-            <NextFrequencyChart
-              title="10단위 패턴 → 다음 회차 빈도수"
-              frequency={data.ranges["10"].nextFrequency}
-            />
-
-            {/* 7단위 */}
-            <SimpleBarChart
-              title="7단위 구간별 출현"
-              data={Object.entries(data.ranges["7"].counts).map(
-                ([label, count]) => ({
-                  label,
-                  count,
-                })
-              )}
-            />
-            <div className="text-sm text-gray-700 mb-2">
-              매칭 회차 ({data.ranges["7"].matchingRounds.length}개):{" "}
-              {data.ranges["7"].matchingRounds.length === 0
-                ? "없음"
-                : data.ranges["7"].matchingRounds
-                    .map((r) => r.round)
-                    .join(", ")}
-            </div>
-            <NextFrequencyChart
-              title="7단위 패턴 → 다음 회차 빈도수"
-              frequency={data.ranges["7"].nextFrequency}
-            />
-          </>
-        )}
       </div>
+      {/* 다음 회차 */}
+      {nextRound && <DraggableNextRound nextRound={nextRound} />}
+
+      {loading && <div className="text-center">⏳ 로딩중...</div>}
+
+      {!loading && data && (
+        <>
+          {/* 10단위 */}
+          <SimpleBarChart
+            title="10단위 구간별 출현"
+            data={Object.entries(data.ranges["10"].counts).map(
+              ([label, count]) => ({
+                label,
+                count,
+              })
+            )}
+          />
+          <div className="text-sm text-gray-700 mb-2">
+            매칭 회차 ({data.ranges["10"].matchingRounds.length}개):{" "}
+            {data.ranges["10"].matchingRounds.length === 0
+              ? "없음"
+              : tolerance === 0 &&
+                data.ranges["10"].matchingRounds.map((r) => r.round).join(", ")}
+          </div>
+          <NextFrequencyChart
+            title="10단위 패턴 → 다음 회차 빈도수"
+            frequency={data.ranges["10"].nextFrequency}
+          />
+
+          {/* 7단위 */}
+          <SimpleBarChart
+            title="7단위 구간별 출현"
+            data={Object.entries(data.ranges["7"].counts).map(
+              ([label, count]) => ({
+                label,
+                count,
+              })
+            )}
+          />
+          <div className="text-sm text-gray-700 mb-2">
+            매칭 회차 ({data.ranges["7"].matchingRounds.length}개):{" "}
+            {data.ranges["7"].matchingRounds.length === 0
+              ? "없음"
+              : tolerance === 0 &&
+                data.ranges["7"].matchingRounds.map((r) => r.round).join(", ")}
+          </div>
+          <NextFrequencyChart
+            title="7단위 패턴 → 다음 회차 빈도수"
+            frequency={data.ranges["7"].nextFrequency}
+          />
+        </>
+      )}
     </div>
   );
 }

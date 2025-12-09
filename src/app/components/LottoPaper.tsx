@@ -3,7 +3,13 @@
 import { LottoNumber } from "@/app/types/lotto";
 import { cardWidth } from "../utils/getUtils";
 
-export default function LottoPaper({ data }: { data: LottoNumber | null }) {
+export default function LottoPaper({
+  data,
+  includeBonus,
+}: {
+  data: LottoNumber | null;
+  includeBonus: boolean;
+}) {
   if (!data) return null;
 
   const numbers = [
@@ -13,7 +19,7 @@ export default function LottoPaper({ data }: { data: LottoNumber | null }) {
     data.drwtNo4,
     data.drwtNo5,
     data.drwtNo6,
-    data.bnusNo,
+    ...(includeBonus ? [data.bnusNo] : []),
   ];
 
   const isSelected = (n: number) => numbers.includes(n);
