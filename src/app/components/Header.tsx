@@ -251,28 +251,31 @@ export default function Header() {
           <div className="bg-white rounded-xl p-6 w-80 shadow-2xl">
             <h2 className="text-xl font-bold text-center mb-4">로그인</h2>
 
+            {/* Google 로그인 */}
             <button
               onClick={() => {
                 const redirectUrl = encodeURIComponent(window.location.origin);
                 window.location.href = `${oauthUrls.google}?state=${redirectUrl}`;
               }}
-              className="flex items-center justify-center gap-2 bg-white border border-gray-300 hover:bg-gray-100 text-gray-800 px-4 py-2 rounded shadow"
+              className="flex items-center justify-center gap-2 w-full bg-white border border-gray-300 hover:bg-gray-100 text-gray-800 px-4 py-2 rounded shadow"
             >
               <FcGoogle className="w-5 h-5" />
               Google로 로그인
             </button>
 
+            {/* Naver 로그인 */}
             <button
               onClick={() => {
                 const redirectUrl = encodeURIComponent(window.location.origin);
                 window.location.href = `${oauthUrls.naver}?state=${redirectUrl}`;
               }}
-              className="flex items-center justify-center gap-2 bg-[#03C75A] hover:bg-[#02b14b] text-white px-4 py-2 rounded shadow mt-3"
+              className="flex items-center justify-center gap-2 w-full bg-[#03C75A] border border-[#03C75A] hover:bg-[#02b14b] text-white px-4 py-2 rounded shadow mt-3"
             >
               <SiNaver className="w-5 h-5" />
               Naver로 로그인
             </button>
 
+            {/* 취소 버튼 */}
             <button
               onClick={closeLoginModal}
               className="mt-5 w-full px-4 py-2 border rounded hover:bg-gray-100"
