@@ -103,7 +103,7 @@ export default function MultiRoundInfo() {
       />
 
       {/* Range Filter */}
-      <div className={rangeFilterDivStyle}>
+      <div className={`${rangeFilterDivStyle} mt-3`}>
         <RangeFilterBar
           start={start}
           end={end}
@@ -119,23 +119,22 @@ export default function MultiRoundInfo() {
       </div>
 
       {/* Fetch Button */}
-      <div className="flex justify-start mt-2 mb-6">
+      <div className="flex justify-start mt-3 mb-6 px-1 sm:px-0">
         <LookUpButton onClick={fetchData} loading={loading} />
       </div>
 
       {/* View Type Switcher */}
-      <div className="flex gap-2 justify-center">
+      <div className="flex flex-wrap gap-2 justify-center mt-2">
         {["card", "pattern", "paper"].map((type) => (
           <button
             key={type}
             onClick={() => setViewType(type as "card" | "pattern" | "paper")}
-            className={`px-3 py-1.5 rounded-lg border text-sm font-medium transition-all
-                ${
-                  viewType === type
-                    ? "bg-blue-600 text-white border-blue-600 shadow"
-                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
-                }
-              `}
+            className={`px-3 py-1.5 rounded-lg border text-sm sm:text-base font-medium transition-all
+              ${
+                viewType === type
+                  ? "bg-blue-600 text-white border-blue-600 shadow"
+                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+              }`}
           >
             {type === "card"
               ? "당첨 정보"
@@ -146,14 +145,22 @@ export default function MultiRoundInfo() {
         ))}
       </div>
 
+      {/* Loading */}
       {loading && (
-        <div className="text-center text-gray-600 mt-4 text-sm">
+        <div className="text-center text-gray-600 mt-4 text-base">
           데이터 불러오는 중...
         </div>
       )}
 
       {/* Data Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mt-4">
+      <div
+        className="
+          grid grid-cols-1 
+          sm:grid-cols-2 
+          lg:grid-cols-3 
+          gap-4 mt-6 pb-10
+        "
+      >
         {pagedData?.map((data) => {
           if (viewType === "card")
             return (
@@ -184,23 +191,23 @@ export default function MultiRoundInfo() {
       </div>
 
       {/* Pagination */}
-      <div className="flex justify-center mt-5 gap-2 text-sm">
+      <div className="flex justify-center mt-4 gap-3 text-sm sm:text-base pb-8">
         <button
           disabled={currentPage === 1}
           onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-          className="px-3 py-1 rounded border bg-white text-gray-700 disabled:opacity-50 hover:bg-gray-100"
+          className="px-4 py-2 rounded-lg border bg-white text-gray-700 disabled:opacity-40 hover:bg-gray-100"
         >
           이전
         </button>
 
-        <span className="px-2 py-1 text-gray-700 font-medium">
+        <span className="px-3 py-2 text-gray-700 font-semibold">
           {currentPage} / {totalPages}
         </span>
 
         <button
           disabled={currentPage === totalPages}
           onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-          className="px-3 py-1 rounded border bg-white text-gray-700 disabled:opacity-50 hover:bg-gray-100"
+          className="px-4 py-2 rounded-lg border bg-white text-gray-700 disabled:opacity-40 hover:bg-gray-100"
         >
           다음
         </button>

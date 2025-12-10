@@ -7,6 +7,7 @@ import { useAuth } from "@/app/context/authContext";
 import { Logo } from "./Footer";
 import { FcGoogle } from "react-icons/fc";
 import { SiNaver } from "react-icons/si";
+import { Menu, X } from "lucide-react";
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
@@ -32,64 +33,31 @@ export default function Header() {
     { name: "AI 점수 분석", href: "/ai-recommend" },
     { name: "게시판", href: "/board" },
     { name: "로또기록", href: "/lotto-history" },
-    // { name: "프리미엄구독", href: "/premium", premium: true },
   ];
-
-  const handleTestLogin = async () => {
-    try {
-      const res = await fetch(
-        process.env.NEXT_PUBLIC_API_URL + "/auth/test-login",
-        {
-          method: "POST",
-          credentials: "include",
-        }
-      );
-      if (!res.ok) throw new Error("Test login failed");
-      const data = await res.json();
-      setUser(data.user);
-      alert("테스트 로그인 완료! 1시간 PREMIUM 상태입니다.");
-    } catch (err) {
-      console.error(err);
-      alert("테스트 로그인 실패");
-    }
-  };
 
   return (
     <>
-      <header className="bg-white/90 backdrop-blur-md shadow-lg sticky top-0 z-50 border-b border-gray-100">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+      {/* HEADER */}
+      <header className="bg-white/90 backdrop-blur-md shadow-md sticky top-0 z-50 border-b border-gray-100 h-16 flex items-center">
+        <div className="max-w-6xl mx-auto px-6 w-full flex items-center justify-between">
           <Logo />
 
-          {/* 데스크톱 메뉴 */}
-          <nav className="hidden md:flex space-x-6 text-sm font-medium items-center">
+          {/* 데스크탑 메뉴 */}
+          <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
             {navLinks.map((link) => {
               const isActive = pathname === link.href;
-
-              // ✅ 프리미엄 유저라면 프리미엄 메뉴 숨김
-              // if (link.premium && user?.role === "PREMIUM") return null;
 
               return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`relative px-3 py-2 transition-all ${
+                  className={`group relative px-3 py-2 transition-all ${
                     isActive
                       ? "text-blue-600 font-semibold"
                       : "text-gray-700 hover:text-blue-600"
                   }`}
                 >
-                  <div className="flex items-center gap-1">
-                    <span>{link.name}</span>
-
-                    {/* PREMIUM Badge */}
-                    {/* {link.premium && (
-                      <span className=" px-1.5 py-0.5 rounded bg-amber-500 text-white font-bold shadow-sm">
-                        프리미엄구독
-                      </span>
-                    )} */}
-                  </div>
-
-                  {/* underline */}
+                  {link.name}
                   <span
                     className={`absolute left-0 -bottom-1 h-0.5 bg-blue-600 transition-all ${
                       isActive ? "w-full" : "w-0 group-hover:w-full"
@@ -99,7 +67,7 @@ export default function Header() {
               );
             })}
 
-            {/* 로그인 영역 */}
+            {/* 로그인/로그아웃 */}
             {user ? (
               <div className="flex items-center gap-3 ml-4">
                 <span
@@ -109,10 +77,12 @@ export default function Header() {
                       : "bg-gray-300 text-gray-700"
                   }`}
                 >
-                  {user.role ?? "FREE"}
+                  {user.role}
                 </span>
 
-                <span className="text-gray-700">{user.name}</span>
+                <span className="text-gray-700 truncate max-w-[100px]">
+                  {user.name}
+                </span>
 
                 <button
                   onClick={logout}
@@ -122,40 +92,36 @@ export default function Header() {
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-3 ml-4">
-                <button
-                  onClick={openLoginModal}
-                  className="px-4 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-                >
-                  로그인
-                </button>
-              </div>
+              <button
+                onClick={openLoginModal}
+                className="ml-4 px-4 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+              >
+                로그인
+              </button>
             )}
           </nav>
 
-          {/* 모바일 햄버거 */}
-          <div className="md:hidden flex items-center">
-            <button
-              onClick={() => setIsOpen(true)}
-              className="p-2 rounded-md text-gray-700 hover:bg-gray-200 transition"
-            >
-              ☰
-            </button>
-          </div>
+          {/* mobile hamburger */}
+          <button
+            onClick={() => setIsOpen(true)}
+            className="md:hidden p-2 text-gray-700 hover:bg-gray-200 rounded-md transition"
+          >
+            <Menu className="w-6 h-6" />
+          </button>
         </div>
       </header>
 
-      {/* 모바일 전체 메뉴 패널 */}
+      {/* 모바일 메뉴 */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-40 backdrop-blur-sm flex">
-          <div className="w-72 h-full bg-white shadow-2xl p-6 flex flex-col">
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex">
+          <div className="w-[80vw] max-w-xs h-full bg-white shadow-xl p-6 flex flex-col">
             <div className="flex justify-between items-center">
               <Logo />
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-xl font-bold text-gray-600"
+                className="text-gray-700 hover:bg-gray-200 p-1 rounded"
               >
-                ✕
+                <X className="w-6 h-6" />
               </button>
             </div>
 
@@ -168,29 +134,24 @@ export default function Header() {
                   className="flex items-center justify-between"
                 >
                   {link.name}
-
-                  {/* {link.premium && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500 text-white font-bold shadow-sm">
-                      PREMIUM
-                    </span>
-                  )} */}
                 </Link>
               ))}
 
-              {/* 로그인 + 로그아웃 */}
               <div className="pt-6 border-t">
                 {user ? (
                   <>
-                    <span
-                      className={`text-sm px-2 py-1 rounded-full font-bold ${
-                        user.role === "PREMIUM"
-                          ? "bg-amber-500 text-white"
-                          : "bg-gray-300 text-gray-700"
-                      }`}
-                    >
-                      {user.role}
-                    </span>
-                    <span className="ml-2">{user.name}</span>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full font-bold ${
+                          user.role === "PREMIUM"
+                            ? "bg-amber-500 text-white"
+                            : "bg-gray-300 text-gray-700"
+                        }`}
+                      >
+                        {user.role}
+                      </span>
+                      <span className="text-gray-700">{user.name}</span>
+                    </div>
 
                     <button
                       onClick={() => {
@@ -217,7 +178,7 @@ export default function Header() {
                       onClick={() =>
                         (window.location.href = oauthUrls.naver ?? "")
                       }
-                      className="w-full mt-3 px-4 py-2 bg-[#03C75A] text-white flex items-center justify-center gap-2 rounded shadow"
+                      className="mt-3 w-full px-4 py-2 bg-[#03C75A] text-white rounded shadow flex items-center justify-center gap-2"
                     >
                       <SiNaver className="w-5 h-5" /> Naver 로그인
                     </button>
@@ -227,18 +188,17 @@ export default function Header() {
             </nav>
           </div>
 
-          {/* 빈 공간 클릭 → 닫기 */}
+          {/* side click close */}
           <div className="flex-1" onClick={() => setIsOpen(false)} />
         </div>
       )}
 
       {/* 로그인 모달 */}
       {isLoginModalOpen && !user && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center">
           <div className="bg-white rounded-xl p-6 w-80 shadow-2xl">
             <h2 className="text-xl font-bold text-center mb-4">로그인</h2>
 
-            {/* Google 로그인 */}
             <button
               onClick={() => {
                 const redirectUrl = encodeURIComponent(window.location.origin);
@@ -250,7 +210,6 @@ export default function Header() {
               Google로 로그인
             </button>
 
-            {/* Naver 로그인 */}
             <button
               onClick={() => {
                 const redirectUrl = encodeURIComponent(window.location.origin);
@@ -262,7 +221,6 @@ export default function Header() {
               Naver로 로그인
             </button>
 
-            {/* 취소 버튼 */}
             <button
               onClick={closeLoginModal}
               className="mt-5 w-full px-4 py-2 border rounded hover:bg-gray-100"

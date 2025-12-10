@@ -57,8 +57,7 @@ export default function NumberFrequency() {
       prev.end === end &&
       prev.includeBonus === includeBonus
     ) {
-      console.log("⭐ same params, skip fetch");
-      return; // ← fetch 실행 안 함
+      return;
     }
 
     setLoading(true);
@@ -72,7 +71,6 @@ export default function NumberFrequency() {
       setDraws(data.data.roundResults || []);
       setNextRound(data.data.nextRound || null);
     } catch (err) {
-      console.error(err);
       setResults(null);
       setDraws([]);
       setNextRound(null);
@@ -86,18 +84,16 @@ export default function NumberFrequency() {
     fetchData();
   }, []);
 
-  // --- end 입력 시 recent 선택 해제 ---
   const handleEndChange = (value: number) => {
     if (value < start) setStart(value);
     setEnd(value);
-    setSelectedRecent(null); // 수동 변경 시 recent 해제
+    setSelectedRecent(null);
   };
 
-  // --- start 직접 수정 ---
   const handleStartChange = (value: number) => {
     if (value > end) setEnd(value);
     setStart(value);
-    setSelectedRecent(null); // 수동 변경 시 recent 해제
+    setSelectedRecent(null);
   };
 
   const handleRecent = (count: number) => {
@@ -139,7 +135,6 @@ export default function NumberFrequency() {
   const maxFreq = Math.max(...freqValues);
   const minFreq = Math.min(...freqValues);
 
-  // bar chart data for "frequencyNext" (unchanged)
   const chartData = Array.from({ length: 45 }, (_, i) => {
     const num = i + 1;
     return { number: num, count: results?.frequency[num] ?? 0 };
@@ -148,7 +143,7 @@ export default function NumberFrequency() {
   const color = "#3b82f6";
 
   return (
-    <div className={analysisDivStyle("blue-50", "cyan-100")}>
+    <div className={analysisDivStyle("blue-50", "cyan-100") + " px-3 sm:px-6"}>
       {/* Header */}
       <ComponentHeader
         title="📈 번호 출현 빈도 분석"
@@ -156,11 +151,13 @@ export default function NumberFrequency() {
       />
 
       {nextRound && (
-        <DraggableNextRound nextRound={nextRound} most={most} least={least} />
+        <div className="mt-2 sm:mt-4">
+          <DraggableNextRound nextRound={nextRound} most={most} least={least} />
+        </div>
       )}
 
       {/* Range Filter */}
-      <div className={rangeFilterDivStyle}>
+      <div className={rangeFilterDivStyle + " mt-4 sm:mt-6"}>
         <RangeFilterBar
           start={start}
           end={end}
@@ -175,130 +172,117 @@ export default function NumberFrequency() {
         />
       </div>
 
-      {/* 조회하기 버튼 */}
-      <div className="flex justify-start mt-2 mb-6">
+      {/* 조회 버튼 */}
+      <div className="flex justify-start mt-1 mb-4 sm:mb-6">
         <LookUpButton onClick={fetchData} loading={loading} />
       </div>
 
-      {/* Loading State */}
+      {/* Loading */}
       {loading && (
-        <div className="bg-white rounded-2xl shadow-xl p-12 text-center">
-          <div className="flex flex-col items-center gap-4">
-            <svg
-              className="animate-spin h-12 w-12 text-blue-600"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
+        <div className="bg-white rounded-xl shadow p-10 text-center">
+          <div className="flex flex-col items-center gap-3">
+            <svg className="animate-spin h-10 w-10 text-blue-600" fill="none">
               <circle
-                className="opacity-25"
                 cx="12"
                 cy="12"
                 r="10"
                 stroke="currentColor"
                 strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
+              />
             </svg>
-            <p className="text-gray-600 font-medium">데이터 분석 중...</p>
+            <p className="text-gray-600">데이터 분석 중...</p>
           </div>
         </div>
       )}
 
-      {/* Statistics Cards */}
+      {/* No Data */}
       {!loading && !results && (
-        <div className="bg-white rounded-2xl shadow-xl p-12 text-center">
-          <div className="text-6xl mb-4">📊</div>
-          <p className="text-xl font-semibold text-gray-800">
-            데이터가 없습니다
+        <div className="bg-white rounded-xl shadow p-10 text-center">
+          <div className="text-5xl mb-2">📊</div>
+          <p className="text-lg font-semibold text-gray-800">
+            데이터가 없습니다.
           </p>
         </div>
       )}
 
+      {/* Results */}
       {!loading && results && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
-            {/* 선택 회차 */}
-            <div className="bg-white rounded-2xl shadow-xl p-3 md:p-4 text-center border-t-4 border-blue-500">
-              <div className="text-2xl md:text-3xl mb-1 md:mb-1.5">🎯</div>
-              <h3 className="text-[10px] md:text-xs text-gray-500 mb-1 md:mb-1 font-medium">
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6">
+            {/* 카드 1 */}
+            <div className="bg-white rounded-xl shadow p-3 md:p-4 text-center border-t-4 border-blue-500">
+              <div className="text-xl md:text-2xl">🎯</div>
+              <h3 className="text-[10px] sm:text-xs text-gray-500">
                 선택 회차
               </h3>
-              <p className="text-lg md:text-2xl font-bold text-gray-800 mb-1">
+              <p className="text-base sm:text-xl font-bold text-gray-800">
                 {results.start} ~ {results.end}
-                <span className="ml-1 text-[8px] md:text-[10px] text-gray-600 font-semibold">
+                <span className="ml-1 text-[8px] text-gray-600">
                   (총 {results.end - results.start + 1}회)
                 </span>
               </p>
-              <p className="text-[8px] md:text-[10px] text-gray-500 mt-1 md:mt-1">
-                {results.includeBonus ? "보너스 번호 포함" : "보너스 번호 제외"}
+              <p className="text-[8px] sm:text-[10px] text-gray-500 mt-1">
+                {results.includeBonus ? "보너스 포함" : "보너스 제외"}
               </p>
             </div>
 
-            {/* 가장 자주 나온 번호 */}
-            <div className="bg-linear-to-br from-red-50 to-orange-50 rounded-2xl shadow-xl p-3 md:p-4 text-center border-t-4 border-red-500">
-              <div className="text-2xl md:text-3xl mb-1 md:mb-1.5">🔥</div>
-              <h3 className="text-[10px] md:text-xs text-gray-600 mb-1 md:mb-1 font-medium">
+            {/* 카드 2 */}
+            <div className="bg-linear-to-br from-red-50 to-orange-50 rounded-xl shadow p-3 md:p-4 text-center border-t-4 border-red-500">
+              <div className="text-xl md:text-2xl">🔥</div>
+              <h3 className="text-[10px] sm:text-xs text-gray-600">
                 가장 자주 나온 번호
               </h3>
-              <p className="text-xl md:text-2xl font-bold text-red-600">
+              <p className="text-base sm:text-xl font-bold text-red-600">
                 {most.join(", ")}
               </p>
               {most.length > 0 && (
-                <p className="text-[8px] md:text-[10px] text-gray-600 mt-1 md:mt-1">
+                <p className="text-[8px] sm:text-[10px] text-gray-600 mt-1">
                   {results.frequency[most[0]]}회 출현
                 </p>
               )}
             </div>
 
-            {/* 가장 적게 나온 번호 */}
-            <div className="bg-linear-to-br from-blue-50 to-cyan-50 rounded-2xl shadow-xl p-3 md:p-4 text-center border-t-4 border-blue-500">
-              <div className="text-2xl md:text-3xl mb-1 md:mb-1.5">❄️</div>
-              <h3 className="text-[10px] md:text-xs text-gray-600 mb-1 md:mb-1 font-medium">
+            {/* 카드 3 */}
+            <div className="bg-linear-to-br from-blue-50 to-cyan-50 rounded-xl shadow p-3 md:p-4 text-center border-t-4 border-blue-500">
+              <div className="text-xl md:text-2xl">❄️</div>
+              <h3 className="text-[10px] sm:text-xs text-gray-600">
                 가장 적게 나온 번호
               </h3>
-              <p className="text-xl md:text-2xl font-bold text-blue-600">
+              <p className="text-base sm:text-xl font-bold text-blue-600">
                 {least.join(", ")}
               </p>
               {least.length > 0 && (
-                <p className="text-[8px] md:text-[10px] text-gray-600 mt-1 md:mt-1">
+                <p className="text-[8px] sm:text-[10px] text-gray-600 mt-1">
                   {results.frequency[least[0]]}회 출현
                 </p>
               )}
             </div>
           </div>
 
-          {/* Heat Map */}
-          <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3 sm:gap-0">
-              {/* 제목 영역 */}
-              <div>
-                <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 mb-1">
-                  🗺️ 출현 빈도 히트맵
-                </h2>
-                <p className="text-xs sm:text-sm text-gray-600">
-                  색이 진할수록 많이 출현한 번호입니다
-                </p>
-              </div>
+          {/* Heatmap */}
+          <div className="bg-white rounded-xl shadow p-4 sm:p-6 mb-6">
+            <div className="mb-4">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-800">
+                🗺️ 출현 빈도 히트맵
+              </h2>
+              <p className="text-xs sm:text-sm text-gray-600">
+                색이 진할수록 많이 나온 번호입니다
+              </p>
             </div>
 
             {/* Legend */}
-            <div className="flex items-center gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
-              <span className="text-sm font-medium text-gray-700">낮음</span>
-              <div className="flex-1 h-6 rounded-full bg-linear-to-r from-blue-400 to-red-500"></div>
-              <span className="text-sm font-medium text-gray-700">높음</span>
+            <div className="flex items-center gap-3 mb-4 p-3 bg-gray-50 rounded-md">
+              <span className="text-xs sm:text-sm text-gray-700">낮음</span>
+              <div className="flex-1 h-4 rounded-full bg-linear-to-r from-blue-400 to-red-500" />
+              <span className="text-xs sm:text-sm text-gray-700">높음</span>
             </div>
 
-            {/* Number Grid */}
+            {/* Grid */}
             <div className="grid grid-cols-5 sm:grid-cols-9 lg:grid-cols-15 gap-2 sm:gap-3">
               {Array.from({ length: 45 }, (_, i) => {
                 const number = i + 1;
                 const item = freqData[number] || { count: 0, rounds: [] };
-
                 return (
                   <HeatmapCell
                     key={number}
@@ -316,31 +300,34 @@ export default function NumberFrequency() {
           <Tooltip
             id="lotto-tooltip"
             place="top"
-            className="bg-transparent! p-0! shadow-none!"
+            className="bg-transparent! p-0!"
           />
         </>
       )}
 
-      {/* bar chart for "frequency" */}
+      {/* Chart */}
       {results && Object.keys(results.frequency).length > 0 && (
-        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 mb-6">
-          <h2 className="text-xl font-bold mb-4">📊 출현 빈도 그래프</h2>
+        <div className="bg-white rounded-xl shadow p-4 sm:p-6 mb-6">
+          <h2 className="text-lg sm:text-xl font-bold mb-4">
+            📊 출현 빈도 그래프
+          </h2>
+
           <div style={{ width: "100%", height: 220 }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
-                <XAxis dataKey="number" tick={{ fontSize: 10 }} />
-                <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
+                <XAxis dataKey="number" tick={{ fontSize: 9 }} />
+                <YAxis tick={{ fontSize: 10 }} allowDecimals={false} />
+
                 <RechartTooltip />
+
                 <Bar dataKey="count" radius={[6, 6, 0, 0]}>
                   {chartData.map((d, index) => {
-                    // 강조 규칙
                     const isMax = d.count === maxFreq;
-                    const isMin = d.count === minFreq; // (사용 선택)
-
+                    const isMin = d.count === minFreq;
                     let barColor = color;
 
-                    if (isMax) barColor = "#ef4444"; // (최댓값 강조)
-                    if (isMin) barColor = "#facc15"; // (최솟값 강조) ← 선택
+                    if (isMax) barColor = "#ef4444";
+                    if (isMin) barColor = "#facc15";
 
                     return <Cell key={index} fill={barColor} />;
                   })}

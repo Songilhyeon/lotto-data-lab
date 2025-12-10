@@ -29,4 +29,8 @@ export const getLatestRound = (): number => {
 const getApiUrl = () => process.env.NEXT_PUBLIC_API_URL;
 export const apiUrl = getApiUrl();
 
-export const cardWidth = "min-w-90";
+export const cardWidth = "w-full max-w-xl";
+
+export const formatNumber = (num: number) => {
+  return new Intl.NumberFormat("ko-KR").format(num);
+};

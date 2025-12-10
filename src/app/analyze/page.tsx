@@ -19,7 +19,7 @@ const allTabs = [
   { id: "numberRange", label: "번호 구간", premiumOnly: false },
   { id: "similar", label: "다음 회차", premiumOnly: false },
   { id: "numberLab", label: "번호 실험실", premiumOnly: false },
-  { id: "premiumAnalysis", label: "통합 정보", premiumOnly: false }, // PREMIUM 탭
+  { id: "premiumAnalysis", label: "통합 정보", premiumOnly: false },
 ];
 
 export default function LottoAnalysisPage() {
@@ -43,7 +43,7 @@ export default function LottoAnalysisPage() {
       case "numberRange":
         return <NumberRangeMatch />;
       case "premiumAnalysis":
-        return <PremiumAnalysis />; // PremiumAnalysis 컴포넌트 자체에서 round 드롭다운 포함
+        return <PremiumAnalysis />;
       case "similar":
         return <NextPatterns />;
       case "numberLab":
@@ -54,26 +54,30 @@ export default function LottoAnalysisPage() {
   };
 
   return (
-    <div className="p-4">
+    <div className="px-4 sm:px-6 pt-4 pb-10">
       {/* 탭 UI */}
-      <div className="flex border-b border-gray-300 mb-4">
-        {availableTabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 -mb-px font-medium border-b-2 ${
-              activeTab === tab.id
-                ? "border-blue-500 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+      <div className="overflow-x-auto scrollbar-hide mb-4">
+        <div className="flex space-x-4 border-b border-gray-200 min-w-max pb-1">
+          {availableTabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-3 py-2 text-sm sm:text-base rounded-t-lg whitespace-nowrap transition-all
+                ${
+                  activeTab === tab.id
+                    ? "border-b-2 border-blue-600 text-blue-600 font-semibold"
+                    : "text-gray-500 hover:text-gray-700"
+                }
+              `}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* 선택된 분석 모드 콘텐츠 */}
-      <div>{renderContent()}</div>
+      {/* 콘텐츠 */}
+      <div className="mt-2">{renderContent()}</div>
     </div>
   );
 }

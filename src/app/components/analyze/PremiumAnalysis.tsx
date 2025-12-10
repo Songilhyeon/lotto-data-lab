@@ -38,10 +38,10 @@ export default function PremiumAnalysis() {
     )
       return;
 
-    if (!user || user.role !== "PREMIUM") {
-      setError("프리미엄 사용자만 이용할 수 있습니다.");
-      return;
-    }
+    // if (!user || user.role !== "PREMIUM") {
+    //   setError("프리미엄 사용자만 이용할 수 있습니다.");
+    //   return;
+    // }
 
     if (round < 1000) {
       setError("회차는 최소 1000회 이상이어야 합니다.");
@@ -170,12 +170,13 @@ export default function PremiumAnalysis() {
   if (!user)
     return (
       <div className="w-full flex justify-center mt-10">
-        <div className="border border-gray-200 bg-gray-50 rounded-xl px-6 py-6 text-center shadow-sm">
-          <p className="text-xl font-semibold text-gray-800">
-            로그인이 필요합니다
+        <div className="bg-white shadow-md rounded-xl px-6 py-5 text-center">
+          <p className="text-lg font-semibold text-gray-700 mb-2">
+            로그인이 필요해요 😊
           </p>
-          <p className="text-gray-500 text-sm mt-2">
-            로그인 후 더 많은 기능을 이용해보세요.
+          <p className="text-gray-500 text-sm">
+            이 기능은 로그인 사용자만 이용할 수 있어요. 로그인 후 다시
+            이용해주세요!
           </p>
         </div>
       </div>

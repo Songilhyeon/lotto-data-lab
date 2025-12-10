@@ -27,15 +27,17 @@ export default function OneRoundInfo() {
         const res = await fetch(`${apiUrl}/lotto/round/${round}`);
         const json = await res.json();
 
-        if (json.success !== true) {
+        if (!json.success) {
           setError(json.message);
           setLottoData(null);
           return;
         }
+
         setError(null);
         setLottoData(json.data);
       } catch (err) {
         console.error(err);
+        setError("데이터 로딩 중 오류가 발생했습니다.");
         setLottoData(null);
       } finally {
         setLoading(false);
@@ -47,7 +49,7 @@ export default function OneRoundInfo() {
 
   const handleInputChange = (val: string) => {
     const num = Number(val);
-    if (Number.isNaN(num)) {
+    if (isNaN(num)) {
       setInputRound(val);
       return;
     }
@@ -72,112 +74,103 @@ export default function OneRoundInfo() {
         content="특정 회차의 당첨 번호와 패턴을 간략히 분석합니다."
       />
 
-      {/* Round Navigation */}
-      <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-2 sm:gap-4 justify-center w-full sm:w-auto">
-          <button
-            onClick={() => changeRound(-1)}
-            disabled={round <= 1}
-            className={`px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold text-sm sm:text-base shadow-md transition-all ${
-              round <= 1
-                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                : "bg-linear-to-r from-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700 hover:shadow-lg"
-            }`}
-          >
-            ◀ 이전 회차
-          </button>
+      {/* Round Navigation (반응형 최적화) */}
+      <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 flex flex-col gap-5">
+        {/* 버튼 및 입력 레이아웃 */}
+        <div className="flex flex-col sm:flex-row sm:justify-between gap-4 w-full">
+          {/* 좌/우 이동 및 입력창 */}
+          <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2 sm:gap-4">
+            {/* 이전 회차 */}
+            <button
+              onClick={() => changeRound(-1)}
+              disabled={round <= 1}
+              className={`px-4 py-2 rounded-xl font-semibold text-sm shadow-md transition-all
+                ${
+                  round <= 1
+                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    : "bg-blue-600 text-white hover:bg-blue-700"
+                }
+              `}
+            >
+              ◀ 이전
+            </button>
 
-          <div className="flex items-center gap-2">
-            <input
-              type="number"
-              value={inputRound}
-              onChange={(e) => handleInputChange(e.target.value)}
-              min={1}
-              max={latestRound}
-              className="w-24 sm:w-28 text-center border-2 border-gray-300 rounded-xl px-3 py-2 text-sm sm:text-base font-bold shadow-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-            <span className="text-gray-600 font-medium text-sm sm:text-base">
-              회
-            </span>
+            {/* 입력창 */}
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                value={inputRound}
+                onChange={(e) => handleInputChange(e.target.value)}
+                className="w-24 text-center border-2 border-gray-300 rounded-xl px-3 py-2 text-sm font-bold shadow-sm focus:ring-2 focus:ring-blue-500"
+              />
+              <span className="text-gray-600 font-medium">회</span>
+            </div>
+
+            {/* 다음 회차 */}
+            <button
+              onClick={() => changeRound(1)}
+              disabled={round >= latestRound}
+              className={`px-4 py-2 rounded-xl font-semibold text-sm shadow-md transition-all
+                ${
+                  round >= latestRound
+                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    : "bg-blue-600 text-white hover:bg-blue-700"
+                }
+              `}
+            >
+              다음 ▶
+            </button>
           </div>
 
-          <button
-            onClick={() => changeRound(1)}
-            disabled={round >= latestRound}
-            className={`px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold text-sm sm:text-base shadow-md transition-all ${
-              round >= latestRound
-                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                : "bg-linear-to-r from-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700 hover:shadow-lg"
-            }`}
-          >
-            다음 회차 ▶
-          </button>
-        </div>
+          {/* 보조 버튼: 첫 회차 / 최신 회차 / 랜덤 */}
+          <div className="flex flex-wrap justify-center sm:justify-end gap-2">
+            <button
+              onClick={() => {
+                setRound(1);
+                setInputRound("1");
+              }}
+              className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium"
+            >
+              첫 회차
+            </button>
 
-        <div className="flex flex-wrap gap-2 justify-center">
-          <button
-            onClick={() => {
-              setRound(1);
-              setInputRound("1");
-            }}
-            className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm sm:text-base font-medium transition"
-          >
-            첫 회차
-          </button>
-          <button
-            onClick={() => {
-              setRound(latestRound);
-              setInputRound(String(latestRound));
-            }}
-            className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm sm:text-base font-medium transition"
-          >
-            최신 회차
-          </button>
-          <button
-            onClick={() => {
-              const random = Math.floor(Math.random() * latestRound) + 1;
-              setRound(random);
-              setInputRound(String(random));
-            }}
-            className="px-3 sm:px-4 py-1.5 sm:py-2 bg-linear-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg text-sm sm:text-base font-medium transition"
-          >
-            🎲 랜덤 회차
-          </button>
+            <button
+              onClick={() => {
+                setRound(latestRound);
+                setInputRound(String(latestRound));
+              }}
+              className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium"
+            >
+              최신 회차
+            </button>
+
+            <button
+              onClick={() => {
+                const random = Math.floor(Math.random() * latestRound) + 1;
+                setRound(random);
+                setInputRound(String(random));
+              }}
+              className="px-3 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 text-white rounded-lg text-sm font-medium"
+            >
+              🎲 랜덤
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Loading */}
       {loading && (
-        <div className="bg-white rounded-2xl shadow-xl p-8 sm:p-12 text-center">
+        <div className="bg-white rounded-2xl shadow-xl p-8 sm:p-10 text-center">
           <div className="flex flex-col items-center gap-4">
-            <svg
-              className="animate-spin h-10 w-10 sm:h-12 sm:w-12 text-indigo-600"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
-            </svg>
-            <p className="text-gray-600 font-medium text-base sm:text-lg">
+            <div className="animate-spin h-10 w-10 border-4 border-indigo-300 border-t-indigo-600 rounded-full"></div>
+            <p className="text-gray-600 font-medium">
               {round}회 데이터를 불러오는 중...
             </p>
           </div>
         </div>
       )}
 
-      {/* Cards */}
+      {/* 카드 3개 */}
       {!loading && !error && (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           <LottoCard data={lottoData} includeBonus={true} />

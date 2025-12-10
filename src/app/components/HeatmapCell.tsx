@@ -8,14 +8,24 @@ interface Props {
   rounds: number[];
 }
 
+/** 색깔 대비 자동 판단 */
+function getContrastTextColor(r: number, g: number, b: number) {
+  // YIQ 계산 — 밝기 판단
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+  return yiq >= 128 ? "#000" : "#fff"; // 배경 밝으면 검정, 어두우면 흰색
+}
+
+/** 부드러운 그라데이션 생성 + 예외처리 강화 */
 function getRgbGradientColor(count: number, min: number, max: number) {
-  const ratio = max === min ? 0 : (count - min) / (max - min);
+  let ratio = 0;
+  if (max > min) ratio = (count - min) / (max - min);
+  ratio = Math.max(0, Math.min(1, ratio)); // 0~1 범위 강제
 
   const r = Math.round(239 * ratio + 59 * (1 - ratio));
   const g = Math.round(68 * ratio + 130 * (1 - ratio));
   const b = Math.round(68 * ratio + 246 * (1 - ratio));
 
-  return `rgb(${r}, ${g}, ${b})`;
+  return { rgb: `rgb(${r}, ${g}, ${b})`, r, g, b };
 }
 
 export default function HeatmapCell({
@@ -25,15 +35,16 @@ export default function HeatmapCell({
   maxCount,
   rounds,
 }: Props) {
-  const cellColor = getRgbGradientColor(count, minCount, maxCount);
-  const tooltipColor = cellColor; // 동일한 색상 적용
+  const { rgb, r, g, b } = getRgbGradientColor(count, minCount, maxCount);
+  const textColor = getContrastTextColor(r, g, b);
 
+  /** 모바일 UI에서 더 읽기 쉽게 툴팁 개선 */
   const tooltipHtml = `
-    <div class="px-3 py-2 rounded-lg shadow-lg text-white text-sm leading-relaxed max-w-xs"
-      style="background: ${tooltipColor};">
-      <div class="font-semibold mb-1">번호 ${number}</div>
-      <div>등장: <span class="font-semibold">${count}회</span></div>
-      <div class="mt-1 text-gray-200">회차: ${rounds.join(", ")}</div>
+    <div class="px-3 py-2 rounded-lg shadow-xl text-sm leading-relaxed max-w-xs"
+      style="background:${rgb}; color:${textColor}">
+      <div class="font-bold mb-1">번호 ${number}</div>
+      <div>등장: <span class="font-bold">${count}회</span></div>
+      <div class="mt-1 opacity-90">회차: ${rounds.join(", ")}</div>
     </div>
   `;
 
@@ -41,8 +52,15 @@ export default function HeatmapCell({
     <div
       data-tooltip-id="lotto-tooltip"
       data-tooltip-html={tooltipHtml}
-      className="h-10 flex items-center justify-center text-white font-bold rounded cursor-pointer"
-      style={{ backgroundColor: cellColor }}
+      className="
+        flex items-center justify-center font-bold rounded-md cursor-pointer
+        transition-transform active:scale-95
+        h-9 text-sm sm:h-10 sm:text-base
+      "
+      style={{
+        backgroundColor: rgb,
+        color: textColor,
+      }}
     >
       {number}
     </div>
