@@ -4,6 +4,8 @@ import "./globals.css";
 import Header from "@/app/components/Header";
 import Footer from "@/app/components/Footer";
 import { AuthProvider } from "@/app/context/authContext";
+import Script from "next/script";
+import PageViewProvider from "@/app/PageViewProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,11 +32,30 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        {/* GA4 Script */}
+        <Script
+          strategy="afterInteractive"
+          src="https://www.googletagmanager.com/gtag/js?id=G-JYYJBFHWY2"
+        />
+
+        <Script id="ga4-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-JYYJBFHWY2', {
+              page_path: window.location.pathname,
+            });
+          `}
+        </Script>
+
         <AuthProvider>
-          {/* Header */}
-          <Header />
-          <main>{children}</main>
-          <Footer />
+          <PageViewProvider>
+            {/* Header */}
+            <Header />
+            <main>{children}</main>
+            <Footer />
+          </PageViewProvider>
         </AuthProvider>
       </body>
     </html>
