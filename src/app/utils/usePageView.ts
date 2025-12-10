@@ -1,19 +1,20 @@
-"use client";
+import { useContext } from "react";
+import { PageViewContext } from "@/app/PageViewProvider";
 
-import { useEffect } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+export const usePageView = () => {
+  const ctx = useContext(PageViewContext);
 
-export function usePageView() {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  if (!ctx) {
+    throw new Error("usePageView must be used within PageViewProvider");
+  }
 
-  useEffect(() => {
-    if (!pathname) return;
+  const setConfig = (payload: Partial<typeof ctx.config>) => {
+    ctx.dispatch({ type: "SET_CONFIG", payload });
+  };
 
-    window.gtag?.("config", "G-JYYJBFHWY2", {
-      page_path:
-        pathname +
-        (searchParams?.toString() ? "?" + searchParams.toString() : ""),
-    });
-  }, [pathname, searchParams]);
-}
+  return {
+    hydrated: ctx.hydrated,
+    config: ctx.config,
+    setConfig,
+  };
+};
