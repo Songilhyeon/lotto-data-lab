@@ -6,6 +6,8 @@ import ResultCard from "@/app/components/lotto-history/ResultCard";
 import { queryOptions } from "@/app/utils/queryOptions";
 import RangeFilterBar from "@/app/components/RangeFilterBar";
 import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
+import ComponentHeader from "@/app/components/ComponentHeader";
+import { analysisDivStyle, rangeFilterDivStyle } from "@/app/utils/getDivStyle";
 
 export default function LottoHistoryPage() {
   // 클라이언트 전용으로 초기값 설정
@@ -82,64 +84,74 @@ export default function LottoHistoryPage() {
   const clearRecentSelect = () => setSelectedRecent(null);
 
   return (
-    <div className="w-full pt-6 px-4 sm:px-6 max-w-full sm:max-w-6xl mx-auto">
-      <header className="mb-4 sm:mb-6 text-center sm:text-left">
-        <h1 className="text-xl sm:text-2xl font-bold">로또 히스토리</h1>
-      </header>
-
-      {/* Range UI */}
-      <RangeFilterBar
-        start={start}
-        end={end}
-        setStart={handleStartChange}
-        setEnd={handleEndChange}
-        latest={latestRound}
-        selectedRecent={selectedRecent}
-        onRecentSelect={handleRecent}
-        clearRecentSelect={clearRecentSelect}
-        showCheckBox={false}
-      />
-
-      {/* 검색 항목 + limit 컨트롤 */}
-      <div className="flex flex-col sm:flex-row gap-5 items-start sm:items-center mb-4">
-        <select
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="px-3 py-2 border rounded-md w-full sm:w-64"
-        >
-          <option value="">검색 항목 선택</option>
-          {queryOptions.map((item) => (
-            <option key={item.value} value={item.value}>
-              {item.label}
-            </option>
-          ))}
-        </select>
-
-        <label>결과 개수</label>
-        <input
-          type="number"
-          min={1}
-          value={limit}
-          onChange={(e) => setLimit(Number(e.target.value))}
-          className="px-3 py-2 border rounded-md w-full sm:w-32 text-center"
-          placeholder="결과 개수"
+    <div className="p-4 flex border-b border-gray-300 mb-4">
+      <div className={analysisDivStyle("indigo-50", "purple-100")}>
+        <ComponentHeader
+          title="📊 로또 기록 순위"
+          content="당첨자 수·금액·판매액 같은 기록을 TOP 순위로 가볍게 구경해요 ✨"
         />
-      </div>
+        <header className="mb-4 sm:mb-6 text-center sm:text-left">
+          <h1 className="text-xl sm:text-2xl font-bold"></h1>
+        </header>
 
-      {/* 결과 카드 */}
-      {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <p className="col-span-full text-center text-gray-500">로딩 중...</p>
+        {/* Range UI */}
+        <div className={rangeFilterDivStyle}>
+          <RangeFilterBar
+            start={start}
+            end={end}
+            setStart={handleStartChange}
+            setEnd={handleEndChange}
+            latest={latestRound}
+            selectedRecent={selectedRecent}
+            onRecentSelect={handleRecent}
+            clearRecentSelect={clearRecentSelect}
+            showCheckBox={false}
+          />
         </div>
-      ) : results && results.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {results.map((record) => (
-            <ResultCard key={record.drwNo} record={record} />
-          ))}
+
+        {/* 검색 항목 + limit 컨트롤 */}
+        <div className="flex flex-col sm:flex-row gap-5 items-start sm:items-center mb-4">
+          <select
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="px-3 py-2 border rounded-md w-full sm:w-64"
+          >
+            <option value="">검색 항목 선택</option>
+            {queryOptions.map((item) => (
+              <option key={item.value} value={item.value}>
+                {item.label}
+              </option>
+            ))}
+          </select>
+
+          <label>결과 개수</label>
+          <input
+            type="number"
+            min={1}
+            value={limit}
+            onChange={(e) => setLimit(Number(e.target.value))}
+            className="px-3 py-2 border rounded-md w-full sm:w-32 text-center"
+            placeholder="결과 개수"
+          />
         </div>
-      ) : (
-        <div className="text-center text-gray-500">데이터가 없습니다.</div>
-      )}
+
+        {/* 결과 카드 */}
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <p className="col-span-full text-center text-gray-500">
+              로딩 중...
+            </p>
+          </div>
+        ) : results && results.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {results.map((record) => (
+              <ResultCard key={record.drwNo} record={record} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center text-gray-500">데이터가 없습니다.</div>
+        )}
+      </div>
     </div>
   );
 }

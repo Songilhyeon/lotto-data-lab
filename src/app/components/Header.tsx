@@ -29,10 +29,10 @@ export default function Header() {
   const navLinks = [
     { name: "홈", href: "/" },
     { name: "분석", href: "/analyze" },
-    { name: "AI 추천(개발중)", href: "/ai-recommend" },
+    { name: "AI 점수 분석", href: "/ai-recommend" },
     { name: "게시판", href: "/board" },
     { name: "로또기록", href: "/lotto-history" },
-    { name: "프리미엄구독", href: "/premium", premium: true },
+    // { name: "프리미엄구독", href: "/premium", premium: true },
   ];
 
   const handleTestLogin = async () => {
@@ -66,7 +66,7 @@ export default function Header() {
               const isActive = pathname === link.href;
 
               // ✅ 프리미엄 유저라면 프리미엄 메뉴 숨김
-              if (link.premium && user?.role === "PREMIUM") return null;
+              // if (link.premium && user?.role === "PREMIUM") return null;
 
               return (
                 <Link
@@ -79,14 +79,14 @@ export default function Header() {
                   }`}
                 >
                   <div className="flex items-center gap-1">
-                    {!link.premium && <span>{link.name}</span>}
+                    <span>{link.name}</span>
 
                     {/* PREMIUM Badge */}
-                    {link.premium && (
+                    {/* {link.premium && (
                       <span className=" px-1.5 py-0.5 rounded bg-amber-500 text-white font-bold shadow-sm">
                         프리미엄구독
                       </span>
-                    )}
+                    )} */}
                   </div>
 
                   {/* underline */}
@@ -129,12 +129,6 @@ export default function Header() {
                 >
                   로그인
                 </button>
-                <button
-                  onClick={handleTestLogin}
-                  className="px-4 py-1.5 bg-amber-500 text-white rounded-md hover:bg-amber-600 transition"
-                >
-                  테스트 로그인
-                </button>
               </div>
             )}
           </nav>
@@ -175,11 +169,11 @@ export default function Header() {
                 >
                   {link.name}
 
-                  {link.premium && (
+                  {/* {link.premium && (
                     <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500 text-white font-bold shadow-sm">
                       PREMIUM
                     </span>
-                  )}
+                  )} */}
                 </Link>
               ))}
 
@@ -226,13 +220,6 @@ export default function Header() {
                       className="w-full mt-3 px-4 py-2 bg-[#03C75A] text-white flex items-center justify-center gap-2 rounded shadow"
                     >
                       <SiNaver className="w-5 h-5" /> Naver 로그인
-                    </button>
-
-                    <button
-                      onClick={handleTestLogin}
-                      className="w-full mt-3 px-4 py-2 bg-amber-500 text-white rounded hover:bg-amber-600"
-                    >
-                      테스트 로그인
                     </button>
                   </>
                 )}

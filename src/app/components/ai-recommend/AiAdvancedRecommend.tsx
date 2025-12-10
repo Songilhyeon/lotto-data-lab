@@ -1,32 +1,45 @@
-// components/AiRecommendationPanel.tsx
 "use client";
 
 import React, { useState } from "react";
 import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
-import { IfAiRecommendation } from "@/app/types/api"; // types 정의
+import {
+  IfAiRecommendation,
+  NumberScoreDetail,
+  WeightConfig,
+  AiPreset,
+  AiPresets,
+} from "@/app/types/api";
 import { analysisDivStyle } from "@/app/utils/getDivStyle";
-import ComponentHeader from "@/app/components/analyze/ComponentHeader";
-
-export interface NumberScoreDetail {
-  num: number;
-  final: number;
-}
-
-const PRESETS = ["안정형", "고위험형", "패턴형"] as const;
+import ComponentHeader from "@/app/components/ComponentHeader";
+import ClusterUnitSelector from "@/app/components/ai-recommend/ClusterUnitSelector";
+import WeightSliderGroup from "@/app/components/ai-recommend/WeightSliderGroup";
 
 export default function AiAdvancedRecommend() {
   const round = getLatestRound();
-  const [preset, setPreset] = useState<(typeof PRESETS)[number]>("안정형");
-  const [seed, setSeed] = useState<number>(Date.now());
+
+  const [preset, setPreset] = useState<AiPreset>(AiPresets[0]);
+  const [clusterUnit, setClusterUnit] = useState<number>(5);
   const [result, setResult] = useState<IfAiRecommendation | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // slider 기반 가중치 예시 (총 3개만)
-  const [hotWeight, setHotWeight] = useState<number>(1);
-  const [coldWeight, setColdWeight] = useState<number>(1);
-  const [patternWeight, setPatternWeight] = useState<number>(1);
+  // Weight 상태
+  const [weights, setWeights] = useState<WeightConfig>({ ...preset.weight });
 
-  const fetchRecommendation = async () => {
+  // Preset 선택 시 기본 weight로 초기화
+  const handlePresetChange = (presetName: string) => {
+    const selectedPreset = AiPresets.find((p) => p.name === presetName);
+    if (!selectedPreset) return;
+    setPreset(selectedPreset);
+    setWeights({ ...selectedPreset.weight });
+  };
+
+  // Weight 초기화 (현재 Preset 기본값으로)
+  const handleResetWeights = () => {
+    setWeights({ ...preset.weight });
+  };
+
+  // API 요청
+  const fetchAnalysis = async () => {
     setLoading(true);
     try {
       const res = await fetch(`${apiUrl}/lotto/premium/recommend-advanced`, {
@@ -34,14 +47,10 @@ export default function AiAdvancedRecommend() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           round,
-          presetName: preset,
-          clusterUnit: 5,
-          seed,
-          customWeights: {
-            hot: hotWeight,
-            cold: coldWeight,
-            pattern: patternWeight,
-          },
+          presetName: preset.name,
+          clusterUnit,
+          seed: Date.now(),
+          customWeights: weights,
         }),
       });
       const data: IfAiRecommendation = await res.json();
@@ -53,115 +62,109 @@ export default function AiAdvancedRecommend() {
     }
   };
 
+  // 전체 점수 그래프
+  const renderFullScoreBars = (scores: NumberScoreDetail[]) => {
+    if (!scores) return null;
+    const sorted = [...scores].sort((a, b) => b.final - a.final);
+    const maxScore = Math.max(...sorted.map((s) => s.final));
+
+    return (
+      <div className="mt-4 space-y-1">
+        <h3 className="font-semibold text-sm text-gray-700">
+          🎛 전체 번호 점수 분포 (점수 높은 순)
+        </h3>
+        {sorted.map((s) => {
+          const width = (s.final / maxScore) * 100;
+          return (
+            <div key={s.num} className="flex items-center gap-2">
+              <span className="w-6 text-sm font-bold">{s.num}</span>
+              <div className="flex-1 bg-gray-200 h-4 rounded overflow-hidden">
+                <div
+                  className="bg-blue-500 h-4 rounded"
+                  style={{ width: `${width}%` }}
+                />
+              </div>
+              <span className="w-14 text-xs text-gray-600 text-right">
+                {s.final.toFixed(2)}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  // 결과 렌더링
+  const renderResult = () => {
+    if (loading) return <div>점수 분석 중...</div>;
+    if (!result) return <div>분석 결과가 없습니다.</div>;
+
+    return (
+      <div className="mt-2 p-4 border rounded bg-green-50">
+        <div className="flex gap-2 mb-4 flex-wrap">
+          {result.combination.map((n) => (
+            <span
+              key={n}
+              className="w-10 h-10 flex items-center justify-center bg-yellow-200 rounded-full font-bold"
+            >
+              {n}
+            </span>
+          ))}
+        </div>
+        {result.scores && renderFullScoreBars(result.scores)}
+      </div>
+    );
+  };
+
   return (
     <div className={analysisDivStyle("blue-50", "cyan-100")}>
-      {/* Header */}
       <ComponentHeader
-        title="🤖 AI 정밀 추천 번호"
-        content="과거 회차 패턴, k-match, 버킷 분석, 최근 회차 빈도를 종합하여 가장 가능성이 높은 번호를 추천합니다."
+        title="🤖 AI 기반 심층 점수 분석"
+        content="과거 회차 패턴, k-match, 버킷 분석, 최근 회차 빈도를 종합하여 점수 기반 상위 번호 조합을 제공합니다."
       />
-      <h2 className="text-xl font-bold mb-4">AI 추천 번호 (회차 {round})</h2>
 
-      <div className="mb-4">
-        <label className="mr-2 font-semibold">Preset:</label>
+      <h2 className="text-xl font-bold mb-4">Preset & Weight 설정</h2>
+
+      {/* Preset 선택 */}
+      <div className="mb-4 flex items-center gap-2">
+        <label className="font-semibold">Preset:</label>
         <select
-          value={preset}
-          onChange={(e) =>
-            setPreset(e.target.value as (typeof PRESETS)[number])
-          }
+          value={preset.name}
+          onChange={(e) => handlePresetChange(e.target.value)}
           className="border px-2 py-1 rounded"
         >
-          {PRESETS.map((p) => (
-            <option key={p} value={p}>
-              {p}
+          {AiPresets.map((p) => (
+            <option key={p.name} value={p.name}>
+              {p.name}
             </option>
           ))}
         </select>
-      </div>
-
-      <div className="mb-4">
         <button
-          onClick={() => setSeed(Date.now())}
-          className="bg-blue-500 text-white px-3 py-1 rounded"
+          onClick={handleResetWeights}
+          className="ml-2 bg-gray-300 text-gray-800 px-2 py-1 rounded text-sm hover:bg-gray-400 active:bg-gray-500"
         >
-          🔄 랜덤 시드 갱신
+          가중치 초기화
         </button>
       </div>
 
-      {/* Slider 기반 가중치 */}
-      <div className="mb-4">
-        <div className="mb-2">
-          <label>Hot Weight: {hotWeight}</label>
-          <input
-            type="range"
-            min={0}
-            max={5}
-            step={0.1}
-            value={hotWeight}
-            onChange={(e) => setHotWeight(Number(e.target.value))}
-            className="w-full"
-          />
-        </div>
-        <div className="mb-2">
-          <label>Cold Weight: {coldWeight}</label>
-          <input
-            type="range"
-            min={0}
-            max={5}
-            step={0.1}
-            value={coldWeight}
-            onChange={(e) => setColdWeight(Number(e.target.value))}
-            className="w-full"
-          />
-        </div>
-        <div className="mb-2">
-          <label>Pattern Weight: {patternWeight}</label>
-          <input
-            type="range"
-            min={0}
-            max={5}
-            step={0.1}
-            value={patternWeight}
-            onChange={(e) => setPatternWeight(Number(e.target.value))}
-            className="w-full"
-          />
-        </div>
-      </div>
+      {/* ClusterUnitSelector */}
+      <ClusterUnitSelector
+        clusterUnit={clusterUnit}
+        setClusterUnit={setClusterUnit}
+      />
 
+      {/* WeightSliderGroup */}
+      <WeightSliderGroup weights={weights} setWeights={setWeights} />
+
+      {/* 분석 실행 버튼 */}
       <button
-        onClick={fetchRecommendation}
-        className="bg-green-500 text-white px-3 py-1 rounded mb-4"
+        onClick={fetchAnalysis}
+        className="bg-green-500 text-white px-3 py-1 rounded mb-4 hover:bg-green-600 active:bg-green-700"
       >
-        추천 번호 생성
+        점수 분석 실행
       </button>
 
-      {loading && <p>추천 번호 생성 중...</p>}
-
-      {result && (
-        <div>
-          <h3 className="font-semibold mb-2">추천 조합:</h3>
-          <div className="flex gap-2 mb-4">
-            {result.combination.map((n) => (
-              <span
-                key={n}
-                className="w-10 h-10 flex items-center justify-center bg-yellow-200 rounded-full font-bold"
-              >
-                {n}
-              </span>
-            ))}
-          </div>
-
-          <h3 className="font-semibold mb-2">전체 점수:</h3>
-          <div className="grid grid-cols-5 gap-2">
-            {result.scores.map((s) => (
-              <div key={s.num} className="text-center border p-1 rounded">
-                <div className="font-bold">{s.num}</div>
-                <div className="text-xs">{s.final.toFixed(1)}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      <div className="overflow-y-auto max-h-[1200px]">{renderResult()}</div>
     </div>
   );
 }

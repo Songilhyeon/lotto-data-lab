@@ -6,22 +6,18 @@ import AiRecommend from "@/app/components/ai-recommend/AiRecommend";
 import AiNextRecommend from "@/app/components/ai-recommend/AiNextRecommend";
 import AiAdvancedRecommend from "@/app/components/ai-recommend/AiAdvancedRecommend";
 
-interface AiRecommendPageProps {
-  round: number;
-}
-
-// 모든 탭 정의
+// 모든 탭 정의 (사행성 제거, 분석/점수 기반으로 변경)
 const allTabs = [
-  { id: "AiRecommend", label: "AI 추천", premiumOnly: false },
+  { id: "AiRecommend", label: "기본 분석", premiumOnly: false },
   {
     id: "AiNextRecommend",
-    label: "다음 회차 기반 AI 추천",
+    label: "다음 회차 기반 분석",
     premiumOnly: false,
   },
-  { id: "AiAdvancedRecommend", label: "AI 추천 (고급)", premiumOnly: false },
+  { id: "AiAdvancedRecommend", label: "심층 분석", premiumOnly: false },
 ];
 
-export default function AiRecommendPage({ round }: AiRecommendPageProps) {
+export default function AiRecommendPage() {
   const [activeTab, setActiveTab] = useState<string>("AiRecommend");
   const { user } = useAuth();
 
@@ -43,6 +39,20 @@ export default function AiRecommendPage({ round }: AiRecommendPageProps) {
         return null;
     }
   };
+
+  if (!user)
+    return (
+      <div className="w-full flex justify-center mt-10">
+        <div className="border border-gray-200 bg-gray-50 rounded-xl px-6 py-6 text-center shadow-sm">
+          <p className="text-xl font-semibold text-gray-800">
+            로그인이 필요합니다
+          </p>
+          <p className="text-gray-500 text-sm mt-2">
+            로그인 후 더 많은 기능을 이용해보세요.
+          </p>
+        </div>
+      </div>
+    );
 
   return (
     <div className="p-4">

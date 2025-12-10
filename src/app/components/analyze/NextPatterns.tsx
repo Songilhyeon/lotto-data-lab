@@ -16,7 +16,7 @@ import SimilarPagination from "./SimilarPagination";
 import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
 import DraggableNextRound from "./DraggableNextRound";
 import { analysisDivStyle, rangeFilterDivStyle } from "@/app/utils/getDivStyle";
-import ComponentHeader from "@/app/components/analyze/ComponentHeader";
+import ComponentHeader from "@/app/components/ComponentHeader";
 import LookUpButton from "@/app/components/analyze/LookUpButton";
 
 interface AnalysisResult {

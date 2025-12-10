@@ -8,7 +8,6 @@ import MultiRoundInfo from "@/app/components/analyze/MultiRoundInfo";
 import NumberFrequency from "@/app/components/analyze/NumberFrequency";
 import NextPatterns from "@/app/components/analyze/NextPatterns";
 import NumberLab from "@/app/components/analyze/NumberLab";
-import LottoPatterns from "../components/analyze/LottoPatterns";
 import NumberRangeMatch from "@/app/components/analyze/NumberRange";
 import PremiumAnalysis from "@/app/components/analyze/PremiumAnalysis";
 
@@ -20,8 +19,7 @@ const allTabs = [
   { id: "numberRange", label: "번호 구간", premiumOnly: false },
   { id: "similar", label: "다음 회차", premiumOnly: false },
   { id: "numberLab", label: "번호 실험실", premiumOnly: false },
-  { id: "premiumAnalysis", label: "통합 분석", premiumOnly: true }, // PREMIUM 탭
-  { id: "test", label: "테스트 중", primiumOnly: false },
+  { id: "premiumAnalysis", label: "통합 정보", premiumOnly: false }, // PREMIUM 탭
 ];
 
 export default function LottoAnalysisPage() {
@@ -50,8 +48,6 @@ export default function LottoAnalysisPage() {
         return <NextPatterns />;
       case "numberLab":
         return <NumberLab />;
-      case "test":
-        return <LottoPatterns />;
       default:
         return null;
     }

@@ -7,7 +7,7 @@ import SimpleBarChart from "./SimpleBarChart";
 import NextFrequencyChart from "./RangeNextChart";
 import LottoBall from "../LottoBall";
 import { analysisDivStyle, rangeFilterDivStyle } from "@/app/utils/getDivStyle";
-import ComponentHeader from "@/app/components/analyze/ComponentHeader";
+import ComponentHeader from "@/app/components/ComponentHeader";
 import LookUpButton from "@/app/components/analyze/LookUpButton";
 import DraggableNextRound from "./DraggableNextRound";
 

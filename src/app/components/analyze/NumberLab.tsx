@@ -12,7 +12,7 @@ import {
 } from "recharts";
 import { apiUrl } from "@/app/utils/getUtils";
 import { analysisDivStyle } from "@/app/utils/getDivStyle";
-import ComponentHeader from "@/app/components/analyze/ComponentHeader";
+import ComponentHeader from "@/app/components/ComponentHeader";
 
 interface MatchResult {
   round: number;

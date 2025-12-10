@@ -167,13 +167,23 @@ export default function PremiumAnalysis() {
     };
   };
 
-  if (!user) return <div>로그인 후 이용 가능합니다.</div>;
+  if (!user)
+    return (
+      <div className="w-full flex justify-center mt-10">
+        <div className="border border-gray-200 bg-gray-50 rounded-xl px-6 py-6 text-center shadow-sm">
+          <p className="text-xl font-semibold text-gray-800">
+            로그인이 필요합니다
+          </p>
+          <p className="text-gray-500 text-sm mt-2">
+            로그인 후 더 많은 기능을 이용해보세요.
+          </p>
+        </div>
+      </div>
+    );
 
   const highlights = result
     ? getHighlightNumbers(result)
     : { maxNumbers: [], minNumbers: [] };
-
-  console.log(result);
 
   return (
     <div className="bg-white p-4 rounded-2xl shadow-md max-w-3xl mx-auto space-y-4">

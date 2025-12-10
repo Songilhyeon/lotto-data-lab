@@ -6,7 +6,7 @@ import LottoPaper from "@/app/components/LottoPaper";
 import LottoCard from "@/app/components/LottoCard";
 import SimplePattern from "@/app/components/SimplePattern";
 import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
-import ComponentHeader from "@/app/components/analyze/ComponentHeader";
+import ComponentHeader from "@/app/components/ComponentHeader";
 import { analysisDivStyle } from "@/app/utils/getDivStyle";
 
 export default function OneRoundInfo() {

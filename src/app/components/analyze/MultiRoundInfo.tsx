@@ -8,7 +8,7 @@ import RangeFilterBar from "@/app/components/RangeFilterBar";
 import { LottoNumber } from "@/app/types/lotto";
 import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
 import { analysisDivStyle, rangeFilterDivStyle } from "@/app/utils/getDivStyle";
-import ComponentHeader from "@/app/components/analyze/ComponentHeader";
+import ComponentHeader from "@/app/components/ComponentHeader";
 import LookUpButton from "@/app/components/analyze/LookUpButton";
 
 const PAGE_SIZE = 12;

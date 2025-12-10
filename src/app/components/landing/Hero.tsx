@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 export default function Hero() {
   return (
@@ -46,8 +47,23 @@ export default function Hero() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.35, duration: 0.6 }}
         >
-          운이 아니라 ‘근거’를 가지고 선택하는 사람들을 위해.
+          운이 아니라 ‘분석’을 통해 선택하는 사람들을 위해.
         </motion.p>
+        {/* CTA 버튼 */}
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.8, duration: 0.5 }}
+        >
+          <Link
+            href="/analyze"
+            className="inline-block bg-blue-600 text-white px-8 py-4 rounded-xl 
+            text-lg font-bold shadow-lg hover:bg-blue-700 hover:shadow-xl 
+            transition active:scale-95"
+          >
+            무료 분석 시작하기 →
+          </Link>
+        </motion.div>
       </div>
     </header>
   );

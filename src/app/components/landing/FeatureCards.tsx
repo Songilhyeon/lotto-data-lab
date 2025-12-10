@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { BarChart2, Percent, Scan } from "lucide-react";
+import { BarChart2, Percent, Scan, Cpu } from "lucide-react";
 
 const features = [
   {
@@ -18,6 +18,11 @@ const features = [
     icon: <Scan className="w-10 h-10 text-purple-600" />,
     title: "로또 용지 시각화",
     desc: "번호를 실제 로또 용지 형태로 직관적으로 확인할 수 있습니다.",
+  },
+  {
+    icon: <Cpu className="w-10 h-10 text-red-600" />,
+    title: "AI 번호 분석",
+    desc: "AI 기반 번호 점수와 패턴 점수를 확인하고 전략적인 선택을 돕습니다.",
   },
 ];
 
@@ -57,7 +62,7 @@ export default function FeatureCards() {
           }}
           transition={{ type: "spring", stiffness: 200, damping: 14 }}
           className="bg-white rounded-xl p-7 shadow-md flex flex-col items-center text-center
-                     border border-gray-100 hover:border-blue-500/40 hover:shadow-blue-200"
+          border border-gray-100 hover:border-blue-500/40 hover:shadow-blue-200"
         >
           <div className="mb-4">{f.icon}</div>
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
