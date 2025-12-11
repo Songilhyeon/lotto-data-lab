@@ -35,8 +35,9 @@ export default function BoardDetailPage() {
 
   const [post, setPost] = useState<PostType | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // 게시글 수정 모달
+  // 게시글 수정 모드
   const [isEditMode, setIsEditMode] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
@@ -50,12 +51,19 @@ export default function BoardDetailPage() {
   ------------------------------ */
   const fetchPost = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch(`${apiUrl}/posts/${id}`);
+      if (!res.ok) throw new Error("게시글 불러오기 실패");
       const data = await res.json();
       setPost(data.post);
-    } catch (error) {
-      console.error(error);
+    } catch (err: unknown) {
+      console.error(err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "게시글을 불러오는 중 오류가 발생했습니다."
+      );
     } finally {
       setLoading(false);
     }
@@ -66,9 +74,10 @@ export default function BoardDetailPage() {
   }, [fetchPost]);
 
   if (loading) return <p className="p-6">로딩 중...</p>;
+  if (error) return <p className="p-6 text-red-500">{error}</p>;
   if (!post) return <p className="p-6">게시글을 찾을 수 없습니다.</p>;
 
-  const isOwner = user?.name === post.user.name;
+  const isOwner = user?.id === post.user.id;
 
   /* -----------------------------
   📌 게시글 삭제
@@ -76,42 +85,56 @@ export default function BoardDetailPage() {
   const handleDeletePost = async () => {
     if (!confirm("정말 게시글을 삭제할까요?")) return;
 
-    const res = await fetch(`${apiUrl}/posts/${id}`, {
-      method: "DELETE",
-      credentials: "include",
-    });
+    try {
+      const res = await fetch(`${apiUrl}/posts/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
 
-    if (!res.ok) {
-      alert("삭제 실패");
-      return;
+      if (!res.ok) throw new Error("삭제 실패");
+      alert("게시글이 삭제되었습니다.");
+      router.push("/board");
+    } catch (err: unknown) {
+      alert(
+        err instanceof Error
+          ? err.message
+          : "게시글 삭제 중 오류가 발생했습니다."
+      );
     }
-
-    alert("삭제되었습니다.");
-    router.push("/board");
   };
 
   /* -----------------------------
   📌 게시글 수정 저장
   ------------------------------ */
   const handleSaveEdit = async () => {
-    const res = await fetch(`${apiUrl}/posts/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({
-        title: editTitle,
-        content: editContent,
-      }),
-    });
-
-    if (!res.ok) {
-      alert("수정 실패");
+    if (!editTitle.trim() || !editContent.trim()) {
+      alert("제목과 내용을 모두 입력해주세요.");
       return;
     }
 
-    alert("수정되었습니다.");
-    setIsEditMode(false);
-    fetchPost();
+    try {
+      const res = await fetch(`${apiUrl}/posts/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          title: editTitle,
+          content: editContent,
+        }),
+      });
+
+      if (!res.ok) throw new Error("수정 실패");
+
+      setIsEditMode(false);
+      fetchPost();
+      alert("게시글이 수정되었습니다.");
+    } catch (err: unknown) {
+      alert(
+        err instanceof Error
+          ? err.message
+          : "게시글 수정 중 오류가 발생했습니다."
+      );
+    }
   };
 
   /* -----------------------------
@@ -120,37 +143,46 @@ export default function BoardDetailPage() {
   const deleteComment = async (commentId: string) => {
     if (!confirm("댓글을 삭제할까요?")) return;
 
-    const res = await fetch(`${apiUrl}/posts/comments/${commentId}`, {
-      method: "DELETE",
-      credentials: "include",
-    });
+    try {
+      const res = await fetch(`${apiUrl}/posts/comments/${commentId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
 
-    if (!res.ok) {
-      alert("댓글 삭제 실패");
-      return;
+      if (!res.ok) throw new Error("댓글 삭제 실패");
+      fetchPost();
+    } catch (err: unknown) {
+      alert(
+        err instanceof Error ? err.message : "댓글 삭제 중 오류가 발생했습니다."
+      );
     }
-
-    fetchPost();
   };
 
   /* -----------------------------
   📌 댓글 수정 저장
   ------------------------------ */
   const saveCommentEdit = async (commentId: string) => {
-    const res = await fetch(`${apiUrl}/posts/comments/${commentId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ content: editCommentText }),
-    });
-
-    if (!res.ok) {
-      alert("댓글 수정 실패");
+    if (!editCommentText.trim()) {
+      alert("댓글 내용을 입력해주세요.");
       return;
     }
 
-    setEditingCommentId(null);
-    fetchPost();
+    try {
+      const res = await fetch(`${apiUrl}/posts/comments/${commentId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ content: editCommentText }),
+      });
+
+      if (!res.ok) throw new Error("댓글 수정 실패");
+      setEditingCommentId(null);
+      fetchPost();
+    } catch (err: unknown) {
+      alert(
+        err instanceof Error ? err.message : "댓글 수정 중 오류가 발생했습니다."
+      );
+    }
   };
 
   return (
@@ -158,39 +190,25 @@ export default function BoardDetailPage() {
       {/* ----------------------------- */}
       {/* 상단 제목 & 수정/삭제 버튼 */}
       {/* ----------------------------- */}
-      <div className="flex items-start justify-between mb-4">
-        <h1 className="text-2xl font-bold">{post.title}</h1>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-2 sm:gap-0">
+        <h1 className="text-2xl font-bold break-words">{post.title}</h1>
 
         {isOwner && (
           <div className="flex gap-3">
-            {/* 수정 버튼 */}
             <button
               onClick={() => {
                 setEditTitle(post.title);
                 setEditContent(post.content);
                 setIsEditMode(true);
               }}
-              className="
-                px-3 py-1.5 rounded-md text-sm font-medium
-                border border-blue-300 text-blue-600 bg-white
-                hover:bg-blue-50 hover:border-blue-400 hover:text-blue-700
-                active:scale-95 active:bg-blue-100
-                transition-all duration-150
-              "
+              className="px-3 py-1.5 rounded-md text-sm font-medium border border-blue-300 text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-400 hover:text-blue-700 active:scale-95 transition-all duration-150"
             >
               수정
             </button>
 
-            {/* 삭제 버튼 */}
             <button
               onClick={handleDeletePost}
-              className="
-                px-3 py-1.5 rounded-md text-sm font-medium
-                border border-red-300 text-red-600 bg-white
-                hover:bg-red-50 hover:border-red-400 hover:text-red-700
-                active:scale-95 active:bg-red-100
-                transition-all duration-150
-              "
+              className="px-3 py-1.5 rounded-md text-sm font-medium border border-red-300 text-red-600 bg-white hover:bg-red-50 hover:border-red-400 hover:text-red-700 active:scale-95 transition-all duration-150"
             >
               삭제
             </button>
@@ -204,7 +222,7 @@ export default function BoardDetailPage() {
       </p>
 
       {/* 게시글 내용 */}
-      <div className="border p-4 rounded-md whitespace-pre-wrap">
+      <div className="border p-4 rounded-md whitespace-pre-wrap break-words">
         {post.content}
       </div>
 
@@ -219,7 +237,6 @@ export default function BoardDetailPage() {
         ) : (
           post.comments.map((comment) => (
             <div key={comment.id} className="border p-3 rounded-md relative">
-              {/* 댓글 수정 모드 */}
               {editingCommentId === comment.id ? (
                 <>
                   <textarea
@@ -228,7 +245,6 @@ export default function BoardDetailPage() {
                     value={editCommentText}
                     onChange={(e) => setEditCommentText(e.target.value)}
                   />
-
                   <div className="flex gap-2 mt-2">
                     <button
                       className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 active:scale-95"
@@ -246,19 +262,17 @@ export default function BoardDetailPage() {
                 </>
               ) : (
                 <>
-                  <p className="whitespace-pre-wrap">{comment.content}</p>
+                  <p className="whitespace-pre-wrap break-words">
+                    {comment.content}
+                  </p>
                   <p className="text-gray-500 text-sm">
                     {comment.user.name} ·{" "}
                     {new Date(comment.createdAt).toLocaleString()}
                   </p>
-
-                  {user?.name === comment.user.name && (
+                  {user?.id === comment.user.id && (
                     <div className="flex gap-2 mt-2">
                       <button
-                        className="
-                          px-2 py-1 text-sm bg-gray-200 rounded
-                          hover:bg-gray-300 active:scale-95
-                        "
+                        className="px-2 py-1 text-sm bg-gray-200 rounded hover:bg-gray-300 active:scale-95"
                         onClick={() => {
                           setEditingCommentId(comment.id);
                           setEditCommentText(comment.content);
@@ -267,10 +281,7 @@ export default function BoardDetailPage() {
                         수정
                       </button>
                       <button
-                        className="
-                          px-2 py-1 text-sm bg-red-500 text-white rounded
-                          hover:bg-red-600 active:scale-95
-                        "
+                        className="px-2 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 active:scale-95"
                         onClick={() => deleteComment(comment.id)}
                       >
                         삭제
@@ -312,19 +323,13 @@ export default function BoardDetailPage() {
 
             <div className="flex justify-end gap-2 mt-4">
               <button
-                className="
-                  px-3 py-1 bg-gray-300 rounded
-                  hover:bg-gray-400 active:scale-95
-                "
+                className="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400 active:scale-95"
                 onClick={() => setIsEditMode(false)}
               >
                 취소
               </button>
               <button
-                className="
-                  px-3 py-1 bg-blue-600 text-white rounded
-                  hover:bg-blue-700 active:scale-95
-                "
+                className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 active:scale-95"
                 onClick={handleSaveEdit}
               >
                 저장

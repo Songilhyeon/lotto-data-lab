@@ -73,9 +73,7 @@ export default function NumberLab() {
       });
       const data = await res.json();
 
-      // 안전 파싱(백엔드 하위호환을 위해)
       const matchGroups = data.matchGroups || data.results || {};
-      // ensure keys 1..6 exist
       const fixed: Record<number, MatchResult[]> = {};
       for (let i = 1; i <= 6; i++) fixed[i] = matchGroups[i] || [];
 
@@ -83,9 +81,7 @@ export default function NumberLab() {
       setFrequencyNext(data.frequencyNext || {});
       setAppearRounds(data.appear || {});
 
-      // combos: backend provides combos as array per k (combos[k] = [{combo,count,rounds},...])
       const backendCombos = data.combos || data.combosByK || {};
-      // ensure k keys 2..6 exist and filter out count===0 if any
       const fixedCombos: Record<number, ComboEntry[]> = {};
       for (let k = 2; k <= 6; k++) {
         const arr: ComboEntry[] = Array.isArray(backendCombos[k])
@@ -94,9 +90,7 @@ export default function NumberLab() {
         fixedCombos[k] = arr;
       }
 
-      // comboTop: accept backend top or compute from combos
       const backendTop = data.comboTop || {};
-      // normalize top
       const fixedTop: Record<
         number,
         { key: string; count: number; rounds: number[] }[]
@@ -105,7 +99,6 @@ export default function NumberLab() {
         if (Array.isArray(backendTop[k])) {
           fixedTop[k] = backendTop[k];
         } else {
-          // compute from fixedCombos
           fixedTop[k] = (fixedCombos[k] || [])
             .map((c) => ({
               key: c.combo.join(","),
@@ -124,73 +117,66 @@ export default function NumberLab() {
     }
   };
 
-  // bar chart data
-  function getChartData() {
+  const getChartData = () => {
     const keyMap: Record<string, string> = {
       "1": "1",
       "2": "2",
       "3": "3",
       "4+": "4+",
     };
-
     if (activeTab === "all") {
       const base: Record<number, number> = {};
       for (let n = 1; n <= 45; n++) base[n] = 0;
-
       ["1", "2", "3", "4+"].forEach((k) => {
         const row = frequencyNext[k] || {};
-        for (let n = 1; n <= 45; n++) {
-          base[n] += row[n] || 0;
-        }
+        for (let n = 1; n <= 45; n++) base[n] += row[n] || 0;
       });
-
-      return Array.from({ length: 45 }, (_, i) => {
-        const num = i + 1;
-        return { number: num, count: base[num] };
-      });
+      return Array.from({ length: 45 }, (_, i) => ({
+        number: i + 1,
+        count: base[i + 1],
+      }));
     } else {
       const activeKey = keyMap[activeTab];
       const dataSource = frequencyNext[activeKey] || {};
-
-      return Array.from({ length: 45 }, (_, i) => {
-        const num = i + 1;
-        return { number: num, count: dataSource[num] ?? 0 };
-      });
+      return Array.from({ length: 45 }, (_, i) => ({
+        number: i + 1,
+        count: dataSource[i + 1] ?? 0,
+      }));
     }
-  }
+  };
 
   return (
-    <div className={analysisDivStyle("blue-50", "indigo-100")}>
-      {/* Header */}
+    <div
+      className={analysisDivStyle("blue-50", "indigo-100") + " px-3 sm:px-6"}
+    >
       <ComponentHeader
         title="🔮 로또 번호 실험실"
         content="원하는 6개 이하의 숫자를 선택하고 일치번호 / 조합 패턴을 분석해보세요."
       />
 
-      {/* Selection + Grid (same as before) */}
-      <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 mb-6">
-        <div className="flex items-center justify-between mb-4">
+      {/* 번호 선택 */}
+      <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
             선택한 번호 ({selectedNumbers.length}/6)
           </h2>
 
-          <div className="mb-4">
-            <div className="flex flex-wrap gap-2">
-              {selectedNumbers
-                .sort((a, b) => a - b)
-                .map((n) => (
-                  <div
-                    key={n}
-                    className={`w-9 h-9 rounded-full ${getBallColor(
-                      n
-                    )} text-white flex items-center justify-center font-bold`}
-                  >
-                    {n}
-                  </div>
-                ))}
-            </div>
+          <div className="flex flex-wrap gap-2">
+            {selectedNumbers
+              .sort((a, b) => a - b)
+              .map((n) => (
+                <div
+                  key={n}
+                  className={`w-9 h-9 rounded-full ${getBallColor(
+                    n
+                  )} text-white flex items-center justify-center font-bold`}
+                >
+                  {n}
+                </div>
+              ))}
           </div>
-          <div className="flex gap-2">
+
+          <div className="flex gap-2 flex-wrap">
             {selectedNumbers.length > 0 && (
               <button
                 onClick={() => setSelectedNumbers([])}
@@ -209,8 +195,8 @@ export default function NumberLab() {
           </div>
         </div>
 
-        <div className="max-w-xl mx-auto rounded-2xl shadow-lg p-5 sm:p-6 border bg-linear-to-br from-gray-50 to-gray-100">
-          <div className="grid grid-cols-7 gap-2">
+        <div className="max-w-full overflow-x-auto">
+          <div className="grid grid-cols-9 sm:grid-cols-9 gap-2 min-w-[360px]">
             {Array.from({ length: 45 }, (_, i) => i + 1).map((num) => (
               <button
                 key={num}
@@ -228,24 +214,17 @@ export default function NumberLab() {
         </div>
       </div>
 
-      {/* Match results (unchanged core) */}
+      {/* 일치 회차 카드 */}
       {Object.keys(analysisResult).length > 0 && (
-        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 mb-6">
-          <h2 className="text-xl font-bold mb-4">
-            🎯 일치 회차 정보 (중복 회차 미포함)
-          </h2>
-
+        <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
+          <h2 className="text-xl font-bold mb-4">🎯 일치 회차 정보</h2>
           <div className="space-y-4">
             {Object.keys(analysisResult)
               .sort((a, b) => Number(b) - Number(a))
-              .filter(
-                (matchCount) => analysisResult[Number(matchCount)].length > 0
-              ) // 🔥 1회 이상만
+              .filter((mc) => analysisResult[Number(mc)].length > 0)
               .map((matchCount) => {
                 const list = analysisResult[Number(matchCount)];
-
                 const isOpen = openCards[matchCount] || false;
-
                 const toggleCard = () =>
                   setOpenCards((prev) => ({
                     ...prev,
@@ -255,32 +234,32 @@ export default function NumberLab() {
                 return (
                   <div
                     key={matchCount}
-                    className="rounded-xl p-4 sm:p-6 border-l-4 border-blue-500 bg-linear-to-r from-gray-50 to-gray-100"
+                    className="rounded-xl p-3 sm:p-4 border-l-4 border-blue-500 bg-linear-to-r from-gray-50 to-gray-100 overflow-x-auto"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="text-lg font-semibold">
                         {matchCount}개 일치
                       </h3>
                       <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
-                        {list.length}개 회차 검색됨
+                        {list.length}개 회차
                       </span>
                     </div>
 
                     {list && Number(matchCount) >= 3 && (
                       <div>
-                        <div>
-                          <button
-                            onClick={toggleCard}
-                            className="text-blue-500 text-sm mb-2"
-                          >
-                            {isOpen ? "숨기기 ▲" : "자세히 보기 ▼"}
-                          </button>
-
-                          {isOpen &&
-                            list.map((item) => (
-                              <span key={item.round}>{item.round}회 </span>
+                        <button
+                          onClick={toggleCard}
+                          className="text-blue-500 text-sm mb-2"
+                        >
+                          {isOpen ? "숨기기 ▲" : "자세히 보기 ▼"}
+                        </button>
+                        {isOpen && (
+                          <div className="flex flex-wrap gap-2 text-sm">
+                            {list.map((item) => (
+                              <span key={item.round}>{item.round}회</span>
                             ))}
-                        </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -290,32 +269,33 @@ export default function NumberLab() {
         </div>
       )}
 
-      {/* Next frequency */}
+      {/* 다음 회차 출현 빈도 */}
       {Object.keys(frequencyNext).length > 0 && (
-        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 mb-6">
+        <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
           <h2 className="text-xl font-bold mb-4">📊 다음 회차 출현 빈도</h2>
 
           {/* Tabs */}
-          <div className="flex flex-col gap-2 mb-4">
-            <div className="flex gap-2">
-              {matchTabs.map((tab) => (
-                <button
-                  key={tab.key}
-                  onClick={() => setActiveTab(tab.key)}
-                  className={`px-4 py-2 rounded-full text-sm font-bold border ${
-                    activeTab === tab.key
-                      ? "bg-blue-500 text-white border-blue-500"
-                      : "bg-white text-gray-600 border-gray-300"
-                  }`}
-                >
-                  {tab.description}
-                </button>
-              ))}
-            </div>
+          <div className="flex flex-wrap gap-2 mb-4">
+            {matchTabs.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`px-3 py-1 rounded-full text-sm font-bold border ${
+                  activeTab === tab.key
+                    ? "bg-blue-500 text-white border-blue-500"
+                    : "bg-white text-gray-600 border-gray-300"
+                }`}
+              >
+                {tab.description}
+              </button>
+            ))}
           </div>
 
           {/* Bar Chart */}
-          <div style={{ width: "100%", height: 220 }}>
+          <div
+            className="w-full min-w-0 overflow-x-auto"
+            style={{ height: 220 }}
+          >
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={getChartData()}>
                 <XAxis dataKey="number" tick={{ fontSize: 10 }} />
@@ -328,17 +308,13 @@ export default function NumberLab() {
         </div>
       )}
 
-      {/* 🔥 전체 조합 탐색(옵션): 모든 k 탭 형태 */}
+      {/* 조합 분석 */}
       {(Object.keys(appearRounds).length > 0 ||
         Object.keys(comboTop).length > 0) && (
-        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 mb-6">
-          <h2 className="text-xl font-bold mb-4">
-            🔥 각 번호 조합 출현 빈도 (중복 회차 포함)
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
+          <h2 className="text-xl font-bold mb-4">🔥 각 번호 조합 출현 빈도</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[1, 2, 3, 4, 5, 6].map((k) => {
-              // 1개 조합은 appearRounds, 나머지는 comboTop
               const list =
                 k === 1
                   ? Object.keys(appearRounds)
@@ -348,13 +324,15 @@ export default function NumberLab() {
                         count: appearRounds[Number(num)].length,
                       }))
                   : comboTop[k] || [];
-
               if (list.length === 0) return null;
 
               return (
-                <div key={k} className="p-4 rounded-lg border bg-gray-50">
+                <div
+                  key={k}
+                  className="p-3 rounded-lg border bg-gray-50 max-h-56 overflow-auto"
+                >
                   <h3 className="font-semibold mb-2">{k}개 조합</h3>
-                  <div className="space-y-2 max-h-56 overflow-auto">
+                  <div className="space-y-2">
                     {list.map((item, idx) => (
                       <div
                         key={item.key}

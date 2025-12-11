@@ -34,6 +34,7 @@ export default function OneRoundInfo() {
         }
 
         setError(null);
+        console.log(json.data);
         setLottoData(json.data);
       } catch (err) {
         console.error(err);

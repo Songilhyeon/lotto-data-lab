@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/app/context/authContext";
+import { gaEvent } from "@/app/lib/gtag"; // GA4 이벤트 함수 추가
 
 import OneRoundInfo from "@/app/components/analyze/OneRoundInfo";
 import MultiRoundInfo from "@/app/components/analyze/MultiRoundInfo";
@@ -17,7 +18,7 @@ const allTabs = [
   { id: "multiRound", label: "기간별 정보", premiumOnly: false },
   { id: "numberFrequency", label: "번호별 빈도수", premiumOnly: false },
   { id: "numberRange", label: "번호 구간", premiumOnly: false },
-  { id: "similar", label: "다음 회차", premiumOnly: false },
+  { id: "next", label: "다음 회차", premiumOnly: false },
   { id: "numberLab", label: "번호 실험실", premiumOnly: false },
   { id: "premiumAnalysis", label: "통합 정보", premiumOnly: false },
 ];
@@ -25,6 +26,13 @@ const allTabs = [
 export default function LottoAnalysisPage() {
   const [activeTab, setActiveTab] = useState("oneRound");
   const { user } = useAuth();
+
+  // 🔥 탭 변경 이벤트 감지 → GA 이벤트 전송
+  useEffect(() => {
+    gaEvent("tab_change", {
+      tab_id: activeTab,
+    });
+  }, [activeTab]);
 
   // 로그인/결제 상태에 따른 필터링
   const availableTabs = allTabs.filter(
@@ -44,7 +52,7 @@ export default function LottoAnalysisPage() {
         return <NumberRangeMatch />;
       case "premiumAnalysis":
         return <PremiumAnalysis />;
-      case "similar":
+      case "next":
         return <NextPatterns />;
       case "numberLab":
         return <NumberLab />;

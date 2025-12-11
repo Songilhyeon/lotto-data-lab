@@ -34,15 +34,15 @@ export default function RootLayout({
       >
         <Script
           strategy="afterInteractive"
-          src="https://www.googletagmanager.com/gtag/js?id=G-JYYJBFHWY2"
+          src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
         />
         <Script id="ga4-init" strategy="afterInteractive">
           {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-JYYJBFHWY2');
-          `}
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}');
+  `}
         </Script>
 
         <AuthProvider>

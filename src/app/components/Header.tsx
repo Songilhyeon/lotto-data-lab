@@ -12,14 +12,8 @@ import { Menu, X } from "lucide-react";
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
-  const {
-    user,
-    setUser,
-    openLoginModal,
-    closeLoginModal,
-    isLoginModalOpen,
-    logout,
-  } = useAuth();
+  const { user, openLoginModal, closeLoginModal, isLoginModalOpen, logout } =
+    useAuth();
 
   const oauthUrls = {
     google: process.env.NEXT_PUBLIC_GOOGLE_API_URI,
@@ -31,6 +25,7 @@ export default function Header() {
     { name: "홈", href: "/" },
     { name: "분석", href: "/analyze" },
     { name: "AI 점수 분석", href: "/ai-recommend" },
+    { name: "1등판매점", href: "/winner-stores" },
     { name: "게시판", href: "/board" },
     { name: "로또기록", href: "/lotto-history" },
   ];

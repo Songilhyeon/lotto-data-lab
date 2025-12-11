@@ -18,7 +18,6 @@ export default function AiRecommend() {
   const [result, setResult] = useState<IfAiRecommendResult | null>(null);
   const [clusterUnit, setClusterUnit] = useState<number>(5); // clusterUnit 상태
 
-  // clusterUnit을 인자로 받아 API에 전달
   const fetchAnalysis = async () => {
     setLoading(true);
     try {
@@ -39,23 +38,25 @@ export default function AiRecommend() {
     const maxScore = Math.max(...sorted.map((s) => s.final));
 
     return (
-      <div className="mt-4 space-y-1">
-        <h3 className="font-semibold text-sm text-gray-700">
+      <div className="mt-4 space-y-2">
+        <h3 className="font-semibold text-sm sm:text-base text-gray-700">
           🎛 전체 번호 점수 분포 (점수 높은 순)
         </h3>
 
         {sorted.map((s) => {
           const width = (s.final / maxScore) * 100;
           return (
-            <div key={s.num} className="flex items-center gap-2">
-              <span className="w-6 text-sm font-bold">{s.num}</span>
+            <div key={s.num} className="flex items-center gap-2 sm:gap-3">
+              <span className="w-6 text-sm sm:text-base font-bold">
+                {s.num}
+              </span>
               <div className="flex-1 bg-gray-200 h-4 rounded overflow-hidden">
                 <div
                   className="bg-blue-500 h-4 rounded"
                   style={{ width: `${width}%` }}
                 />
               </div>
-              <span className="w-14 text-xs text-gray-600 text-right">
+              <span className="w-14 text-xs sm:text-sm text-gray-600 text-right">
                 {s.final.toFixed(2)}
               </span>
             </div>
@@ -72,9 +73,12 @@ export default function AiRecommend() {
     return (
       <div className="mt-2 p-4 border rounded bg-yellow-50">
         {/* 점수 기반 상위 번호 */}
-        <div className="flex gap-2 mb-2">
+        <div className="flex flex-wrap gap-2 mb-2">
           {result.recommended.map((n) => (
-            <span key={n} className="px-2 py-1 bg-yellow-200 rounded font-bold">
+            <span
+              key={n}
+              className="px-2 py-1 bg-yellow-200 rounded font-bold text-sm sm:text-base"
+            >
               {n}
             </span>
           ))}
@@ -95,20 +99,21 @@ export default function AiRecommend() {
       />
 
       {/* clusterUnit 선택 */}
-      {/* clusterUnit 선택 */}
       <ClusterUnitSelector
         clusterUnit={clusterUnit}
         setClusterUnit={setClusterUnit}
       />
 
+      {/* 분석 실행 버튼 */}
       <button
         onClick={fetchAnalysis}
-        className="bg-green-500 text-white px-3 py-1 rounded mb-4"
+        className="bg-green-500 text-white px-4 py-2 sm:px-6 sm:py-3 rounded mb-4 w-full sm:w-auto text-sm sm:text-base font-medium shadow-md hover:bg-green-600"
       >
         점수 분석 실행
       </button>
 
-      <div className="overflow-y-auto max-h-[1200px]">{renderResult()}</div>
+      {/* 결과 영역 */}
+      <div className="overflow-y-auto max-h-[80vh]">{renderResult()}</div>
     </div>
   );
 }

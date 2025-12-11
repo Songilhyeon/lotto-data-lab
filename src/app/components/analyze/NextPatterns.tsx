@@ -31,7 +31,7 @@ interface LottoDraw {
   bonus?: number;
 }
 
-export default function SimilarPatterns() {
+export default function NextPatterns() {
   const latestRound = getLatestRound();
   const [results, setResults] = useState<AnalysisResult[]>([]);
   const [selectedRound, setSelectedRound] = useState<LottoDraw | null>(null);

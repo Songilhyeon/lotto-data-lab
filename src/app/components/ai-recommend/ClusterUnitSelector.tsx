@@ -1,3 +1,7 @@
+"use client";
+
+import React from "react";
+
 interface ClusterUnitSelectorProps {
   clusterUnit: number;
   setClusterUnit: (value: number) => void;
@@ -16,19 +20,21 @@ const ClusterUnitSelector: React.FC<ClusterUnitSelectorProps> = ({
   options = [5, 7, 10],
 }) => {
   return (
-    <div className="mb-4 flex items-center gap-2">
-      <label className="font-semibold">클러스터 단위:</label>
-      <select
-        value={clusterUnit}
-        onChange={(e) => setClusterUnit(Number(e.target.value))}
-        className="border px-2 py-1 rounded"
-      >
-        {options.map((n) => (
-          <option key={n} value={n}>
-            {n}
-          </option>
-        ))}
-      </select>
+    <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center gap-2">
+      <div className="flex items-center gap-2">
+        <label className="font-semibold">클러스터 단위:</label>
+        <select
+          value={clusterUnit}
+          onChange={(e) => setClusterUnit(Number(e.target.value))}
+          className="border px-2 py-1 rounded"
+        >
+          {options.map((n) => (
+            <option key={n} value={n}>
+              {n}
+            </option>
+          ))}
+        </select>
+      </div>
       <span className="text-gray-500 text-sm">{clusterLabel[clusterUnit]}</span>
     </div>
   );

@@ -1,0 +1,64 @@
+import LegalDocument from "@/app/components/LegalDocument";
+import { bizInfo } from "@/app/constants/bizInfo";
+
+export default function TermsPage() {
+  return (
+    <LegalDocument title="이용약관">
+      <p>
+        본 약관은 {bizInfo.companyName}(이하 “서비스”)의 이용과 관련하여 서비스
+        제공자와 이용자 간의 권리, 의무 및 책임 사항을 규정함을 목적으로 합니다.
+      </p>
+
+      <h2>1. 약관의 효력 및 변경</h2>
+      <p>
+        본 약관은 서비스 내 공지 또는 이메일을 통해 공지함으로써 효력을
+        가집니다. 서비스는 필요한 경우 관련 법령에 위반되지 않는 범위에서 약관을
+        변경할 수 있습니다.
+      </p>
+
+      <h2>2. 회원 가입 및 계정</h2>
+      <ul>
+        <li>이용자는 소셜 로그인 등을 통해 회원 가입할 수 있습니다.</li>
+        <li>회원은 자신의 계정 정보를 안전하게 관리할 책임이 있습니다.</li>
+      </ul>
+
+      <h2>3. 서비스 제공</h2>
+      <p>
+        서비스는 로또 데이터를 기반으로 분석 정보를 제공하며, **어떠한
+        당첨·금전적 이익도 보장하지 않습니다.**
+      </p>
+
+      <h2>4. 금지 행위</h2>
+      <ul>
+        <li>서비스의 비정상적 접근(봇, 스크래핑 등)</li>
+        <li>서비스 콘텐츠 무단 복제 및 배포</li>
+        <li>불법·사행성 목적 사용</li>
+      </ul>
+
+      <h2>5. 면책 조항</h2>
+      <p>
+        서비스는 분석 정보를 참고용으로 제공하며, 이용자가 이를 활용해 발생한
+        결과(금전적 손해 포함)에 대해 어떠한 법적 책임도 지지 않습니다.
+      </p>
+
+      <h2>6. 회원 탈퇴</h2>
+      <p>
+        이용자는 언제든지 서비스 내에서 계정을 삭제할 수 있으며, 탈퇴 즉시
+        개인정보는 삭제됩니다.
+      </p>
+
+      <h2>7. 분쟁 해결</h2>
+      <p>본 약관 및 서비스 이용과 관련된 분쟁은 대한민국 법령에 따릅니다.</p>
+
+      <h2>8. 사업자 정보</h2>
+      <ul>
+        <li>상호: {bizInfo.companyName}</li>
+        <li>대표자: {bizInfo.ownerName}</li>
+        <li>사업자등록번호: {bizInfo.businessNumber}</li>
+        <li>주소: {bizInfo.address}</li>
+        <li>문의: {bizInfo.contactEmail}</li>
+        <li>전화번호: {bizInfo.tel}</li>
+      </ul>
+    </LegalDocument>
+  );
+}

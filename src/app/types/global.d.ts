@@ -1,3 +1,4 @@
+// global.d.ts
 type GtagConfig = {
   page_path?: string;
   [key: string]: unknown;
@@ -7,18 +8,15 @@ type GtagEventParams = {
   [key: string]: unknown;
 };
 
-type GtagFunction =
-  | ((command: "js", date: Date) => void)
-  | ((command: "config", measurementId: string, config?: GtagConfig) => void)
-  | ((
-      command: "event",
-      eventName: string,
-      eventParams?: GtagEventParams
-    ) => void);
+interface Gtag {
+  (command: "js", date: Date): void;
+  (command: "config", measurementId: string, config?: GtagConfig): void;
+  (command: "event", eventName: string, eventParams?: GtagEventParams): void;
+}
 
 declare global {
   interface Window {
-    gtag: GtagFunction;
+    gtag: Gtag;
   }
 }
 

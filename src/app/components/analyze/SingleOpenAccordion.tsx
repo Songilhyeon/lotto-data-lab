@@ -29,13 +29,17 @@ export default function Accordion({
     <div className="border border-gray-200 rounded-xl mb-3 overflow-hidden shadow-sm">
       <button
         onClick={handleToggle}
-        className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 text-left"
+        className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 text-left sm:p-4"
       >
-        <span className="font-semibold text-gray-800">{title}</span>
-        <span className="text-lg">{isOpen ? "▲" : "▼"}</span>
+        <span className="font-semibold text-gray-800 text-sm sm:text-base">
+          {title}
+        </span>
+        <span className="text-lg sm:text-xl">{isOpen ? "▲" : "▼"}</span>
       </button>
 
-      {isOpen && <div className="p-3 bg-white">{children}</div>}
+      {isOpen && (
+        <div className="p-3 sm:p-4 bg-white overflow-x-auto">{children}</div>
+      )}
     </div>
   );
 }

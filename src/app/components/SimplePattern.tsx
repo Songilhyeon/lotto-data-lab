@@ -67,7 +67,7 @@ export default function SimplePattern({
   return (
     <div
       className={`${cardWidth} mx-auto rounded-2xl shadow-lg 
-      p-4 sm:p-6 border bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-500`}
+      p-4 sm:p-6 border bg-linear-to-br from-blue-50 to-cyan-50 border-blue-500`}
     >
       <h2 className="text-lg sm:text-2xl font-bold text-gray-800 mb-3 sm:mb-4">
         📊 패턴 분석 ({data.drwNo}회)

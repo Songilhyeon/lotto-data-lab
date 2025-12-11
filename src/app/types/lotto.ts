@@ -12,6 +12,10 @@ export interface LottoNumber {
   firstWinamnt: string;
   totSellamnt: string;
   firstAccumamnt: string;
+
+  autoWin: number | null;
+  semiAutoWin: number | null;
+  manualWin: number | null;
 }
 
 export interface AnalysisResult extends LottoNumber {

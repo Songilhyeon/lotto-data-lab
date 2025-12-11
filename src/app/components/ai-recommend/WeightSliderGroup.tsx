@@ -1,4 +1,3 @@
-// components/WeightSliderGroup.tsx
 "use client";
 
 import React from "react";
@@ -31,32 +30,14 @@ const WeightSliderGroup: React.FC<WeightSliderGroupProps> = ({
     setWeights({ ...weights, [key]: value });
   };
 
-  // const handleReset = () => {
-  //   const resetWeights: WeightConfig = Object.keys(weights).reduce(
-  //     (acc, key) => ({ ...acc, [key]: 1 }),
-  //     {} as WeightConfig
-  //   );
-  //   setWeights(resetWeights);
-  // };
-
   return (
     <div className="mb-4 space-y-2">
-      {/* <div className="flex justify-end mb-2">
-        <button
-          onClick={handleReset}
-          className="
-    bg-gray-300 text-gray-800 px-2 py-1 rounded text-sm
-    hover:bg-gray-400 hover:text-white
-    active:bg-gray-500 active:text-white
-    transition-colors duration-150
-  "
-        >
-          가중치 초기화
-        </button>
-      </div> */}
       {(Object.keys(weights) as (keyof WeightConfig)[]).map((key) => (
-        <div key={key} className="flex items-center gap-2">
-          <label className="w-52 font-semibold">
+        <div
+          key={key}
+          className="flex flex-col sm:flex-row items-start sm:items-center gap-2"
+        >
+          <label className="w-full sm:w-52 font-semibold">
             {weightLabels[key]}: {weights[key].toFixed(1)}
           </label>
           <input

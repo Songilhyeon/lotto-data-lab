@@ -1,19 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../context/authContext";
+import { gaEvent } from "@/app/lib/gtag";
 import AiRecommend from "@/app/components/ai-recommend/AiRecommend";
 import AiNextRecommend from "@/app/components/ai-recommend/AiNextRecommend";
 import AiAdvancedRecommend from "@/app/components/ai-recommend/AiAdvancedRecommend";
 
-// 모든 탭 정의 (사행성 제거, 분석/점수 기반으로 변경)
 const allTabs = [
   { id: "AiRecommend", label: "기본 분석", premiumOnly: false },
-  {
-    id: "AiNextRecommend",
-    label: "다음 회차 기반 분석",
-    premiumOnly: false,
-  },
+  { id: "AiNextRecommend", label: "다음 회차 기반 분석", premiumOnly: false },
   { id: "AiAdvancedRecommend", label: "심층 분석", premiumOnly: false },
 ];
 
@@ -21,12 +17,14 @@ export default function AiRecommendPage() {
   const [activeTab, setActiveTab] = useState<string>("AiRecommend");
   const { user } = useAuth();
 
-  // 로그인/결제 상태에 따른 필터링
+  useEffect(() => {
+    gaEvent("tab_change", { tab_id: activeTab });
+  }, [activeTab]);
+
   const availableTabs = allTabs.filter(
     (tab) => !tab.premiumOnly || user?.role === "PREMIUM"
   );
 
-  // 탭 콘텐츠 렌더링
   const renderContent = () => {
     switch (activeTab) {
       case "AiRecommend":
@@ -42,8 +40,8 @@ export default function AiRecommendPage() {
 
   if (!user)
     return (
-      <div className="w-full flex justify-center mt-10">
-        <div className="bg-white shadow-md rounded-xl px-6 py-5 text-center">
+      <div className="w-full flex justify-center mt-10 px-4">
+        <div className="bg-white shadow-md rounded-xl px-4 py-5 text-center sm:px-6 sm:py-6">
           <p className="text-lg font-semibold text-gray-700 mb-2">
             로그인이 필요해요 😊
           </p>
@@ -56,14 +54,14 @@ export default function AiRecommendPage() {
     );
 
   return (
-    <div className="p-4">
-      {/* 탭 UI */}
-      <div className="flex border-b border-gray-300 mb-4">
+    <div className="p-4 sm:p-6 max-w-4xl mx-auto">
+      {/* 탭 UI: 모바일에서 스크롤 가능 */}
+      <div className="flex overflow-x-auto border-b border-gray-300 mb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
         {availableTabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 -mb-px font-medium border-b-2 ${
+            className={`shrink-0 px-4 py-2 sm:px-6 sm:py-3 font-medium border-b-2 ${
               activeTab === tab.id
                 ? "border-blue-500 text-blue-600"
                 : "border-transparent text-gray-500 hover:text-gray-700"

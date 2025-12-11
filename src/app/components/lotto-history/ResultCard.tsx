@@ -1,4 +1,3 @@
-// components/history/ResultCard.tsx
 "use client";
 import { FaPlus } from "react-icons/fa";
 import type { LottoNumber } from "@/app/types/lotto";
@@ -19,19 +18,17 @@ export default function ResultCard({ record }: ResultCardProps) {
   ];
 
   return (
-    <div className="p-4 max-w-full border rounded-lg bg-white shadow">
+    <div className="p-4 max-w-full border rounded-lg bg-white shadow flex flex-col gap-3">
       {/* 상단 회차 + 날짜 */}
-      <div className="flex justify-between items-center mb-2">
-        <span className="font-bold text-base sm:text-lg">
-          회차 {record.drwNo}
-        </span>
-        <span className="text-gray-500 text-sm">
+      <div className="flex justify-between items-center mb-2 text-sm sm:text-base">
+        <span className="font-bold">회차 {record.drwNo}</span>
+        <span className="text-gray-500">
           {new Date(record.drwNoDate).toISOString().slice(0, 10)}
         </span>
       </div>
 
       {/* 당첨 정보 */}
-      <div className="flex flex-col gap-1 mb-2 text-sm sm:text-base">
+      <div className="flex flex-col gap-1 mb-2 text-xs sm:text-sm">
         <div>
           💰 1등 총 당첨금:{" "}
           <span className="font-semibold">
@@ -59,13 +56,13 @@ export default function ResultCard({ record }: ResultCardProps) {
       </div>
 
       {/* 번호 */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 justify-start">
         {numbers.map((n) => (
           <LottoBall key={n} number={n} />
         ))}
         {record.bnusNo && (
-          <div className="flex items-center">
-            <span className="text-gray-500 text-xs sm:text-sm ml-1">
+          <div className="flex items-center gap-1">
+            <span className="text-gray-500 text-xs sm:text-sm">
               <FaPlus />
             </span>
             <LottoBall number={record.bnusNo} />

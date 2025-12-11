@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/app/context/authContext";
 import Link from "next/link";
@@ -15,44 +16,61 @@ export default function BoardPage() {
   const { user, openLoginModal } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`${apiUrl}/posts`)
-      .then((res) => res.json())
-      .then((data) => {
-        setPosts(data.posts);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    const fetchPosts = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch(`${apiUrl}/posts`);
+        if (!res.ok) throw new Error("게시글을 불러오는 데 실패했습니다.");
+        const data = await res.json();
+        setPosts(data.posts ?? []);
+      } catch (err: unknown) {
+        console.error(err);
+        setError(
+          err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPosts();
   }, []);
 
   return (
     <main className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">피드백 게시판</h1>
+      <h1 className="text-3xl font-bold mb-2">📋 피드백 게시판</h1>
       <p className="text-gray-500 mb-4">
-        피드백을 남겨주세요. 문제점, 개선사항, 궁금한 점 등을 공유해주세요.
+        문제점, 개선사항, 궁금한 점 등을 자유롭게 남겨주세요.
       </p>
 
-      {user ? (
-        <Link
-          href="/board/new"
-          className="px-4 py-2 bg-blue-500 text-white rounded-md"
-        >
-          글쓰기
-        </Link>
-      ) : (
-        <button
-          onClick={openLoginModal}
-          className="px-4 py-2 bg-blue-500 text-white rounded-md"
-        >
-          로그인 후 글쓰기
-        </button>
-      )}
+      {/* 글쓰기 버튼 */}
+      <div className="mb-6">
+        {user ? (
+          <Link
+            href="/board/new"
+            className="inline-block px-4 py-2 bg-blue-600 text-white font-medium rounded-md shadow hover:bg-blue-700 transition-colors"
+          >
+            글쓰기
+          </Link>
+        ) : (
+          <button
+            onClick={openLoginModal}
+            className="inline-block px-4 py-2 bg-blue-600 text-white font-medium rounded-md shadow hover:bg-blue-700 transition-colors"
+          >
+            로그인 후 글쓰기
+          </button>
+        )}
+      </div>
 
-      {/* 목록 */}
-      <div className="mt-6 space-y-4">
+      {/* 게시글 목록 */}
+      <div className="space-y-4">
         {loading ? (
-          <p>로딩 중...</p>
+          <p className="text-gray-500">로딩 중...</p>
+        ) : error ? (
+          <p className="text-red-500">{error}</p>
         ) : posts.length === 0 ? (
           <p className="text-gray-500">아직 게시글이 없습니다.</p>
         ) : (
@@ -60,12 +78,15 @@ export default function BoardPage() {
             <Link
               key={post.id}
               href={`/board/${post.id}`}
-              className="block border p-4 rounded-md hover:bg-gray-50"
+              className="block border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow hover:bg-gray-50"
             >
-              <h2 className="font-bold">{post.title}</h2>
-              <p className="text-gray-500 text-sm">
+              <h2 className="text-lg font-semibold text-gray-800">
+                {post.title}
+              </h2>
+              <p className="text-gray-400 text-sm mt-1">
                 {new Date(post.createdAt).toLocaleString()}
               </p>
+              <p className="text-gray-600 mt-2 line-clamp-3">{post.content}</p>
             </Link>
           ))
         )}

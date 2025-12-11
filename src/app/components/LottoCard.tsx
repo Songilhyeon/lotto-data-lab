@@ -33,7 +33,7 @@ export default function LottoCard({
   return (
     <div
       className={`${cardWidth} mx-auto rounded-2xl shadow-lg 
-      p-4 sm:p-6 border bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-500`}
+      p-4 sm:p-6 border bg-linear-to-br from-yellow-50 to-orange-50 border-yellow-500`}
     >
       <div className="mb-3 sm:mb-4">
         <h2 className="text-lg sm:text-2xl font-bold text-gray-800 mb-1">
@@ -59,7 +59,7 @@ export default function LottoCard({
 
       <div
         className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200 
-        space-y-1 sm:space-y-2 text-xs sm:text-base"
+    space-y-1 sm:space-y-2 text-xs sm:text-base"
       >
         <div className="flex justify-between">
           <span className="text-gray-600">1등 당첨금</span>
@@ -67,12 +67,14 @@ export default function LottoCard({
             {formatNumber(Number(data.firstWinamnt))}원
           </span>
         </div>
+
         <div className="flex justify-between">
           <span className="text-gray-600">1등 당첨자 수</span>
           <span className="font-bold text-gray-800">
             {data.firstPrzwnerCo}명
           </span>
         </div>
+
         <div className="flex justify-between">
           <span className="text-gray-600">1등 총 당첨금</span>
           <span className="font-bold text-gray-800">
@@ -84,6 +86,7 @@ export default function LottoCard({
             원
           </span>
         </div>
+
         <div className="flex justify-between">
           <span className="text-gray-600">총 판매액</span>
           <span className="font-bold text-gray-800">
@@ -91,6 +94,35 @@ export default function LottoCard({
           </span>
         </div>
       </div>
+
+      {/* 📌 자동 / 반자동 / 수동 당첨자 */}
+      <div className="mt-4 pt-3 border-t border-gray-200">
+        <h3 className="text-xs sm:text-sm text-gray-500 mb-2">1등 당첨 방식</h3>
+
+        <div className="grid grid-cols-3 gap-2">
+          <div className="bg-white shadow-sm rounded-xl p-2 text-center border">
+            <p className="text-[10px] sm:text-xs text-gray-500">자동</p>
+            <p className="font-bold text-gray-800 text-sm sm:text-base">
+              {data.autoWin ?? 0}명
+            </p>
+          </div>
+
+          <div className="bg-white shadow-sm rounded-xl p-2 text-center border">
+            <p className="text-[10px] sm:text-xs text-gray-500">반자동</p>
+            <p className="font-bold text-gray-800 text-sm sm:text-base">
+              {data.semiAutoWin ?? 0}명
+            </p>
+          </div>
+
+          <div className="bg-white shadow-sm rounded-xl p-2 text-center border">
+            <p className="text-[10px] sm:text-xs text-gray-500">수동</p>
+            <p className="font-bold text-gray-800 text-sm sm:text-base">
+              {data.manualWin ?? 0}명
+            </p>
+          </div>
+        </div>
+      </div>
+      {/* 📌 끝 */}
     </div>
   );
 }
