@@ -95,7 +95,7 @@ export default function MultiRoundInfo() {
   );
 
   return (
-    <div className={analysisDivStyle("green-50", "purple-100")}>
+    <div className={`${analysisDivStyle()} from-green-50 to-purple-100`}>
       {/* Header */}
       <ComponentHeader
         title="📊 기간별 당첨 정보 조회"

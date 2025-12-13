@@ -71,6 +71,7 @@ export default function NumberFrequency() {
       setDraws(data.data.roundResults || []);
       setNextRound(data.data.nextRound || null);
     } catch (err) {
+      console.error(err);
       setResults(null);
       setDraws([]);
       setNextRound(null);
@@ -143,7 +144,7 @@ export default function NumberFrequency() {
   const color = "#3b82f6";
 
   return (
-    <div className={analysisDivStyle("blue-50", "cyan-100") + " px-3 sm:px-6"}>
+    <div className={`${analysisDivStyle()} from-blue-50 to-cyan-100`}>
       {/* Header */}
       <ComponentHeader
         title="📈 번호 출현 빈도 분석"

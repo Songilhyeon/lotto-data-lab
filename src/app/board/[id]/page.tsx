@@ -186,12 +186,12 @@ export default function BoardDetailPage() {
   };
 
   return (
-    <main className="p-6 max-w-3xl mx-auto">
+    <main className="p-6 max-w-3xl mx-auto bg-linear-to-br from-pink-50 to-indigo-100  rounded-2xl shadow-md">
       {/* ----------------------------- */}
       {/* 상단 제목 & 수정/삭제 버튼 */}
       {/* ----------------------------- */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-2 sm:gap-0">
-        <h1 className="text-2xl font-bold break-words">{post.title}</h1>
+        <h1 className="text-2xl font-bold warp-break-words">{post.title}</h1>
 
         {isOwner && (
           <div className="flex gap-3">

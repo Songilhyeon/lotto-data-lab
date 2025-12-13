@@ -91,11 +91,11 @@ export default function AiRecommend() {
   };
 
   return (
-    <div className={analysisDivStyle("indigo-50", "purple-100")}>
+    <div className={`${analysisDivStyle()} from-pink-50 to-indigo-100`}>
       {/* Header */}
       <ComponentHeader
         title="🛡️ 기본 모델"
-        content="과거 회차 데이터를 기반으로, 자주 나온 번호, 번호 조합 패턴, 그룹화 경향, 최근 추세까지 종합하여 각 번호의 점수를 계산합니다."
+        content="가장 많이 나온 번호, 자주 함께 등장한 조합, 번호 그룹 경향 등 기본적인 통계만으로 안정적으로 점수를 계산하는 모델입니다."
       />
 
       {/* clusterUnit 선택 */}

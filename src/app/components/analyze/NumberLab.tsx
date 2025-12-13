@@ -146,16 +146,15 @@ export default function NumberLab() {
   };
 
   return (
-    <div
-      className={analysisDivStyle("blue-50", "indigo-100") + " px-3 sm:px-6"}
-    >
+    <div className={`${analysisDivStyle()} from-blue-50 to-indigo-100`}>
       <ComponentHeader
         title="🔮 로또 번호 실험실"
         content="원하는 6개 이하의 숫자를 선택하고 일치번호 / 조합 패턴을 분석해보세요."
       />
 
       {/* 번호 선택 */}
-      <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
+      <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 mb-6 max-w-3xl mx-auto">
+        {/* 제목 + 선택 번호 + 버튼 */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
             선택한 번호 ({selectedNumbers.length}/6)
@@ -188,15 +187,16 @@ export default function NumberLab() {
             <button
               onClick={runAnalysis}
               disabled={loading || selectedNumbers.length === 0}
-              className="ml-2 px-4 py-2 rounded-lg bg-blue-600 text-white"
+              className="ml-2 px-4 py-2 rounded-lg bg-blue-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? "분석 중..." : "🔬 분석 실행"}
             </button>
           </div>
         </div>
 
-        <div className="max-w-full overflow-x-auto">
-          <div className="grid grid-cols-9 sm:grid-cols-9 gap-2 min-w-[360px]">
+        {/* 번호 그리드 */}
+        <div className="overflow-x-auto">
+          <div className="grid grid-cols-7 gap-2 min-w-[300px]">
             {Array.from({ length: 45 }, (_, i) => i + 1).map((num) => (
               <button
                 key={num}

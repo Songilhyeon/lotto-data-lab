@@ -14,29 +14,12 @@ const allTabs = [
 ];
 
 export default function AiRecommendPage() {
-  const [activeTab, setActiveTab] = useState<string>("AiRecommend");
+  const [activeTab, setActiveTab] = useState("AiRecommend");
   const { user } = useAuth();
 
   useEffect(() => {
     gaEvent("tab_change", { tab_id: activeTab });
   }, [activeTab]);
-
-  const availableTabs = allTabs.filter(
-    (tab) => !tab.premiumOnly || user?.role === "PREMIUM"
-  );
-
-  const renderContent = () => {
-    switch (activeTab) {
-      case "AiRecommend":
-        return <AiRecommend />;
-      case "AiNextRecommend":
-        return <AiNextRecommend />;
-      case "AiAdvancedRecommend":
-        return <AiAdvancedRecommend />;
-      default:
-        return null;
-    }
-  };
 
   if (!user)
     return (
@@ -53,27 +36,57 @@ export default function AiRecommendPage() {
       </div>
     );
 
+  const availableTabs = allTabs.filter(
+    (tab) => !tab.premiumOnly || user?.role === "PREMIUM"
+  );
+
   return (
-    <div className="p-4 sm:p-6 max-w-4xl mx-auto">
-      {/* 탭 UI: 모바일에서 스크롤 가능 */}
-      <div className="flex overflow-x-auto border-b border-gray-300 mb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
-        {availableTabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`shrink-0 px-4 py-2 sm:px-6 sm:py-3 font-medium border-b-2 ${
-              activeTab === tab.id
-                ? "border-blue-500 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+    <div className="px-4 sm:px-6 pt-4 pb-10">
+      {/* 탭 UI */}
+      <div className="overflow-x-auto scrollbar-hide mb-4">
+        <div className="flex space-x-4 border-b border-gray-200 min-w-max pb-1">
+          {availableTabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-3 py-2 text-sm sm:text-base rounded-t-lg whitespace-nowrap transition-all
+                ${
+                  activeTab === tab.id
+                    ? "border-b-2 border-blue-600 text-blue-600 font-semibold"
+                    : "text-gray-500 hover:text-gray-700"
+                }
+              `}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* 선택된 분석 모드 콘텐츠 */}
-      <div>{renderContent()}</div>
+      {/* 콘텐츠 — 언마운트 방지 */}
+      <div className="mt-2">
+        <div
+          style={{ display: activeTab === "AiRecommend" ? "block" : "none" }}
+        >
+          <AiRecommend />
+        </div>
+
+        <div
+          style={{
+            display: activeTab === "AiNextRecommend" ? "block" : "none",
+          }}
+        >
+          <AiNextRecommend />
+        </div>
+
+        <div
+          style={{
+            display: activeTab === "AiAdvancedRecommend" ? "block" : "none",
+          }}
+        >
+          <AiAdvancedRecommend />
+        </div>
+      </div>
     </div>
   );
 }

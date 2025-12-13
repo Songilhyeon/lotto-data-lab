@@ -40,10 +40,12 @@ export default function NextPatterns() {
   const [loading, setLoading] = useState(false);
 
   const [minMatch, setMinMatch] = useState(2);
-  const [start, setStart] = useState(latestRound - 9);
+  const [start, setStart] = useState(1);
   const [end, setEnd] = useState(latestRound);
   const [includeBonus, setIncludeBonus] = useState(false);
-  const [selectedRecent, setSelectedRecent] = useState<number | null>(10);
+  const [selectedRecent, setSelectedRecent] = useState<number | null>(
+    latestRound
+  );
 
   const prevParamsRef = useRef({
     start: -1,
@@ -140,9 +142,7 @@ export default function NextPatterns() {
   const minValue = safeCounts.length > 0 ? Math.min(...safeCounts) : 0;
 
   return (
-    <div
-      className={analysisDivStyle("purple-50", "pink-100") + " px-3 sm:px-6"}
-    >
+    <div className={`${analysisDivStyle()} from-blue-50 to-pink-100`}>
       {/* Header */}
       <ComponentHeader
         title="🔮 다음 회차 번호 분석"
@@ -167,7 +167,7 @@ export default function NextPatterns() {
 
       {/* 조회하기 버튼 + 탭 */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-3 mb-6">
-        <div className="flex-shrink-0">
+        <div className="shrink-0">
           <LookUpButton onClick={fetchData} loading={loading} />
         </div>
 

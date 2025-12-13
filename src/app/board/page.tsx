@@ -40,7 +40,7 @@ export default function BoardPage() {
   }, []);
 
   return (
-    <main className="p-6 max-w-3xl mx-auto">
+    <main className="mt-5 p-6 max-w-3xl mx-auto bg-linear-to-br from-pink-50 to-indigo-100  rounded-2xl shadow-md">
       <h1 className="text-3xl font-bold mb-2">📋 피드백 게시판</h1>
       <p className="text-gray-500 mb-4">
         문제점, 개선사항, 궁금한 점 등을 자유롭게 남겨주세요.

@@ -39,11 +39,13 @@ export default function NumberRangeMatch() {
   const latestRound = getLatestRound();
   const [selectedRound, setSelectedRound] = useState<LottoDraw | null>(null);
   const [nextRound, setNextRound] = useState<LottoDraw | null>(null);
-  const [start, setStart] = useState(latestRound - 9);
+  const [start, setStart] = useState(1);
   const [end, setEnd] = useState(latestRound);
   const [includeBonus, setIncludeBonus] = useState(false);
   const [tolerance, setTolerance] = useState(0); // 🔹 추가
-  const [selectedRecent, setSelectedRecent] = useState<number | null>(10);
+  const [selectedRecent, setSelectedRecent] = useState<number | null>(
+    latestRound
+  );
   const [data, setData] = useState<ApiData | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -62,7 +64,6 @@ export default function NumberRangeMatch() {
       prev.includeBonus === includeBonus &&
       prev.tolerance === tolerance // 🔹 비교
     ) {
-      console.log("⭐ same params, skip fetch");
       return;
     }
 
@@ -148,7 +149,7 @@ export default function NumberRangeMatch() {
   const { most, least } = getMostAndLeast();
 
   return (
-    <div className={analysisDivStyle("teal-50", "pink-100")}>
+    <div className={`${analysisDivStyle()} from-green-50 to-pink-100`}>
       {/* Header */}
       <ComponentHeader
         title="🔮 구간별 출현 패턴 분석"
@@ -195,7 +196,7 @@ export default function NumberRangeMatch() {
 
         <div className="flex flex-col sm:flex-row gap-4">
           {/* 기준 회차 카드 */}
-          <div className="flex-1 bg-white rounded-xl p-4 border border-emerald-200 shadow-sm">
+          <div className="flex-1 bg-transparent rounded-xl p-4 border border-emerald-200 shadow-sm">
             <div className="flex items-center justify-between mb-3">
               <span className="text-lg font-bold text-gray-800 shrink-0">
                 📌 기준 회차: {selectedRound?.round ?? "N/A"}회

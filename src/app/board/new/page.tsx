@@ -55,7 +55,7 @@ export default function NewPostPage() {
   };
 
   return (
-    <main className="p-6 max-w-3xl mx-auto">
+    <main className="p-6 max-w-3xl mx-auto bg-linear-to-br from-pink-50 to-indigo-100  rounded-2xl shadow-md">
       <h1 className="text-3xl font-bold mb-6">📝 게시글 작성</h1>
 
       {error && <p className="mb-4 text-red-500 font-medium">{error}</p>}

@@ -113,14 +113,14 @@ export default function AiAdvancedRecommend() {
   };
 
   return (
-    <div className={analysisDivStyle("blue-50", "cyan-100")}>
+    <div className={`${analysisDivStyle()} from-pink-50 to-indigo-100`}>
       <ComponentHeader
         title="🤖 AI 기반 심층 점수 분석"
-        content="과거 회차 패턴, k-match, 버킷 분석, 최근 회차 빈도를 종합하여 점수 기반 상위 번호 조합을 제공합니다."
+        content="과거 당첨 흐름, 번호가 겹치는 정도, 번호 구간별 특징, 최근에 자주 나온 번호 등을 모두 활용하여 각 번호를 점수화 합니다."
       />
 
       <h2 className="text-lg sm:text-xl font-bold mb-4">
-        Preset & Weight 설정
+        Preset & 가중치 설정
       </h2>
 
       {/* Preset 선택 */}

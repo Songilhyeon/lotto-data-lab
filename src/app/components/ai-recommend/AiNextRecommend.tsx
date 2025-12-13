@@ -123,11 +123,11 @@ export default function AiNextRecommend() {
   };
 
   return (
-    <div className={analysisDivStyle("green-50", "purple-100")}>
+    <div className={`${analysisDivStyle()} from-green-50 to-purple-100`}>
       {/* Header */}
       <ComponentHeader
         title="📊 다음 회차 기반 모델"
-        content="최근 회차 번호와 과거 출현 패턴을 분석하여, 다음 회차에 나올 가능성이 높은 번호를 점수화합니다."
+        content="이전 회차 번호가 다음 회차에 어떤 번호로 이어졌는지 분석하여 각 번호를 점수화하는 모델입니다."
       />
 
       {/* clusterUnit 선택 */}

@@ -43,7 +43,7 @@ export default function LottoHistoryPage() {
           end: String(debouncedEnd),
         });
 
-        const res = await fetch(`${apiUrl}/lotto/history?${params.toString()}`);
+        const res = await fetch(`${apiUrl}/lotto/record?${params.toString()}`);
         const result = await res.json();
 
         if (Array.isArray(result.data)) setResults(result.data);
@@ -81,7 +81,7 @@ export default function LottoHistoryPage() {
 
   return (
     <div className="p-4">
-      <div className={analysisDivStyle("indigo-50", "purple-100")}>
+      <div className={`${analysisDivStyle()} from-indigo-50 to-purple-100`}>
         <ComponentHeader
           title="📊 로또 기록 순위"
           content="당첨자 수·금액·판매액 같은 기록을 TOP 순위로 가볍게 구경해요 ✨"

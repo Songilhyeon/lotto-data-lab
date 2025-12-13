@@ -34,7 +34,6 @@ export default function OneRoundInfo() {
         }
 
         setError(null);
-        console.log(json.data);
         setLottoData(json.data);
       } catch (err) {
         console.error(err);
@@ -68,7 +67,7 @@ export default function OneRoundInfo() {
   };
 
   return (
-    <div className={analysisDivStyle("indigo-50", "purple-100")}>
+    <div className={`${analysisDivStyle()} from-indigo-50 to-purple-100`}>
       {/* Header */}
       <ComponentHeader
         title="🎱 회차별 당첨 정보"
