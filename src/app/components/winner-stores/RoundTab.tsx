@@ -1,0 +1,93 @@
+"use client";
+import { useEffect } from "react";
+import { apiUrl } from "@/app/utils/getUtils";
+import RoundStoresCard from "@/app/components/winner-stores/RoundStoresCard";
+import { LottoStore } from "@/app/types/stores";
+import { getAddressInfo } from "@/app/utils/getUtils";
+
+interface Props {
+  selectedRound: number;
+  setSelectedRound: (v: number) => void;
+  latestRound: number;
+  roundStores: {
+    1: LottoStore[];
+    2: LottoStore[];
+  };
+  setRoundStores: React.Dispatch<
+    React.SetStateAction<{
+      1: LottoStore[];
+      2: LottoStore[];
+    }>
+  >;
+}
+
+function sortStoresByAddress(stores: LottoStore[]) {
+  return [...stores].sort((a, b) => {
+    const aInfo = getAddressInfo(a.address);
+    const bInfo = getAddressInfo(b.address);
+
+    const priority = {
+      NORMAL: 0,
+      ONLINE: 1,
+      EMPTY: 2,
+    } as const;
+
+    // 1️⃣ 주소 타입 우선순위
+    if (aInfo.type !== bInfo.type) {
+      return priority[aInfo.type] - priority[bInfo.type];
+    }
+
+    // 2️⃣ 정상 주소끼리 오름차순
+    if (aInfo.type === "NORMAL" && bInfo.type === "NORMAL") {
+      return a.address!.localeCompare(b.address!, "ko");
+    }
+
+    return 0;
+  });
+}
+
+export default function RoundTab({
+  selectedRound,
+  setSelectedRound,
+  latestRound,
+  roundStores,
+  setRoundStores,
+}: Props) {
+  useEffect(() => {
+    if (!selectedRound) return;
+
+    async function load() {
+      const res = await fetch(
+        `${apiUrl}/lotto/stores/round?round=${selectedRound}`
+      );
+      const json: { 1: LottoStore[]; 2: LottoStore[] } = await res.json();
+
+      setRoundStores({
+        1: sortStoresByAddress(json[1] || []),
+        2: sortStoresByAddress(json[2] || []),
+      });
+    }
+
+    load();
+  }, [selectedRound, setRoundStores]);
+
+  return (
+    <>
+      <RoundStoresCard
+        selectedRound={selectedRound}
+        setSelectedRound={setSelectedRound}
+        stores={roundStores[1]}
+        rank={1}
+        latestRound={latestRound}
+      />
+
+      <RoundStoresCard
+        selectedRound={selectedRound}
+        setSelectedRound={setSelectedRound}
+        stores={roundStores[2]}
+        rank={2}
+        latestRound={latestRound}
+      />
+    </>
+  );
+}

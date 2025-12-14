@@ -1,109 +1,106 @@
 "use client";
-import { useEffect, useState } from "react";
-import { apiUrl } from "@/app/utils/getUtils";
 
-import RankTabs from "@/app/components/winner-stores/RankTabs";
-import RegionTabs from "@/app/components/winner-stores/RegionTabs";
-import MethodStatsCard from "@/app/components/winner-stores/MethodStatsCard";
-import TopStoresCard from "@/app/components/winner-stores/TopStoresCard";
-import RegionChartCard from "@/app/components/winner-stores/RegionChartCard";
+import { useState, useEffect } from "react";
+// import { useAuth } from "@/app/context/authContext";
+import { gaEvent } from "@/app/lib/gtag";
 
-import {
-  WinnerStoresApiResponse,
-  TopStore,
-  MethodStats,
-  RegionStat,
-} from "@/app/types/winnerStores";
+import AccumulateTab from "@/app/components/winner-stores/AccumulateTab";
+import RoundTab from "@/app/components/winner-stores/RoundTab";
+
+import { LottoStore, WinnerStoresApiResponse } from "@/app/types/stores";
+import { getLatestRound } from "@/app/utils/getUtils";
+
+const tabs = [
+  { id: "round", label: "회차별 당첨 판매점" },
+  { id: "accumulate", label: "누적 분석" },
+];
 
 export default function WinnerStoresPage() {
+  // const { user } = useAuth();
+  const latestRound = getLatestRound();
+
+  const [activeTab, setActiveTab] = useState<"round" | "accumulate">("round");
+
+  // 공통 상태
+  const [selectedRound, setSelectedRound] = useState(latestRound);
+  const [roundStores, setRoundStores] = useState<{
+    1: LottoStore[];
+    2: LottoStore[];
+  }>({ 1: [], 2: [] });
+
   const [selectedRank, setSelectedRank] = useState<1 | 2>(1);
   const [selectedRegion, setSelectedRegion] = useState("전국");
   const [regions, setRegions] = useState<string[]>([]);
   const [data, setData] = useState<WinnerStoresApiResponse | null>(null);
 
   useEffect(() => {
-    async function load() {
-      const res = await fetch(`${apiUrl}/lotto/stores?rank=${selectedRank}`);
-      const json: WinnerStoresApiResponse = await res.json();
+    gaEvent("tab_change", { tab: activeTab });
+  }, [activeTab]);
 
-      setData(json);
-
-      const uniqueRegions = Array.from(
-        new Set(
-          json.nationwide.region
-            .map((item) => item.region)
-            .filter((region) => region !== "전국")
-        )
-      ).sort((a, b) => a.localeCompare(b, "ko"));
-
-      setRegions(uniqueRegions);
-      setSelectedRegion("전국");
-    }
-
-    load();
-  }, [selectedRank]);
-  if (!data) return <div>Loading...</div>;
-
-  // ---------------------------
-  // 파생 데이터 (타입 안전)
-  // ---------------------------
-  const filteredTopStores: TopStore[] =
-    selectedRegion === "전국"
-      ? data.nationwide.tops.map((item) => ({
-          ...item,
-          region: item.address.split(" ")[0].includes("동행복권")
-            ? "인터넷"
-            : item.address.split(" ")[0],
-        }))
-      : data.byRegion[selectedRegion]?.tops ?? [];
-
-  const filteredMethodStats: MethodStats =
-    selectedRegion === "전국"
-      ? data.nationwide.method
-      : data.byRegion[selectedRegion]?.method ?? data.nationwide.method;
-
-  const filteredRegionStats: RegionStat[] =
-    selectedRegion === "전국"
-      ? data.nationwide.region
-      : data.byRegion[selectedRegion]?.subRegionStats.map((item) => ({
-          region: item.subRegion,
-          regionCount: item.regionCount,
-        })) ?? [];
+  // 🔒 로그인 안 했으면 여기서 끝
+  // if (!user) {
+  //   return (
+  //     <div className="w-full flex justify-center mt-12 px-4">
+  //       <div className="bg-white shadow-md rounded-2xl px-6 py-6 text-center max-w-md">
+  //         <p className="text-lg font-semibold text-gray-800 mb-2">
+  //           로그인이 필요해요 😊
+  //         </p>
+  //         <p className="text-sm text-gray-500">
+  //           당첨 판매점 분석은 로그인 사용자만 이용할 수 있어요.
+  //         </p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
-    <div className="p-4">
-      <header className="text-center space-y-3">
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
-          당첨 지역 분석
-        </h1>
-        <p className="text-sm sm:text-base text-gray-600">
-          회차 누적 기반의 판매점/지역 분석 데이터
-        </p>
-      </header>
+    <div className="px-4 sm:px-6 pt-4 pb-10">
+      {/* 탭 UI (기존 페이지 구조와 동일) */}
+      <div className="overflow-x-auto scrollbar-hide mb-4">
+        <div className="flex space-x-4 border-b border-gray-200 min-w-max pb-1">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as "round" | "accumulate")}
+              className={`px-3 py-2 text-sm sm:text-base rounded-t-lg whitespace-nowrap transition-all
+                ${
+                  activeTab === tab.id
+                    ? "border-b-2 border-blue-600 text-blue-600 font-semibold"
+                    : "text-gray-500 hover:text-gray-700"
+                }
+              `}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
-      <RankTabs selectedRank={selectedRank} setSelectedRank={setSelectedRank} />
+      {/* 콘텐츠 (언마운트 방지) */}
+      <div className="mt-2">
+        <div style={{ display: activeTab === "round" ? "block" : "none" }}>
+          <RoundTab
+            selectedRound={selectedRound}
+            setSelectedRound={setSelectedRound}
+            latestRound={latestRound}
+            roundStores={roundStores}
+            setRoundStores={setRoundStores}
+          />
+        </div>
 
-      <RegionTabs
-        regions={regions}
-        selectedRegion={selectedRegion}
-        setSelectedRegion={setSelectedRegion}
-      />
-
-      <MethodStatsCard
-        method={filteredMethodStats}
-        title={`${selectedRegion} ${selectedRank}등 당첨 방식 비율`}
-      />
-
-      <TopStoresCard
-        stores={filteredTopStores}
-        rank={selectedRank}
-        region={selectedRegion}
-      />
-
-      <RegionChartCard
-        data={filteredRegionStats}
-        title={`지역별 ${selectedRank}등 배출 통계 (${selectedRegion})`}
-      />
+        <div style={{ display: activeTab === "accumulate" ? "block" : "none" }}>
+          <AccumulateTab
+            selectedRank={selectedRank}
+            setSelectedRank={setSelectedRank}
+            selectedRegion={selectedRegion}
+            setSelectedRegion={setSelectedRegion}
+            regions={regions}
+            setRegions={setRegions}
+            data={data}
+            setData={setData}
+          />
+        </div>
+      </div>
     </div>
   );
 }

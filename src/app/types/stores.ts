@@ -38,3 +38,20 @@ export interface WinnerStoresApiResponse {
   };
   byRegion: Record<string, ByRegionItem>;
 }
+
+export interface RoundStore {
+  store: string;
+  address: string;
+  region: string;
+  method: "자동" | "수동" | "반자동";
+}
+
+export interface LottoStore {
+  drwNo: number;
+  store: string;
+  address: string;
+  rank: number;
+  autoWin: number | null;
+  semiAutoWin: number | null;
+  manualWin: number | null;
+}

@@ -31,7 +31,8 @@ export default function TopStoresCard({
           {stores.map((item, idx) => (
             <TopStoreItem
               key={idx}
-              rank={idx + 1}
+              index={idx + 1}
+              rank={rank}
               store={item.store}
               address={item.address}
               appearanceCount={item.appearanceCount}
