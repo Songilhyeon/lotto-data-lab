@@ -13,8 +13,6 @@ import {
   RegionStat,
 } from "@/app/types/stores";
 import { useAuth } from "@/app/context/authContext";
-import { getLowestN } from "@/app/utils/premiumPreview";
-import PreviewTopStoresCard from "@/app/components/winner-stores/PreviewTopStoresCard";
 
 interface Props {
   selectedRank: 1 | 2;
@@ -63,6 +61,12 @@ export default function AccumulateTab({
 
   if (!data) return <div>Loading...</div>;
 
+  const accessLevel = user
+    ? user.role === "PREMIUM"
+      ? "PREMIUM"
+      : "LOGIN"
+    : "GUEST";
+
   const filteredTopStores: TopStore[] =
     selectedRegion === "전국"
       ? data.nationwide.tops.map((item) => ({
@@ -103,22 +107,12 @@ export default function AccumulateTab({
         />
       )}
 
-      {user !== null ? (
-        <TopStoresCard
-          stores={filteredTopStores}
-          rank={selectedRank}
-          region={selectedRegion}
-        />
-      ) : (
-        <PreviewTopStoresCard
-          stores={filteredTopStores.map((s) => ({
-            store: s.store,
-            address: s.address,
-            count: s.appearanceCount,
-          }))}
-          isPremium={user !== null}
-        />
-      )}
+      <TopStoresCard
+        stores={filteredTopStores}
+        rank={selectedRank}
+        region={selectedRegion}
+        accessLevel={accessLevel}
+      />
 
       <RegionChartCard
         data={filteredRegionStats}

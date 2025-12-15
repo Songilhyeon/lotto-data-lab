@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { LottoNumber } from "@/app/types/lotto";
+import type { LottoNumber } from "@/app/types/lottoNumbers";
 import ResultCard from "@/app/components/lotto-history/ResultCard";
 import { queryOptions } from "@/app/utils/queryOptions";
 import RangeFilterBar from "@/app/components/RangeFilterBar";

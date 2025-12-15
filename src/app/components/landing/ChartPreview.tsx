@@ -15,11 +15,7 @@ import {
 } from "recharts";
 import HeatmapCell from "@/app/components/HeatmapCell";
 import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
-
-interface LottoDraw {
-  drwNo: number;
-  numbers: number[];
-}
+import { LottoDraw } from "@/app/types/lottoNumbers";
 
 const previewTabs = ["출현 빈도", "홀짝 비율", "번호 히트맵"] as const;
 

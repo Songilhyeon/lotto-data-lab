@@ -4,11 +4,11 @@ import { useState, useRef } from "react";
 import { useAuth } from "@/app/context/authContext";
 import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
 import LottoBall from "@/app/components/LottoBall";
-import DraggableNextRound from "@/app/components/analyze/DraggableNextRound";
+import DraggableNextRound from "@/app/components/DraggableNextRound";
 import { FreqChart } from "@/app/components/analyze/FreqChartComponent";
 import PatternNextFreqSection from "@/app/components/analyze/PatternNextFreqSection";
 import Accordion from "@/app/components/analyze/SingleOpenAccordion";
-import { PremiumAnalysisData } from "@/app/types/lotto";
+import { PremiumAnalysisData } from "@/app/types/lottoNumbers";
 import { analysisDivStyle } from "@/app/utils/getDivStyle";
 
 export default function PremiumAnalysis() {
@@ -230,7 +230,7 @@ export default function PremiumAnalysis() {
 
         <button
           onClick={fetchData}
-          className="px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold text-sm sm:text-base shadow-md bg-linear-to-r from-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700 hover:shadow-lg active:scale-95"
+          className="px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold text-sm sm:text-base shadow-md bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700 hover:shadow-lg active:scale-95"
         >
           분석 실행
         </button>

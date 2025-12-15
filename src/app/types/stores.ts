@@ -8,9 +8,9 @@ export interface TopStore {
   store: string;
   address: string;
   appearanceCount: number;
-  autoWin: number;
-  semiAutoWin: number;
-  manualWin: number;
+  autoWin?: number;
+  semiAutoWin?: number;
+  manualWin?: number;
 }
 
 export interface RegionStat {
@@ -54,4 +54,18 @@ export interface LottoStore {
   autoWin: number | null;
   semiAutoWin: number | null;
   manualWin: number | null;
+}
+
+export interface LottoStoreHistory {
+  round: number;
+  autoWin: number;
+  semiAutoWin: number;
+  manualWin: number;
+}
+
+export interface StoreHistoryItem {
+  round: number;
+  autoWin: number;
+  semiAutoWin: number;
+  manualWin: number;
 }

@@ -13,16 +13,19 @@ import { analysisDivStyle } from "@/app/utils/getDivStyle";
 import ComponentHeader from "@/app/components/ComponentHeader";
 import ClusterUnitSelector from "@/app/components/ai-recommend/ClusterUnitSelector";
 import WeightSliderGroup from "@/app/components/ai-recommend/WeightSliderGroup";
+import { LottoDraw } from "@/app/types/lottoNumbers";
+import DraggableNextRound from "@/app/components/DraggableNextRound";
+import LottoBall from "../LottoBall";
 
 export default function AiAdvancedRecommend() {
-  const round = getLatestRound();
-
+  const latestRound = getLatestRound();
+  const [selectedRound, setSelectedRound] = useState<number>(latestRound); // 회차 선택
   const [preset, setPreset] = useState<AiPreset>(AiPresets[0]);
   const [clusterUnit, setClusterUnit] = useState<number>(5);
   const [result, setResult] = useState<IfAiRecommendation | null>(null);
   const [loading, setLoading] = useState(false);
-
   const [weights, setWeights] = useState<WeightConfig>({ ...preset.weight });
+  const [nextRound, setNextRound] = useState<LottoDraw | null>(null);
 
   const handlePresetChange = (presetName: string) => {
     const selectedPreset = AiPresets.find((p) => p.name === presetName);
@@ -42,7 +45,7 @@ export default function AiAdvancedRecommend() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          round,
+          round: selectedRound,
           presetName: preset.name,
           clusterUnit,
           seed: Date.now(),
@@ -51,6 +54,7 @@ export default function AiAdvancedRecommend() {
       });
       const data: IfAiRecommendation = await res.json();
       setResult(data);
+      setNextRound(data.nextRound || null);
     } catch (err) {
       console.error(err);
     } finally {
@@ -99,12 +103,7 @@ export default function AiAdvancedRecommend() {
       <div className="mt-2 p-4 border rounded bg-green-50">
         <div className="flex flex-wrap gap-2 mb-4">
           {result.combination.map((n) => (
-            <span
-              key={n}
-              className="w-10 h-10 flex items-center justify-center bg-yellow-200 rounded-full font-bold text-sm sm:text-base"
-            >
-              {n}
-            </span>
+            <LottoBall key={n} number={n} size="lg" />
           ))}
         </div>
         {result.scores && renderFullScoreBars(result.scores)}
@@ -116,7 +115,8 @@ export default function AiAdvancedRecommend() {
     <div className={`${analysisDivStyle()} from-pink-50 to-indigo-100`}>
       <ComponentHeader
         title="🤖 AI 기반 심층 점수 분석"
-        content="과거 당첨 흐름, 번호가 겹치는 정도, 번호 구간별 특징, 최근에 자주 나온 번호 등을 모두 활용하여 각 번호를 점수화 합니다."
+        content={`과거 당첨 흐름, 번호가 겹치는 정도, 번호 구간별 특징, 최근에 자주 나온 번호 등을 모두 활용하여 각 번호를 점수화 합니다.
+                  회차를 선택하여 과거 회차에 어떤 번호가 당첨 되었는지 분석할 수 있습니다.`}
       />
 
       <h2 className="text-lg sm:text-xl font-bold mb-4">
@@ -156,6 +156,42 @@ export default function AiAdvancedRecommend() {
       {/* WeightSliderGroup */}
       <WeightSliderGroup weights={weights} setWeights={setWeights} />
 
+      {/* 회차 선택 UI */}
+      <div className="mb-4 flex items-center gap-2">
+        <label className="font-medium text-gray-700">회차 선택:</label>
+
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => setSelectedRound((prev) => Math.max(prev - 1, 1))}
+            className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300 transition"
+            disabled={selectedRound <= 1}
+          >
+            -
+          </button>
+
+          <span className="w-16 text-center border px-2 py-1 rounded bg-white">
+            {selectedRound}
+          </span>
+
+          <button
+            onClick={() =>
+              setSelectedRound((prev) => Math.min(prev + 1, latestRound))
+            }
+            className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300 transition"
+            disabled={selectedRound >= latestRound}
+          >
+            +
+          </button>
+        </div>
+
+        <span
+          className="text-gray-500 cursor-pointer hover:underline"
+          onClick={() => setSelectedRound(latestRound)}
+        >
+          최신 회차: {latestRound}
+        </span>
+      </div>
+
       {/* 분석 실행 버튼 */}
       <button
         onClick={fetchAnalysis}
@@ -163,6 +199,13 @@ export default function AiAdvancedRecommend() {
       >
         점수 분석 실행
       </button>
+
+      {nextRound && (
+        <div className="min-w-0">
+          {/* DraggableNextRound는 내부에서 고정 포지셔닝을 처리함 */}
+          <DraggableNextRound nextRound={nextRound} most={[]} least={[]} />
+        </div>
+      )}
 
       <div className="overflow-y-auto max-h-[80vh]">{renderResult()}</div>
     </div>

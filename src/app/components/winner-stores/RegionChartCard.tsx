@@ -16,7 +16,7 @@ interface RegionChartCardProps {
 
 export default function RegionChartCard({ data, title }: RegionChartCardProps) {
   return (
-    <Card className="rounded-2xl shadow-lg bg-linear-to-br from-white to-slate-50 border border-gray-200 mt-6">
+    <Card className="rounded-2xl shadow-lg bg-gradient-to-br from-white to-slate-50 border border-gray-200 mt-6">
       <CardContent className="p-6 sm:p-8">
         <h2 className="text-lg sm:text-xl font-semibold mb-6 text-gray-800">
           {title}

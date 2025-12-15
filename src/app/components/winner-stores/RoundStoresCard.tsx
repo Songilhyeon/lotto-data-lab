@@ -3,7 +3,6 @@ import { Card, CardContent } from "@/app/components/winner-stores/Card";
 import { LottoStore } from "@/app/types/stores";
 import { MdLocationOn } from "react-icons/md";
 import { getAddressInfo } from "@/app/utils/getUtils";
-import { address } from "framer-motion/m";
 
 interface Props {
   selectedRound: number;
@@ -110,7 +109,6 @@ export default function RoundStoresCard({
                   <th className="px-3 py-2 text-center">
                     {rank === 1 && "자동 / 반자동 / 수동"}
                     {rank === 2 && "당첨 개수"}
-                    {rank === "all" && "당첨 정보"}
                   </th>
                 </tr>
               </thead>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/app/context/authContext";
@@ -18,8 +18,13 @@ export default function Header() {
   const oauthUrls = {
     google: process.env.NEXT_PUBLIC_GOOGLE_API_URI,
     naver: process.env.NEXT_PUBLIC_NAVER_API_URI,
-    kakao: process.env.NEXT_PUBLIC_KAKAO_API_URI,
   };
+
+  /** ✅ 모든 OAuth 진입점에서 공통으로 쓰는 redirect path */
+  const redirectPath = useMemo(() => {
+    if (typeof window === "undefined") return "";
+    return encodeURIComponent(window.location.origin); // ← path 제거, origin만
+  }, []);
 
   const navLinks = [
     { name: "홈", href: "/" },
@@ -62,7 +67,7 @@ export default function Header() {
               );
             })}
 
-            {/* 로그인/로그아웃 */}
+            {/* 로그인 / 로그아웃 */}
             {user ? (
               <div className="flex items-center gap-3 ml-4">
                 <span
@@ -126,7 +131,6 @@ export default function Header() {
                   key={link.href}
                   href={link.href}
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center justify-between"
                 >
                   {link.name}
                 </Link>
@@ -162,7 +166,7 @@ export default function Header() {
                   <>
                     <button
                       onClick={() =>
-                        (window.location.href = oauthUrls.google ?? "")
+                        (window.location.href = `${oauthUrls.google}?state=${redirectPath}`)
                       }
                       className="w-full px-4 py-2 bg-white border border-gray-300 flex items-center justify-center gap-2 rounded shadow"
                     >
@@ -171,7 +175,7 @@ export default function Header() {
 
                     <button
                       onClick={() =>
-                        (window.location.href = oauthUrls.naver ?? "")
+                        (window.location.href = `${oauthUrls.naver}?state=${redirectPath}`)
                       }
                       className="mt-3 w-full px-4 py-2 bg-[#03C75A] text-white rounded shadow flex items-center justify-center gap-2"
                     >
@@ -196,8 +200,7 @@ export default function Header() {
 
             <button
               onClick={() => {
-                const redirectUrl = encodeURIComponent(window.location.origin);
-                window.location.href = `${oauthUrls.google}?state=${redirectUrl}`;
+                window.location.href = `${oauthUrls.google}?state=${redirectPath}`;
               }}
               className="flex items-center justify-center gap-2 w-full bg-white border border-gray-300 hover:bg-gray-100 text-gray-800 px-4 py-2 rounded shadow"
             >
@@ -207,8 +210,7 @@ export default function Header() {
 
             <button
               onClick={() => {
-                const redirectUrl = encodeURIComponent(window.location.origin);
-                window.location.href = `${oauthUrls.naver}?state=${redirectUrl}`;
+                window.location.href = `${oauthUrls.naver}?state=${redirectPath}`;
               }}
               className="flex items-center justify-center gap-2 w-full bg-[#03C75A] border border-[#03C75A] hover:bg-[#02b14b] text-white px-4 py-2 rounded shadow mt-3"
             >

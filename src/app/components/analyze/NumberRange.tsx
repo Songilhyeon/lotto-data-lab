@@ -9,7 +9,8 @@ import LottoBall from "../LottoBall";
 import { analysisDivStyle, rangeFilterDivStyle } from "@/app/utils/getDivStyle";
 import ComponentHeader from "@/app/components/ComponentHeader";
 import LookUpButton from "@/app/components/analyze/LookUpButton";
-import DraggableNextRound from "./DraggableNextRound";
+import DraggableNextRound from "../DraggableNextRound";
+import { LottoDraw } from "@/app/types/lottoNumbers";
 
 interface MatchingRoundInfo {
   round: number;
@@ -26,13 +27,7 @@ interface RangeResult {
 interface ApiData {
   selectedRound: { round: number; numbers: number[]; bonus: number };
   nextRound: { round: number; numbers: number[]; bonus: number } | null;
-  ranges: { "10": RangeResult; "7": RangeResult };
-}
-
-interface LottoDraw {
-  round: number;
-  numbers: number[];
-  bonus: number;
+  ranges: { "10": RangeResult; "7": RangeResult; "5": RangeResult };
 }
 
 export default function NumberRangeMatch() {
@@ -153,7 +148,8 @@ export default function NumberRangeMatch() {
       {/* Header */}
       <ComponentHeader
         title="🔮 구간별 출현 패턴 분석"
-        content="특정 회차의 구간별 번호 구성이 동일한 과거 회차를 찾고, 그 다음 회차에서 등장한 번호의 빈도를 표시합니다."
+        content={`특정 회차의 구간별 번호 구성이 동일한 과거 회차를 찾고, 그 다음 회차에서 등장한 번호의 빈도를 표시합니다.
+                  End 회차를 선택하여 과거 회차에 어떤 번호가 당첨 되었는지 분석할 수 있습니다.`}
       />
       {/* Filter */}
       <div className={rangeFilterDivStyle}>
@@ -273,6 +269,28 @@ export default function NumberRangeMatch() {
           <NextFrequencyChart
             title="7단위 패턴 → 다음 회차 빈도수"
             frequency={data.ranges["7"].nextFrequency}
+          />
+
+          {/* 5단위 */}
+          <SimpleBarChart
+            title="5단위 구간별 출현"
+            data={Object.entries(data.ranges["5"].counts).map(
+              ([label, count]) => ({
+                label,
+                count,
+              })
+            )}
+          />
+          <div className="text-sm text-gray-700 mb-2">
+            매칭 회차 ({data.ranges["5"].matchingRounds.length}개):{" "}
+            {data.ranges["7"].matchingRounds.length === 0
+              ? "없음"
+              : tolerance === 0 &&
+                data.ranges["5"].matchingRounds.map((r) => r.round).join(", ")}
+          </div>
+          <NextFrequencyChart
+            title="5단위 패턴 → 다음 회차 빈도수"
+            frequency={data.ranges["5"].nextFrequency}
           />
         </>
       )}

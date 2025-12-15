@@ -217,7 +217,10 @@ export default function NumberLab() {
       {/* 일치 회차 카드 */}
       {Object.keys(analysisResult).length > 0 && (
         <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
-          <h2 className="text-xl font-bold mb-4">🎯 일치 회차 정보</h2>
+          <h2 className="text-xl font-bold mb-4">
+            🎯 일치 회차 정보{" "}
+            <span className="text-sm text-gray-500">(중복회차 제외)</span>
+          </h2>
           <div className="space-y-4">
             {Object.keys(analysisResult)
               .sort((a, b) => Number(b) - Number(a))
@@ -234,7 +237,7 @@ export default function NumberLab() {
                 return (
                   <div
                     key={matchCount}
-                    className="rounded-xl p-3 sm:p-4 border-l-4 border-blue-500 bg-linear-to-r from-gray-50 to-gray-100 overflow-x-auto"
+                    className="rounded-xl p-3 sm:p-4 border-l-4 border-blue-500 bg-gradient-to-r from-gray-50 to-gray-100 overflow-x-auto"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="text-lg font-semibold">
@@ -312,7 +315,10 @@ export default function NumberLab() {
       {(Object.keys(appearRounds).length > 0 ||
         Object.keys(comboTop).length > 0) && (
         <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
-          <h2 className="text-xl font-bold mb-4">🔥 각 번호 조합 출현 빈도</h2>
+          <h2 className="text-xl font-bold mb-4">
+            🔥 각 번호 조합 출현 빈도
+            <span className="text-sm text-gray-500">(중복회차 포함)</span>
+          </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[1, 2, 3, 4, 5, 6].map((k) => {
               const list =

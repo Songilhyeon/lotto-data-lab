@@ -14,10 +14,11 @@ import {
   Cell,
 } from "recharts";
 import HeatmapCell from "@/app/components/HeatmapCell";
-import DraggableNextRound from "./DraggableNextRound";
+import DraggableNextRound from "../DraggableNextRound";
 import { analysisDivStyle, rangeFilterDivStyle } from "@/app/utils/getDivStyle";
 import ComponentHeader from "@/app/components/ComponentHeader";
 import LookUpButton from "@/app/components/analyze/LookUpButton";
+import { LottoDraw } from "@/app/types/lottoNumbers";
 
 interface MultiRoundResponse {
   start: number;
@@ -25,12 +26,6 @@ interface MultiRoundResponse {
   includeBonus: boolean;
   frequency: Record<number, number>;
   roundResults?: LottoDraw[];
-}
-
-interface LottoDraw {
-  round: number;
-  numbers: number[];
-  bonus?: number;
 }
 
 export default function NumberFrequency() {
@@ -148,7 +143,8 @@ export default function NumberFrequency() {
       {/* Header */}
       <ComponentHeader
         title="📈 번호 출현 빈도 분석"
-        content="특정 기간 동안 각 번호가 얼마나 자주 출현했는지 분석합니다."
+        content={`특정 기간 동안 각 번호가 얼마나 자주 출현했는지 분석합니다.
+                  End 회차를 선택하여 과거 회차에 어떤 번호가 당첨 되었는지 분석할 수 있습니다.`}
       />
 
       {nextRound && (
@@ -229,7 +225,7 @@ export default function NumberFrequency() {
             </div>
 
             {/* 카드 2 */}
-            <div className="bg-linear-to-br from-red-50 to-orange-50 rounded-xl shadow p-3 md:p-4 text-center border-t-4 border-red-500">
+            <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-xl shadow p-3 md:p-4 text-center border-t-4 border-red-500">
               <div className="text-xl md:text-2xl">🔥</div>
               <h3 className="text-[10px] sm:text-xs text-gray-600">
                 가장 자주 나온 번호
@@ -245,7 +241,7 @@ export default function NumberFrequency() {
             </div>
 
             {/* 카드 3 */}
-            <div className="bg-linear-to-br from-blue-50 to-cyan-50 rounded-xl shadow p-3 md:p-4 text-center border-t-4 border-blue-500">
+            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl shadow p-3 md:p-4 text-center border-t-4 border-blue-500">
               <div className="text-xl md:text-2xl">❄️</div>
               <h3 className="text-[10px] sm:text-xs text-gray-600">
                 가장 적게 나온 번호
@@ -275,7 +271,7 @@ export default function NumberFrequency() {
             {/* Legend */}
             <div className="flex items-center gap-3 mb-4 p-3 bg-gray-50 rounded-md">
               <span className="text-xs sm:text-sm text-gray-700">낮음</span>
-              <div className="flex-1 h-4 rounded-full bg-linear-to-r from-blue-400 to-red-500" />
+              <div className="flex-1 h-4 rounded-full bg-gradient-to-r from-blue-400 to-red-500" />
               <span className="text-xs sm:text-sm text-gray-700">높음</span>
             </div>
 

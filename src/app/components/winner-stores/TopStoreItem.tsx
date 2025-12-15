@@ -25,16 +25,18 @@ export default function TopStoreItem({
   const addressInfo = getAddressInfo(address);
 
   return (
-    <div className="flex items-center justify-between bg-white border rounded-xl p-4 shadow-sm hover:shadow-md transition">
+    <div className="flex items-center justify-between bg-white border rounded-xl p-4 shadow-sm hover:shadow-xl transition">
       <div className="flex-1">
         <p className="font-semibold text-gray-900 text-sm sm:text-base flex items-center gap-2">
           <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-md text-xs font-bold">
-            {index}위
+            {index === 0 ? "-" : `${index}`}위
           </span>
           {store}
         </p>
         <p className="text-xs sm:text-sm text-gray-600 mt-1">
-          {addressInfo.type === "NORMAL" && (
+          {addressInfo.type !== "NORMAL" || index === 0 ? (
+            <span className="text-gray-400">{address}</span>
+          ) : (
             <a
               href={`https://m.map.naver.com/search2/search.nhn?query=${encodeURIComponent(
                 address
@@ -61,9 +63,9 @@ export default function TopStoreItem({
       </div>
       <div className="text-right">
         <span className="text-yellow-600 font-bold text-lg sm:text-xl">
-          {appearanceCount}회
+          {index !== 0 ? appearanceCount : "-"}회
         </span>
-        {rank === 1 && (
+        {rank === 1 && index !== 0 && (
           <div className="text-gray-500 text-xs mt-1">
             자동: {autoWin} | 반자동: {semiAutoWin} | 수동: {manualWin}
           </div>

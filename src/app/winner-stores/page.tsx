@@ -12,7 +12,7 @@ import { getLatestRound } from "@/app/utils/getUtils";
 
 const tabs = [
   { id: "round", label: "회차별 당첨 판매점" },
-  { id: "accumulate", label: "누적 분석" },
+  { id: "accumulate", label: "전체 회차 판매점" },
 ];
 
 export default function WinnerStoresPage() {

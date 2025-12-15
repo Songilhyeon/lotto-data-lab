@@ -1,16 +1,11 @@
 import { useState } from "react";
 import LottoBall from "@/app/components/LottoBall";
+import { LottoDraw } from "@/app/types/lottoNumbers";
 
 interface ResultItem {
   round: number;
   numbers: number[];
   nextNumbers: number[];
-}
-
-interface LottoDraw {
-  numbers: number[];
-  round: number;
-  bonus?: number;
 }
 
 interface ResultsListProps {
@@ -45,7 +40,7 @@ export default function SimilarPagination({
             {pagedResults.map((item) => (
               <div
                 key={item.round}
-                className="bg-linear-to-br from-gray-50 to-gray-100 rounded-xl p-4 border-2 border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all"
+                className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border-2 border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all"
               >
                 <div className="mb-3">
                   <span className="inline-block bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-bold">

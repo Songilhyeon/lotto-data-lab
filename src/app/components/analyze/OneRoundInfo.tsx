@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { LottoNumber } from "@/app/types/lotto";
+import { LottoNumber } from "@/app/types/lottoNumbers";
 import LottoPaper from "@/app/components/LottoPaper";
 import LottoCard from "@/app/components/LottoCard";
 import SimplePattern from "@/app/components/SimplePattern";

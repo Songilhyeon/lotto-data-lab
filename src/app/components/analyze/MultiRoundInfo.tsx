@@ -5,7 +5,7 @@ import LottoPaper from "@/app/components/LottoPaper";
 import LottoCard from "@/app/components/LottoCard";
 import SimplePattern from "@/app/components/SimplePattern";
 import RangeFilterBar from "@/app/components/RangeFilterBar";
-import { LottoNumber } from "@/app/types/lotto";
+import { LottoNumber } from "@/app/types/lottoNumbers";
 import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
 import { analysisDivStyle, rangeFilterDivStyle } from "@/app/utils/getDivStyle";
 import ComponentHeader from "@/app/components/ComponentHeader";

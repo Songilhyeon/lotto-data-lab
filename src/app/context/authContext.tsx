@@ -1,4 +1,3 @@
-// app/context/authContext.tsx
 "use client";
 
 import {
@@ -9,9 +8,7 @@ import {
   ReactNode,
 } from "react";
 import { apiUrl } from "@/app/utils/getUtils";
-// ---------------------------
-// User 타입
-// ---------------------------
+
 export interface User {
   id: string;
   name: string;
@@ -20,36 +17,59 @@ export interface User {
   subscriptionExpiresAt?: string | Date;
 }
 
-// ---------------------------
-// Context 타입
-// ---------------------------
 interface AuthContextType {
   user: User | null;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
+  refreshUser: () => Promise<void>;
   openLoginModal: () => void;
   closeLoginModal: () => void;
   isLoginModalOpen: boolean;
   logout: () => Promise<void>;
 }
 
-// ---------------------------
-// Context 생성
-// ---------------------------
 export const AuthContext = createContext<AuthContextType | null>(null);
 
-// ---------------------------
-// Provider Props
-// ---------------------------
 interface AuthProviderProps {
   children: ReactNode;
 }
 
-// ---------------------------
-// Provider 구현
-// ---------------------------
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+
+  const fetchUser = async () => {
+    const res = await fetch(process.env.NEXT_PUBLIC_API_URL + "/auth/me", {
+      credentials: "include",
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      return data.user ?? null;
+    }
+    return null;
+  };
+  useEffect(() => {
+    let mounted = true;
+
+    (async () => {
+      try {
+        const user = await fetchUser();
+        if (mounted) setUser(user);
+      } catch (err) {
+        console.error(err);
+        if (mounted) setUser(null);
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const refreshUser = async () => {
+    const user = await fetchUser();
+    setUser(user);
+  };
 
   const logout = async () => {
     try {
@@ -58,6 +78,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         credentials: "include",
       });
       setUser(null);
+      setIsLoginModalOpen(false);
     } catch (err) {
       console.error(err);
     }
@@ -66,31 +87,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const openLoginModal = () => setIsLoginModalOpen(true);
   const closeLoginModal = () => setIsLoginModalOpen(false);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await fetch(process.env.NEXT_PUBLIC_API_URL + "/auth/me", {
-          credentials: "include",
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data.user ?? null);
-        } else {
-          setUser(null);
-        }
-      } catch (err) {
-        console.error(err);
-        setUser(null);
-      }
-    };
-    fetchUser();
-  }, []);
-
   return (
     <AuthContext.Provider
       value={{
         user,
         setUser,
+        refreshUser,
         openLoginModal,
         closeLoginModal,
         isLoginModalOpen,
@@ -102,9 +104,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   );
 };
 
-// ---------------------------
-// 커스텀 훅
-// ---------------------------
 export const useAuth = () => {
   const auth = useContext(AuthContext);
   if (!auth) throw new Error("useAuth must be used within AuthProvider");

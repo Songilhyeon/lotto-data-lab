@@ -186,7 +186,7 @@ export default function BoardDetailPage() {
   };
 
   return (
-    <main className="p-6 max-w-3xl mx-auto bg-linear-to-br from-pink-50 to-indigo-100  rounded-2xl shadow-md">
+    <main className="p-6 max-w-3xl mx-auto bg-gradient-to-br from-pink-50 to-indigo-100  rounded-2xl shadow-md">
       {/* ----------------------------- */}
       {/* 상단 제목 & 수정/삭제 버튼 */}
       {/* ----------------------------- */}

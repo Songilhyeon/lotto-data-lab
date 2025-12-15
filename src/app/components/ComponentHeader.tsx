@@ -10,7 +10,7 @@ export default function ComponentHeader({
       <h1 className="text-lg sm:text-2xl font-bold text-gray-800 tracking-tight">
         {title}
       </h1>
-      <p className="text-xs sm:text-sm text-gray-500 mt-1 leading-relaxed">
+      <p className="text-xs sm:text-sm text-gray-500 mt-1 leading-relaxed whitespace-pre-line">
         {content}
       </p>
     </div>

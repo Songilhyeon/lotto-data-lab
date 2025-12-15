@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
-import LottoBall from "../LottoBall";
+import LottoBall from "./LottoBall";
 
 type NextRoundObj = {
   round: number;
@@ -41,13 +41,12 @@ export default function DraggableNextRound({
     y: 12,
   }));
 
-  // 모바일 판단 (간단)
   const isClient = typeof window !== "undefined";
   const isMobile = isClient ? window.innerWidth < 640 : false;
 
   // clamp: 박스가 화면을 벗어나지 않게 제한
   const clamp = (x: number, y: number) => {
-    if (typeof window === "undefined") return { x, y };
+    if (!isClient) return { x, y };
     const bw = boxRef.current?.offsetWidth ?? 260;
     const bh = boxRef.current?.offsetHeight ?? 60;
     const minX = 8;
@@ -61,7 +60,6 @@ export default function DraggableNextRound({
   };
 
   // --- 초기 위치 복원(또는 초기 위치 설정)
-  // useLayoutEffect 를 사용해 동기적으로 위치를 설정 — 경고 제거 & 플리커 방지
   useLayoutEffect(() => {
     if (!nextRound || typeof window === "undefined") return;
 
@@ -70,26 +68,20 @@ export default function DraggableNextRound({
       if (saved) {
         const parsed = JSON.parse(saved);
         if (typeof parsed.x === "number" && typeof parsed.y === "number") {
-          // 화면 범위로 보정한 뒤 동기적으로 설정
           const fixed = clamp(parsed.x, parsed.y);
-          setPosition(fixed);
+          // requestAnimationFrame으로 감싸서 동기 setState 호출 문제 회피
+          window.requestAnimationFrame(() => setPosition(fixed));
           return;
         }
       }
-    } catch {
-      // ignore JSON errors
-    }
+    } catch {}
 
-    // 저장값이 없거나 이상하면 기본 위치 설정
     if (isMobile) {
-      // 모바일: 좌상단 고정
-      setPosition({ x: 12, y: 12 });
+      window.requestAnimationFrame(() => setPosition({ x: 12, y: 12 }));
     } else {
-      // 데스크탑: 가로 중앙 상단 위치
       const defaultX = Math.max(8, window.innerWidth / 2 - 160);
-      setPosition(clamp(defaultX, 20));
+      window.requestAnimationFrame(() => setPosition(clamp(defaultX, 20)));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nextRound]);
 
   // --- 드래그 시작
@@ -121,32 +113,33 @@ export default function DraggableNextRound({
     document.body.style.userSelect = "";
   };
 
-  // 전역 이벤트 바인딩 (mouse + touch)
+  // 전역 이벤트 바인딩 + resize 처리
   useEffect(() => {
     const onMouseMove = (e: MouseEvent) => moveDrag(e.clientX, e.clientY);
     const onTouchMove = (e: TouchEvent) => {
-      if (e.touches && e.touches.length) {
-        // prevent default only when dragging to avoid scroll clash
+      if (e.touches?.length) {
         if (dragging.current) e.preventDefault();
         moveDrag(e.touches[0].clientX, e.touches[0].clientY);
       }
     };
+    const onResize = () => setPosition((prev) => clamp(prev.x, prev.y));
 
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseup", stopDrag);
     window.addEventListener("touchmove", onTouchMove, { passive: false });
     window.addEventListener("touchend", stopDrag);
+    window.addEventListener("resize", onResize);
 
     return () => {
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("mouseup", stopDrag);
       window.removeEventListener("touchmove", onTouchMove);
       window.removeEventListener("touchend", stopDrag);
+      window.removeEventListener("resize", onResize);
     };
   }, []);
 
   if (!nextRound) return null;
-  if (!position) return null;
 
   const numbers: number[] = isNextRoundObj(nextRound)
     ? nextRound.numbers
@@ -166,15 +159,15 @@ export default function DraggableNextRound({
         startDrag(e.clientX, e.clientY);
       }}
       onTouchStart={(e) => {
-        if (e.touches && e.touches.length) {
+        if (e.touches?.length)
           startDrag(e.touches[0].clientX, e.touches[0].clientY);
-        }
       }}
-      className="fixed bg-yellow-100 border border-yellow-400 rounded-xl px-3 py-2 shadow-md z-[9999] flex items-center gap-2 cursor-move select-none text-sm sm:text-base"
+      className="fixed bg-yellow-100 border border-yellow-400 rounded-xl px-3 py-2 shadow-md z-1000 flex items-center gap-2 cursor-move select-none text-sm sm:text-base"
       style={{
         left: position.x,
         top: position.y,
         touchAction: "none",
+        maxWidth: "90vw", // 화면 줄어들어도 찌그러지지 않음
       }}
     >
       <span className="font-bold whitespace-nowrap">

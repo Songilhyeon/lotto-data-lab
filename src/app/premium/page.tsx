@@ -106,7 +106,7 @@ export default function PremiumPage() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-indigo-50 to-white text-gray-900">
+    <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white text-gray-900">
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Hero */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">

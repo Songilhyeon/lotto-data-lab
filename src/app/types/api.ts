@@ -1,3 +1,5 @@
+import { LottoDraw } from "@/app/types/lottoNumbers";
+
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;
@@ -38,6 +40,7 @@ export interface IfAiRecommendation {
   combination: number[];
   scores: NumberScoreDetail[];
   seed: number;
+  nextRound?: LottoDraw | null;
 }
 
 export interface WeightConfig {

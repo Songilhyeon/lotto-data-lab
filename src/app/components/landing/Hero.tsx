@@ -5,7 +5,7 @@ import Link from "next/link";
 
 export default function Hero() {
   return (
-    <header className="bg-linear-to-b from-blue-50 to-white shadow-sm border-b">
+    <header className="bg-gradient-to-b from-blue-50 to-white shadow-sm border-b">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-20 text-center">
         {/* 상단 Sub Text */}
         <motion.span

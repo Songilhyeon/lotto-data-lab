@@ -1,6 +1,6 @@
 "use client";
 import { FaPlus } from "react-icons/fa";
-import type { LottoNumber } from "@/app/types/lotto";
+import type { LottoNumber } from "@/app/types/lottoNumbers";
 import LottoBall from "@/app/components/LottoBall";
 
 type ResultCardProps = {
@@ -16,6 +16,8 @@ export default function ResultCard({ record }: ResultCardProps) {
     record.drwtNo5,
     record.drwtNo6,
   ];
+
+  const sum = numbers.reduce((acc, num) => acc + num, 0);
 
   return (
     <div className="p-4 max-w-full border rounded-lg bg-white shadow flex flex-col gap-3">
@@ -68,6 +70,12 @@ export default function ResultCard({ record }: ResultCardProps) {
             <LottoBall number={record.bnusNo} />
           </div>
         )}
+      </div>
+
+      {/* 번호 합계 */}
+      <div className="mt-2 text-sm sm:text-base font-semibold">
+        번호합: {sum}{" "}
+        <span className="text-gray-500 text-sm">(보너스 번호 제외)</span>
       </div>
     </div>
   );

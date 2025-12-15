@@ -1,6 +1,6 @@
 "use client";
 
-import { LottoNumber } from "@/app/types/lotto";
+import { LottoNumber } from "@/app/types/lottoNumbers";
 import { cardWidth } from "../utils/getUtils";
 
 export default function LottoPaper({

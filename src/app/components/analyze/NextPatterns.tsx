@@ -14,21 +14,16 @@ import {
 } from "recharts";
 import SimilarPagination from "./SimilarPagination";
 import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
-import DraggableNextRound from "./DraggableNextRound";
+import DraggableNextRound from "../DraggableNextRound";
 import { analysisDivStyle, rangeFilterDivStyle } from "@/app/utils/getDivStyle";
 import ComponentHeader from "@/app/components/ComponentHeader";
 import LookUpButton from "@/app/components/analyze/LookUpButton";
+import { LottoDraw } from "@/app/types/lottoNumbers";
 
 interface AnalysisResult {
   numbers: number[];
   round: number;
   nextNumbers: number[];
-}
-
-interface LottoDraw {
-  round: number;
-  numbers: number[];
-  bonus?: number;
 }
 
 export default function NextPatterns() {
@@ -146,7 +141,8 @@ export default function NextPatterns() {
       {/* Header */}
       <ComponentHeader
         title="🔮 다음 회차 번호 분석"
-        content="특정 회차 당첨 번호가 과거 회차에 등장한 경우, 그 다음 회차에서 나온 번호들의 출현 횟수를 보여줍니다."
+        content={`특정 회차 당첨 번호가 과거 회차에 등장한 경우, 그 다음 회차에서 나온 번호들의 출현 횟수를 보여줍니다.
+                  End 회차를 선택하여 과거 회차에 어떤 번호가 당첨 되었는지 분석할 수 있습니다.`}
       />
 
       {/* Range Filter */}
@@ -230,7 +226,7 @@ export default function NextPatterns() {
         <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
           <div className="flex flex-col lg:flex-row gap-4">
             {/* 기준 회차 */}
-            <div className="flex-1 bg-linear-to-br from-green-50 to-emerald-50 rounded-xl p-4 border-2 border-green-200">
+            <div className="flex-1 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 border-2 border-green-200">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-lg font-bold text-gray-800">
                   📌 기준 회차: {selectedRound.round}회
@@ -267,7 +263,7 @@ export default function NextPatterns() {
                 </div>
               )}
 
-              <div className="bg-linear-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border-2 border-blue-200 flex items-center justify-center">
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border-2 border-blue-200 flex items-center justify-center">
                 <div className="text-center">
                   <p className="text-sm text-gray-600 mb-1">검색 결과</p>
                   <p className="text-2xl font-bold text-gray-800">

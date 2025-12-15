@@ -25,6 +25,12 @@ export interface AnalysisResult extends LottoNumber {
   highlightCurrent: boolean;
 }
 
+export interface LottoDraw {
+  round: number;
+  numbers: number[];
+  bonus?: number;
+}
+
 export interface PremiumAnalysisData {
   round: number;
   bonusIncluded: boolean;

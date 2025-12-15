@@ -10,7 +10,7 @@ export default function MethodStatsCard({
   title,
 }: MethodStatsCardProps) {
   return (
-    <Card className="rounded-2xl shadow-lg bg-linear-to-br from-slate-50 to-white border border-gray-200">
+    <Card className="rounded-2xl shadow-lg -to-br from-slate-50 to-white border border-gray-200">
       <CardContent className="p-6 sm:p-8">
         <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-800">
           {title}

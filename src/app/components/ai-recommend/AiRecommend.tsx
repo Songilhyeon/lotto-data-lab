@@ -6,6 +6,9 @@ import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
 import { analysisDivStyle } from "@/app/utils/getDivStyle";
 import ComponentHeader from "@/app/components/ComponentHeader";
 import ClusterUnitSelector from "@/app/components/ai-recommend/ClusterUnitSelector";
+import { LottoDraw } from "@/app/types/lottoNumbers";
+import DraggableNextRound from "@/app/components/DraggableNextRound";
+import LottoBall from "../LottoBall";
 
 export interface NumberScoreDetail {
   num: number;
@@ -13,19 +16,22 @@ export interface NumberScoreDetail {
 }
 
 export default function AiRecommend() {
-  const currentRound = getLatestRound();
+  const latestRound = getLatestRound();
+  const [selectedRound, setSelectedRound] = useState<number>(latestRound);
+  const [clusterUnit, setClusterUnit] = useState<number>(5);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<IfAiRecommendResult | null>(null);
-  const [clusterUnit, setClusterUnit] = useState<number>(5); // clusterUnit 상태
+  const [nextRound, setNextRound] = useState<LottoDraw | null>(null);
 
   const fetchAnalysis = async () => {
     setLoading(true);
     try {
       const res = await fetch(
-        `${apiUrl}/lotto/premium/recommend?round=${currentRound}&clusterUnit=${clusterUnit}`
+        `${apiUrl}/lotto/premium/recommend?round=${selectedRound}&clusterUnit=${clusterUnit}`
       );
       const json = await res.json();
       setResult(json.result);
+      setNextRound(json.result.nextRound);
     } finally {
       setLoading(false);
     }
@@ -71,16 +77,11 @@ export default function AiRecommend() {
     if (!result) return <div>분석 결과가 없습니다.</div>;
 
     return (
-      <div className="mt-2 p-4 border rounded bg-yellow-50">
+      <div className="mt-2 p-4">
         {/* 점수 기반 상위 번호 */}
         <div className="flex flex-wrap gap-2 mb-2">
           {result.recommended.map((n) => (
-            <span
-              key={n}
-              className="px-2 py-1 bg-yellow-200 rounded font-bold text-sm sm:text-base"
-            >
-              {n}
-            </span>
+            <LottoBall key={n} number={n} size="lg" />
           ))}
         </div>
 
@@ -95,7 +96,8 @@ export default function AiRecommend() {
       {/* Header */}
       <ComponentHeader
         title="🛡️ 기본 모델"
-        content="가장 많이 나온 번호, 자주 함께 등장한 조합, 번호 그룹 경향 등 기본적인 통계만으로 안정적으로 점수를 계산하는 모델입니다."
+        content={`가장 많이 나온 번호, 자주 함께 등장한 조합, 번호 그룹 경향 등 기본적인 통계만으로 안정적으로 점수를 계산하는 모델입니다.
+                  회차를 선택하여 과거 회차에 어떤 번호가 당첨 되었는지 분석할 수 있습니다.`}
       />
 
       {/* clusterUnit 선택 */}
@@ -104,6 +106,46 @@ export default function AiRecommend() {
         setClusterUnit={setClusterUnit}
       />
 
+      {/* 회차 선택 */}
+      <div className="mb-4 flex items-center gap-2">
+        <label className="font-medium text-gray-700">회차 선택:</label>
+
+        <div className="flex items-center gap-1">
+          {/* 이전 회차 버튼 */}
+          <button
+            onClick={() => setSelectedRound((prev) => Math.max(prev - 1, 1))}
+            className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300 transition"
+            disabled={selectedRound <= 1}
+          >
+            -
+          </button>
+
+          {/* 현재 선택 회차 */}
+          <span className="w-16 text-center border px-2 py-1 rounded bg-white">
+            {selectedRound}
+          </span>
+
+          {/* 다음 회차 버튼 */}
+          <button
+            onClick={() =>
+              setSelectedRound((prev) => Math.min(prev + 1, latestRound))
+            }
+            className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300 transition"
+            disabled={selectedRound >= latestRound}
+          >
+            +
+          </button>
+        </div>
+
+        {/* 최신 회차 클릭하면 적용 */}
+        <span
+          className="text-gray-500 cursor-pointer hover:underline"
+          onClick={() => setSelectedRound(latestRound)}
+        >
+          최신 회차: {latestRound}
+        </span>
+      </div>
+
       {/* 분석 실행 버튼 */}
       <button
         onClick={fetchAnalysis}
@@ -111,6 +153,13 @@ export default function AiRecommend() {
       >
         점수 분석 실행
       </button>
+
+      {nextRound && (
+        <div className="min-w-0">
+          {/* DraggableNextRound는 내부에서 고정 포지셔닝을 처리함 */}
+          <DraggableNextRound nextRound={nextRound} most={[]} least={[]} />
+        </div>
+      )}
 
       {/* 결과 영역 */}
       <div className="overflow-y-auto max-h-[80vh]">{renderResult()}</div>
