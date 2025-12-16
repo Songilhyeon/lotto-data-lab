@@ -13,6 +13,7 @@ import {
   RegionStat,
 } from "@/app/types/stores";
 import { useAuth } from "@/app/context/authContext";
+import { analysisDivStyle } from "@/app/utils/getDivStyle";
 
 interface Props {
   selectedRank: 1 | 2;
@@ -91,7 +92,7 @@ export default function AccumulateTab({
         })) ?? [];
 
   return (
-    <>
+    <div className={`${analysisDivStyle()} from-indigo-50 to-purple-100`}>
       <RankTabs selectedRank={selectedRank} setSelectedRank={setSelectedRank} />
 
       <RegionTabs
@@ -118,6 +119,6 @@ export default function AccumulateTab({
         data={filteredRegionStats}
         title={`지역별 ${selectedRank}등 배출 통계 (${selectedRegion})`}
       />
-    </>
+    </div>
   );
 }

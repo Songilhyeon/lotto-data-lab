@@ -63,7 +63,7 @@ export default function TopStoreItem({
       </div>
       <div className="text-right">
         <span className="text-yellow-600 font-bold text-lg sm:text-xl">
-          {index !== 0 ? appearanceCount : "-"}회
+          {appearanceCount}회
         </span>
         {rank === 1 && index !== 0 && (
           <div className="text-gray-500 text-xs mt-1">

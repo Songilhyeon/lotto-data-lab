@@ -33,7 +33,6 @@ interface Props {
 
 export default function StoreHistoryChart({ storeName, data, rank }: Props) {
   const [mode, setMode] = useState<ChartMode>("stacked");
-
   const chartData =
     rank === 1
       ? {

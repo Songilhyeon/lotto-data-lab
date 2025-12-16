@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { gaEvent } from "@/app/lib/gtag";
 
 import AccumulateTab from "@/app/components/winner-stores/AccumulateTab";
-import RoundTab from "@/app/components/winner-stores/RoundTab";
+import RoundStoresTab from "@/app/components/winner-stores/RoundStoresTab";
 
 import { LottoStore, WinnerStoresApiResponse } from "@/app/types/stores";
 import { getLatestRound } from "@/app/utils/getUtils";
@@ -79,7 +79,9 @@ export default function WinnerStoresPage() {
       {/* 콘텐츠 (언마운트 방지) */}
       <div className="mt-2">
         <div style={{ display: activeTab === "round" ? "block" : "none" }}>
-          <RoundTab
+          <RoundStoresTab
+            selectedRank={selectedRank}
+            setSelectedRank={setSelectedRank}
             selectedRound={selectedRound}
             setSelectedRound={setSelectedRound}
             latestRound={latestRound}

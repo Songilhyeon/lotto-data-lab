@@ -10,7 +10,7 @@ function LockOverlay() {
       className="
         pointer-events-none
         absolute inset-x-0 bottom-0
-        h-60
+        h-80
         bg-gradient-to-t
         from-white
         via-white/70

@@ -17,6 +17,11 @@ interface TopStoresCardProps {
   accessLevel: AccessLevel;
 }
 
+interface StoreHistoryResponse {
+  totalCount: number;
+  storeHistory: StoreHistoryItem[];
+}
+
 type StoreHistoryCacheKey = string;
 
 function makeCacheKey(params: {
@@ -34,7 +39,7 @@ async function fetchStoreHistory(params: {
   address: string;
   rank: number;
   limit: number;
-}): Promise<StoreHistoryItem[]> {
+}): Promise<StoreHistoryResponse> {
   const qs = new URLSearchParams({
     store: params.store,
     address: params.address,
@@ -44,6 +49,7 @@ async function fetchStoreHistory(params: {
 
   const res = await fetch(`${apiUrl}/lotto/stores/history?${qs.toString()}`);
   if (!res.ok) throw new Error("Failed to fetch history");
+
   return res.json();
 }
 
@@ -55,6 +61,7 @@ export default function TopStoresCard({
 }: TopStoresCardProps) {
   const [selectedStore, setSelectedStore] = useState<TopStore | null>(null);
   const [historyData, setHistoryData] = useState<StoreHistoryItem[]>([]);
+  const [totalCount, setTotalCount] = useState<number>(0);
   const [loading, setLoading] = useState(false);
 
   // ⭐ 히스토리 캐시
@@ -113,12 +120,13 @@ export default function TopStoresCard({
         });
 
         if (cancelled) return;
+        setTotalCount(data.totalCount);
 
         setHistoryCache((prev) => ({
           ...prev,
-          [cacheKey]: data,
+          [cacheKey]: data.storeHistory,
         }));
-        setHistoryData(data);
+        setHistoryData(data.storeHistory);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -165,7 +173,7 @@ export default function TopStoresCard({
       </CardContent>
 
       {/* 모달 */}
-      {selectedStore && (
+      {selectedStore && !isLocked && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
           <div className="bg-white rounded-xl w-11/12 max-w-3xl max-h-[90vh] overflow-y-auto p-6 relative">
             <button
@@ -190,6 +198,7 @@ export default function TopStoresCard({
                 <option value={5}>최근 5회</option>
                 <option value={10}>최근 10회</option>
                 <option value={20}>최근 20회</option>
+                <option value={totalCount}>전체</option>
               </select>
             </div>
 

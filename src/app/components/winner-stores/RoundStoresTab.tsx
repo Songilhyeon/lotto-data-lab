@@ -4,8 +4,12 @@ import { apiUrl } from "@/app/utils/getUtils";
 import RoundStoresCard from "@/app/components/winner-stores/RoundStoresCard";
 import { LottoStore } from "@/app/types/stores";
 import { getAddressInfo } from "@/app/utils/getUtils";
+import RankTabs from "@/app/components/winner-stores/RankTabs";
+import { analysisDivStyle } from "@/app/utils/getDivStyle";
 
 interface Props {
+  selectedRank: 1 | 2;
+  setSelectedRank: (v: 1 | 2) => void;
   selectedRound: number;
   setSelectedRound: (v: number) => void;
   latestRound: number;
@@ -46,7 +50,9 @@ function sortStoresByAddress(stores: LottoStore[]) {
   });
 }
 
-export default function RoundTab({
+export default function RoundStoresTab({
+  selectedRank,
+  setSelectedRank,
   selectedRound,
   setSelectedRound,
   latestRound,
@@ -72,22 +78,24 @@ export default function RoundTab({
   }, [selectedRound, setRoundStores]);
 
   return (
-    <>
+    <div className={`${analysisDivStyle()} from-green-50 to-pink-100`}>
+      <RankTabs selectedRank={selectedRank} setSelectedRank={setSelectedRank} />
+
       <RoundStoresCard
         selectedRound={selectedRound}
         setSelectedRound={setSelectedRound}
-        stores={roundStores[1]}
-        rank={1}
+        stores={roundStores[selectedRank]}
+        rank={selectedRank}
         latestRound={latestRound}
       />
 
-      <RoundStoresCard
+      {/* <RoundStoresCard
         selectedRound={selectedRound}
         setSelectedRound={setSelectedRound}
         stores={roundStores[2]}
         rank={2}
         latestRound={latestRound}
-      />
-    </>
+      /> */}
+    </div>
   );
 }
