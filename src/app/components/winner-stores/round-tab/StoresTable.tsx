@@ -23,6 +23,7 @@ export default function StoresTable({ stores, rank }: StoresTableProps) {
               <th className="px-3 py-2 text-left">번호</th>
               <th className="px-3 py-2 text-left">판매점</th>
               <th className="px-3 py-2 text-left">주소</th>
+              <th className="px-3 py-2 text-left"></th>
               <th className="px-3 py-2 text-center">
                 {rank === 1 ? "자동 / 반자동 / 수동" : "당첨 개수"}
               </th>
@@ -42,7 +43,7 @@ export default function StoresTable({ stores, rank }: StoresTableProps) {
                 <td className="px-3 py-2 text-gray-600">
                   <AddressLink address={store.address} />
                 </td>
-                <td className="pl-10 py-2 text-center">
+                <td className="px-1 py-2 text-center">
                   <FaSearchPlus size={15} />
                 </td>
                 <td className="px-3 py-2 text-center flex justify-center gap-1">

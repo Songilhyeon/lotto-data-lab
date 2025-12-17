@@ -169,7 +169,7 @@ export default function TopStoresCard({
             ))}
           </div>
 
-          {isLocked && <LockOverlay height="h-80" />}
+          {isLocked && <LockOverlay />}
         </div>
       </CardContent>
 
