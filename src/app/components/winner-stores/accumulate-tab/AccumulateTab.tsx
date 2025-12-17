@@ -3,9 +3,9 @@ import { useEffect } from "react";
 import { apiUrl } from "@/app/utils/getUtils";
 import RankTabs from "@/app/components/winner-stores/RankTabs";
 import RegionTabs from "@/app/components/winner-stores/RegionTabs";
-import MethodStatsCard from "@/app/components/winner-stores/MethodStatsCard";
-import TopStoresCard from "@/app/components/winner-stores/TopStoresCard";
-import RegionChartCard from "@/app/components/winner-stores/RegionChartCard";
+import MethodStatsCard from "@/app/components/winner-stores/accumulate-tab/MethodStatsCard";
+import TopStoresCard from "@/app/components/winner-stores/accumulate-tab/TopStoresCard";
+import RegionChartCard from "@/app/components/winner-stores/accumulate-tab/RegionChartCard";
 import {
   WinnerStoresApiResponse,
   TopStore,

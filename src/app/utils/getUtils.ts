@@ -46,3 +46,42 @@ export function getAddressInfo(address?: string) {
 
   return { type: "NORMAL" as const };
 }
+
+export function getAnomalyLevel(score: number) {
+  if (score >= 85) {
+    return {
+      label: "매우 특이",
+      badge: "bg-red-100 text-red-700",
+      bar: "bg-red-500",
+    };
+  }
+
+  if (score >= 65) {
+    return {
+      label: "눈에 띔",
+      badge: "bg-yellow-100 text-yellow-700",
+      bar: "bg-yellow-500",
+    };
+  }
+
+  return {
+    label: "일반",
+    badge: "bg-gray-100 text-gray-600",
+    bar: "bg-gray-400",
+  };
+}
+
+export function patternLabel(type: string) {
+  switch (type) {
+    case "RECENT_SPIKE":
+      return "🔥 최근 급등";
+    case "LONG_DORMANT":
+      return "🧊 장기 공백";
+    case "PROMOTION_2_TO_1":
+      return "🔁 2→1 전환";
+    case "HIGH_MANUAL_RATIO":
+      return "🎯 수동 집중";
+    default:
+      return type;
+  }
+}

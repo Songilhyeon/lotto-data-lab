@@ -1,16 +1,20 @@
 "use client";
 import { LottoStore } from "@/app/types/stores";
-import AddressLink from "./AddressLink";
+import AddressLink from "../AddressLink";
 
 interface Props {
   store: LottoStore;
   index: number;
   rank: 1 | 2;
+  onClick: () => void; // 클릭 이벤트 추가
 }
 
-export default function StoreRow({ store, index, rank }: Props) {
+export default function StoreRow({ store, index, rank, onClick }: Props) {
   return (
-    <tr className="border-t text-sm hover:bg-gray-50">
+    <tr
+      className="border-t text-sm hover:bg-gray-50 cursor-pointer"
+      onClick={onClick}
+    >
       <td className="px-3 py-2 text-gray-500">{index + 1}</td>
       <td className="px-3 py-2 font-medium text-gray-800">{store.store}</td>
       <td className="px-3 py-2 text-gray-600">

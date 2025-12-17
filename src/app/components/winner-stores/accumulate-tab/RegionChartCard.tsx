@@ -27,6 +27,12 @@ export default function RegionChartCard({ data, title }: RegionChartCardProps) {
               <XAxis dataKey="region" fontSize={12} tickLine={false} />
               <YAxis fontSize={12} tickLine={false} />
               <Tooltip
+                formatter={(value, name) => {
+                  if (name === "regionCount") {
+                    return [`${value}`, "총 배출수"];
+                  }
+                  return [value, name];
+                }}
                 contentStyle={{
                   borderRadius: "10px",
                   border: "none",

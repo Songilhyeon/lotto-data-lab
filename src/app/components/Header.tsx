@@ -113,7 +113,7 @@ export default function Header() {
 
       {/* 모바일 메뉴 */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex">
+        <div className="fixed inset-0 z-150 bg-black/40 backdrop-blur-sm flex">
           <div className="w-[80vw] max-w-xs h-full bg-white shadow-xl p-6 flex flex-col">
             <div className="flex justify-between items-center">
               <Logo />
@@ -194,7 +194,7 @@ export default function Header() {
 
       {/* 로그인 모달 */}
       {isLoginModalOpen && !user && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center">
+        <div className="fixed inset-0 z-150 bg-black/50 backdrop-blur-sm flex items-center justify-center">
           <div className="bg-white rounded-xl p-6 w-80 shadow-2xl">
             <h2 className="text-xl font-bold text-center mb-4">로그인</h2>
 

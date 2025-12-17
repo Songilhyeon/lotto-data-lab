@@ -1,7 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import { apiUrl } from "@/app/utils/getUtils";
-import RoundStoresCard from "@/app/components/winner-stores/RoundStoresCard";
+import RoundStoresCard from "@/app/components/winner-stores/round-tab/RoundStoresCard";
 import { LottoStore } from "@/app/types/stores";
 import { getAddressInfo } from "@/app/utils/getUtils";
 import RankTabs from "@/app/components/winner-stores/RankTabs";
@@ -88,14 +88,6 @@ export default function RoundStoresTab({
         rank={selectedRank}
         latestRound={latestRound}
       />
-
-      {/* <RoundStoresCard
-        selectedRound={selectedRound}
-        setSelectedRound={setSelectedRound}
-        stores={roundStores[2]}
-        rank={2}
-        latestRound={latestRound}
-      /> */}
     </div>
   );
 }

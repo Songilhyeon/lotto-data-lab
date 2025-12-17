@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/app/components/winner-stores/Card";
 import { TopStore, StoreHistoryItem } from "@/app/types/stores";
 import { AccessLevel } from "@/app/types/users";
 import LockOverlay from "@/app/components/winner-stores/LockOverlay";
-import StoreHistoryChart from "@/app/components/winner-stores/StoreHistoryChart";
+import StoreHistoryChart from "@/app/components/winner-stores/accumulate-tab/StoreHistoryChart";
 import { MdClose } from "react-icons/md";
 import { apiUrl } from "@/app/utils/getUtils";
 
@@ -50,7 +50,8 @@ async function fetchStoreHistory(params: {
   const res = await fetch(`${apiUrl}/lotto/stores/history?${qs.toString()}`);
   if (!res.ok) throw new Error("Failed to fetch history");
 
-  return res.json();
+  const json = await res.json();
+  return json[params.rank];
 }
 
 export default function TopStoresCard({
@@ -168,7 +169,7 @@ export default function TopStoresCard({
             ))}
           </div>
 
-          {isLocked && <LockOverlay />}
+          {isLocked && <LockOverlay height="h-80" />}
         </div>
       </CardContent>
 
@@ -195,9 +196,9 @@ export default function TopStoresCard({
                 onChange={(e) => setLimit(Number(e.target.value))}
                 className="border rounded px-3 py-1 text-sm"
               >
-                <option value={5}>최근 5회</option>
-                <option value={10}>최근 10회</option>
-                <option value={20}>최근 20회</option>
+                {totalCount > 5 && <option value={5}>최근 5회</option>}
+                {totalCount > 10 && <option value={10}>최근 10회</option>}
+                {totalCount > 20 && <option value={20}>최근 20회</option>}
                 <option value={totalCount}>전체</option>
               </select>
             </div>

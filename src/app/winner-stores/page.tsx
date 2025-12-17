@@ -4,22 +4,24 @@ import { useState, useEffect } from "react";
 // import { useAuth } from "@/app/context/authContext";
 import { gaEvent } from "@/app/lib/gtag";
 
-import AccumulateTab from "@/app/components/winner-stores/AccumulateTab";
-import RoundStoresTab from "@/app/components/winner-stores/RoundStoresTab";
+import AccumulateTab from "@/app/components/winner-stores/accumulate-tab/AccumulateTab";
+import RoundStoresTab from "@/app/components/winner-stores/round-tab/RoundStoresTab";
 
 import { LottoStore, WinnerStoresApiResponse } from "@/app/types/stores";
 import { getLatestRound } from "@/app/utils/getUtils";
 
 const tabs = [
   { id: "round", label: "회차별 당첨 판매점" },
-  { id: "accumulate", label: "전체 회차 판매점" },
+  { id: "accumulate", label: "전체 판매점 통계" },
 ];
 
 export default function WinnerStoresPage() {
   // const { user } = useAuth();
   const latestRound = getLatestRound();
 
-  const [activeTab, setActiveTab] = useState<"round" | "accumulate">("round");
+  const [activeTab, setActiveTab] = useState<
+    "round" | "accumulate" | "pattern"
+  >("round");
 
   // 공통 상태
   const [selectedRound, setSelectedRound] = useState(latestRound);
