@@ -50,15 +50,12 @@ export default function TermsPage() {
       <h2>7. 분쟁 해결</h2>
       <p>본 약관 및 서비스 이용과 관련된 분쟁은 대한민국 법령에 따릅니다.</p>
 
-      <h2>8. 사업자 정보</h2>
-      <ul>
-        <li>상호: {bizInfo.companyName}</li>
-        <li>대표자: {bizInfo.ownerName}</li>
-        <li>사업자등록번호: {bizInfo.businessNumber}</li>
-        <li>주소: {bizInfo.address}</li>
-        <li>문의: {bizInfo.contactEmail}</li>
-        <li>전화번호: {bizInfo.tel}</li>
-      </ul>
+      <h2>8. 서비스 정보 (무료 테스트용)</h2>
+      <p>
+        본 서비스는 개인이 운영하는 비상업적 실험용 서비스이며, 현재 사업자
+        등록이 되어 있지 않습니다.
+      </p>
+      <p>문의: {bizInfo.contactEmail}</p>
     </LegalDocument>
   );
 }

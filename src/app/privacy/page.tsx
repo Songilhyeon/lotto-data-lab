@@ -39,7 +39,7 @@ export default function PrivacyPage() {
       <h2>5. 개인정보 처리 위탁</h2>
       <ul>
         <li>서버/호스팅: AWS, Vercel</li>
-        <li>로그인: Google, Kakao(해당 시)</li>
+        <li>로그인: Google, Naver(해당 시)</li>
         <li>분석 도구: Google Analytics</li>
       </ul>
 
@@ -48,11 +48,11 @@ export default function PrivacyPage() {
 
       <h2>7. 개인정보 보호책임자</h2>
       <ul>
-        <li>담당자: {bizInfo.ownerName}</li>
+        <li>담당자: 서비스 운영자</li>
         <li>이메일: {bizInfo.contactEmail}</li>
-        <li>사업자등록번호: {bizInfo.businessNumber}</li>
-        <li>주소: {bizInfo.address}</li>
-        <li>전화번호: {bizInfo.tel}</li>
+        <li>사업자등록번호: 해당 없음</li>
+        <li>주소: 해당 없음</li>
+        <li>전화번호: 해당 없음</li>
       </ul>
 
       <h2>8. 개인정보처리방침 변경</h2>
