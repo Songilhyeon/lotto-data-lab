@@ -36,30 +36,36 @@ export const metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="ko">
+      <head>
+        {/* 구글 서치 콘솔 메타 태그 */}
+        <meta
+          name="google-site-verification"
+          content={process.env.NEXT_PUBLIC_GSC_CODE}
+        />
+        {/* Open Graph, Twitter Card 등은 metadata로 자동 처리됨 */}
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        {/* Google Analytics */}
         <Script
           strategy="afterInteractive"
           src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
         />
         <Script id="ga4-init" strategy="afterInteractive">
           {`
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}');
-  `}
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}');
+          `}
         </Script>
 
         <AuthProvider>
           <PageViewProvider>
-            {/* Header */}
             <Header />
             <main>{children}</main>
             <Footer />
