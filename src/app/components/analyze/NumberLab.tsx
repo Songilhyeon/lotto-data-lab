@@ -11,7 +11,7 @@ import {
   Tooltip as RechartTooltip,
 } from "recharts";
 import { apiUrl } from "@/app/utils/getUtils";
-import { analysisDivStyle } from "@/app/utils/getDivStyle";
+import { componentBodyDivStyle } from "@/app/utils/getDivStyle";
 import ComponentHeader from "@/app/components/ComponentHeader";
 
 interface MatchResult {
@@ -146,7 +146,7 @@ export default function NumberLab() {
   };
 
   return (
-    <div className={`${analysisDivStyle()} from-blue-50 to-indigo-100`}>
+    <div className={`${componentBodyDivStyle()} from-blue-50 to-indigo-100`}>
       <ComponentHeader
         title="🔮 로또 번호 실험실"
         content="원하는 6개 이하의 숫자를 선택하고 일치번호 / 조합 패턴을 분석해보세요."

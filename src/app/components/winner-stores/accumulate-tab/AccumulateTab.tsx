@@ -13,7 +13,7 @@ import {
   RegionStat,
 } from "@/app/types/stores";
 import { useAuth } from "@/app/context/authContext";
-import { analysisDivStyle } from "@/app/utils/getDivStyle";
+import { componentBodyDivStyle } from "@/app/utils/getDivStyle";
 
 interface Props {
   selectedRank: 1 | 2;
@@ -94,7 +94,7 @@ export default function AccumulateTab({
         })) ?? [];
 
   return (
-    <div className={`${analysisDivStyle()} from-indigo-50 to-purple-100`}>
+    <div className={`${componentBodyDivStyle()} from-indigo-50 to-purple-100`}>
       <RankTabs selectedRank={selectedRank} setSelectedRank={setSelectedRank} />
 
       <RegionTabs

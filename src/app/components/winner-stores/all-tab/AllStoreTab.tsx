@@ -9,7 +9,7 @@ import StoreTimelineModal from "@/app/components/winner-stores/StoreTimelineModa
 import RankTabs from "@/app/components/winner-stores/RankTabs";
 import { useAuth } from "@/app/context/authContext";
 import RegionTabs from "@/app/components/winner-stores/RegionTabs";
-import { analysisDivStyle } from "@/app/utils/getDivStyle";
+import { componentBodyDivStyle } from "@/app/utils/getDivStyle";
 
 import type { GroupedStore, AllStoresApiResponse } from "@/app/types/stores";
 
@@ -89,7 +89,7 @@ export default function AllStoresTab({ selectedRank, setSelectedRank }: Props) {
   }
 
   return (
-    <div className={`${analysisDivStyle()} from-indigo-50 to-purple-100`}>
+    <div className={`${componentBodyDivStyle()} from-indigo-50 to-purple-100`}>
       {/* Rank Tabs */}
       <RankTabs
         selectedRank={selectedRank}

@@ -7,7 +7,10 @@ import SimplePattern from "@/app/components/SimplePattern";
 import RangeFilterBar from "@/app/components/RangeFilterBar";
 import { LottoNumber } from "@/app/types/lottoNumbers";
 import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
-import { analysisDivStyle, rangeFilterDivStyle } from "@/app/utils/getDivStyle";
+import {
+  componentBodyDivStyle,
+  rangeFilterDivStyle,
+} from "@/app/utils/getDivStyle";
 import ComponentHeader from "@/app/components/ComponentHeader";
 import LookUpButton from "@/app/components/analyze/LookUpButton";
 
@@ -95,7 +98,7 @@ export default function MultiRoundInfo() {
   );
 
   return (
-    <div className={`${analysisDivStyle()} from-green-50 to-purple-100`}>
+    <div className={`${componentBodyDivStyle()} from-green-50 to-purple-100`}>
       {/* Header */}
       <ComponentHeader
         title="📊 기간별 당첨 정보 조회"

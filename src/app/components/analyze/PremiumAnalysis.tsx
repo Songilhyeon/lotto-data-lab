@@ -9,7 +9,7 @@ import { FreqChart } from "@/app/components/analyze/FreqChartComponent";
 import PatternNextFreqSection from "@/app/components/analyze/PatternNextFreqSection";
 import Accordion from "@/app/components/analyze/SingleOpenAccordion";
 import { PremiumAnalysisData } from "@/app/types/lottoNumbers";
-import { analysisDivStyle } from "@/app/utils/getDivStyle";
+import { componentBodyDivStyle } from "@/app/utils/getDivStyle";
 
 export default function PremiumAnalysis() {
   const latest = getLatestRound();
@@ -180,7 +180,7 @@ export default function PremiumAnalysis() {
     : { maxNumbers: [], minNumbers: [] };
 
   return (
-    <div className={`${analysisDivStyle()} from-pink-50 to-indigo-100`}>
+    <div className={`${componentBodyDivStyle()} from-pink-50 to-indigo-100`}>
       <span className="text-sm text-yellow-600 font-bold block">
         프리미엄 분석
       </span>

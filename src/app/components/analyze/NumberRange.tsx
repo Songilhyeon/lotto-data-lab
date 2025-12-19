@@ -6,7 +6,10 @@ import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
 import SimpleBarChart from "./SimpleBarChart";
 import NextFrequencyChart from "./RangeNextChart";
 import LottoBall from "../LottoBall";
-import { analysisDivStyle, rangeFilterDivStyle } from "@/app/utils/getDivStyle";
+import {
+  componentBodyDivStyle,
+  rangeFilterDivStyle,
+} from "@/app/utils/getDivStyle";
 import ComponentHeader from "@/app/components/ComponentHeader";
 import LookUpButton from "@/app/components/analyze/LookUpButton";
 import DraggableNextRound from "../DraggableNextRound";
@@ -144,7 +147,7 @@ export default function NumberRangeMatch() {
   const { most, least } = getMostAndLeast();
 
   return (
-    <div className={`${analysisDivStyle()} from-green-50 to-pink-100`}>
+    <div className={`${componentBodyDivStyle()} from-green-50 to-pink-100`}>
       {/* Header */}
       <ComponentHeader
         title="🔮 구간별 출현 패턴 분석"

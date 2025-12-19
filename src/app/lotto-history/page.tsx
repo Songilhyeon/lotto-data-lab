@@ -7,7 +7,10 @@ import { queryOptions } from "@/app/utils/queryOptions";
 import RangeFilterBar from "@/app/components/RangeFilterBar";
 import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
 import ComponentHeader from "@/app/components/ComponentHeader";
-import { analysisDivStyle, rangeFilterDivStyle } from "@/app/utils/getDivStyle";
+import {
+  componentBodyDivStyle,
+  rangeFilterDivStyle,
+} from "@/app/utils/getDivStyle";
 
 export default function LottoHistoryPage() {
   const [start, setStart] = useState<number>(getLatestRound() - 9);
@@ -81,7 +84,9 @@ export default function LottoHistoryPage() {
 
   return (
     <div className="p-4">
-      <div className={`${analysisDivStyle()} from-indigo-50 to-purple-100`}>
+      <div
+        className={`${componentBodyDivStyle()} from-indigo-50 to-purple-100`}
+      >
         <ComponentHeader
           title="📊 로또 기록 순위"
           content="당첨자 수·금액·판매액 같은 기록을 TOP 순위로 가볍게 구경해요 ✨"

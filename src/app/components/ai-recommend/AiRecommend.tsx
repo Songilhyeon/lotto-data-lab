@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { IfAiRecommendResult } from "@/app/types/api";
 import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
-import { analysisDivStyle } from "@/app/utils/getDivStyle";
+import { componentBodyDivStyle } from "@/app/utils/getDivStyle";
 import ComponentHeader from "@/app/components/ComponentHeader";
 import ClusterUnitSelector from "@/app/components/ai-recommend/ClusterUnitSelector";
 import { LottoDraw } from "@/app/types/lottoNumbers";
@@ -92,7 +92,7 @@ export default function AiRecommend() {
   };
 
   return (
-    <div className={`${analysisDivStyle()} from-pink-50 to-indigo-100`}>
+    <div className={`${componentBodyDivStyle()} from-pink-50 to-indigo-100`}>
       {/* Header */}
       <ComponentHeader
         title="🛡️ 기본 모델"

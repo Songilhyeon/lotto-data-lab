@@ -7,7 +7,7 @@ import LottoCard from "@/app/components/LottoCard";
 import SimplePattern from "@/app/components/SimplePattern";
 import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
 import ComponentHeader from "@/app/components/ComponentHeader";
-import { analysisDivStyle } from "@/app/utils/getDivStyle";
+import { componentBodyDivStyle } from "@/app/utils/getDivStyle";
 
 export default function OneRoundInfo() {
   const [round, setRound] = useState(getLatestRound());
@@ -67,7 +67,7 @@ export default function OneRoundInfo() {
   };
 
   return (
-    <div className={`${analysisDivStyle()} from-indigo-50 to-purple-100`}>
+    <div className={`${componentBodyDivStyle()} from-indigo-50 to-purple-100`}>
       {/* Header */}
       <ComponentHeader
         title="🎱 회차별 당첨 정보"

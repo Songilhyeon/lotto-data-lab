@@ -5,7 +5,7 @@ import RoundStoresCard from "@/app/components/winner-stores/round-tab/RoundStore
 import { LottoStore } from "@/app/types/stores";
 import { getAddressInfo } from "@/app/utils/getUtils";
 import RankTabs from "@/app/components/winner-stores/RankTabs";
-import { analysisDivStyle } from "@/app/utils/getDivStyle";
+import { componentBodyDivStyle } from "@/app/utils/getDivStyle";
 
 interface Props {
   selectedRank: 1 | 2;
@@ -78,7 +78,7 @@ export default function RoundStoresTab({
   }, [selectedRound, setRoundStores]);
 
   return (
-    <div className={`${analysisDivStyle()} from-green-50 to-pink-100`}>
+    <div className={`${componentBodyDivStyle()} from-green-50 to-pink-100`}>
       <RankTabs selectedRank={selectedRank} setSelectedRank={setSelectedRank} />
 
       <RoundStoresCard

@@ -9,7 +9,7 @@ import {
   AiPreset,
   AiPresets,
 } from "@/app/types/api";
-import { analysisDivStyle } from "@/app/utils/getDivStyle";
+import { componentBodyDivStyle } from "@/app/utils/getDivStyle";
 import ComponentHeader from "@/app/components/ComponentHeader";
 import ClusterUnitSelector from "@/app/components/ai-recommend/ClusterUnitSelector";
 import WeightSliderGroup from "@/app/components/ai-recommend/WeightSliderGroup";
@@ -112,7 +112,7 @@ export default function AiAdvancedRecommend() {
   };
 
   return (
-    <div className={`${analysisDivStyle()} from-pink-50 to-indigo-100`}>
+    <div className={`${componentBodyDivStyle()} from-pink-50 to-indigo-100`}>
       <ComponentHeader
         title="🤖 AI 기반 심층 점수 분석"
         content={`과거 당첨 흐름, 번호가 겹치는 정도, 번호 구간별 특징, 최근에 자주 나온 번호 등을 모두 활용하여 각 번호를 점수화 합니다.

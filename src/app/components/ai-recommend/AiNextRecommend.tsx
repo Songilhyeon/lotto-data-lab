@@ -7,7 +7,7 @@ import {
   WeightConfig,
 } from "@/app/types/api";
 import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
-import { analysisDivStyle } from "@/app/utils/getDivStyle";
+import { componentBodyDivStyle } from "@/app/utils/getDivStyle";
 import ComponentHeader from "@/app/components/ComponentHeader";
 import ClusterUnitSelector from "@/app/components/ai-recommend/ClusterUnitSelector";
 import { LottoDraw } from "@/app/types/lottoNumbers";
@@ -117,7 +117,7 @@ export default function AiNextRecommend() {
   };
 
   return (
-    <div className={`${analysisDivStyle()} from-green-50 to-purple-100`}>
+    <div className={`${componentBodyDivStyle()} from-green-50 to-purple-100`}>
       {/* Header */}
       <ComponentHeader
         title="📊 다음 회차 기반 모델"
