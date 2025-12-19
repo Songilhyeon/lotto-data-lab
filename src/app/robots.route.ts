@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL || "https://app.nexlab.ai.kr";
 
   const xml = `User-Agent: *
 Allow: /
