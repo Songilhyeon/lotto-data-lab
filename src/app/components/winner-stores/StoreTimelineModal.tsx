@@ -38,6 +38,7 @@ export default function StoreTimelineModal({
   const [loading, setLoading] = useState(true);
   const [yearFilter, setYearFilter] = useState<YearFilter>("3");
   const { user } = useAuth();
+  const renderedStreaks = new Set<number>();
 
   useEffect(() => {
     async function fetchTimeline() {
@@ -219,13 +220,17 @@ export default function StoreTimelineModal({
                                 {item.drwNo}회
                               </span>
 
-                              {/* 🔥 최신 회차에만 표시 */}
-                              {streakMap.has(item.drwNo) && (
-                                <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-semibold">
-                                  🔥 {streakMap.get(item.drwNo)}연속
-                                </span>
-                              )}
-
+                              {/* 🔥 최신 회차에만 표시 (회차당 1회만) */}
+                              {streakMap.has(item.drwNo) &&
+                                !renderedStreaks.has(item.drwNo) &&
+                                (() => {
+                                  renderedStreaks.add(item.drwNo);
+                                  return (
+                                    <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-semibold">
+                                      🔥 {streakMap.get(item.drwNo)}회 연속
+                                    </span>
+                                  );
+                                })()}
                               <span className="text-xs text-gray-500">
                                 {item.drwNoDate.slice(0, 10)}
                               </span>
