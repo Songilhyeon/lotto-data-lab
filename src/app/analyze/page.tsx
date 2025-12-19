@@ -1,91 +1,30 @@
-"use client";
+// app/analyze/page.tsx
+import AnalyzeClient from "./AnalyzeClient";
+import ComponentHeader from "@/app/components/ComponentHeader";
 
-import { useState, useEffect } from "react";
-import { useAuth } from "@/app/context/authContext";
-import { gaEvent } from "@/app/lib/gtag"; // GA4 이벤트 함수 추가
+export const metadata = {
+  title: "로또 번호 분석 & 패턴 통계",
+  description:
+    "역대 로또 번호의 흐름, 패턴, 추세 분석을 제공하는 페이지입니다. 번호 출현 빈도, 변동 패턴을 직관적으로 확인하세요.",
+  openGraph: {
+    title: "로또 번호 분석 & 패턴 통계",
+    description:
+      "역대 로또 번호의 흐름, 패턴, 추세 분석을 제공하는 페이지입니다. 번호 출현 빈도, 변동 패턴을 직관적으로 확인하세요.",
+    url: "https://app.nexlab.ai.kr/analyze",
+    siteName: "Lotto Data Lab",
+    type: "website",
+  },
+};
 
-import OneRoundInfo from "@/app/components/analyze/OneRoundInfo";
-import MultiRoundInfo from "@/app/components/analyze/MultiRoundInfo";
-import NumberFrequency from "@/app/components/analyze/NumberFrequency";
-import NextPatterns from "@/app/components/analyze/NextPatterns";
-import NumberLab from "@/app/components/analyze/NumberLab";
-import NumberRangeMatch from "@/app/components/analyze/NumberRange";
-import PremiumAnalysis from "@/app/components/analyze/PremiumAnalysis";
-
-// 모든 탭 정의
-const allTabs = [
-  { id: "oneRound", label: "회차 정보", premiumOnly: false },
-  { id: "multiRound", label: "기간별 정보", premiumOnly: false },
-  { id: "numberFrequency", label: "번호별 빈도수", premiumOnly: false },
-  { id: "numberRange", label: "번호 구간", premiumOnly: false },
-  { id: "next", label: "다음 회차", premiumOnly: false },
-  { id: "numberLab", label: "번호 실험실", premiumOnly: false },
-  { id: "premiumAnalysis", label: "통합 정보", premiumOnly: false },
-];
-
-export default function LottoAnalysisPage() {
-  const [activeTab, setActiveTab] = useState("oneRound");
-  const { user } = useAuth();
-
-  // 🔥 탭 변경 이벤트 감지 → GA 이벤트 전송
-  useEffect(() => {
-    gaEvent("tab_change", {
-      tab_id: activeTab,
-    });
-  }, [activeTab]);
-
-  // 로그인/결제 상태에 따른 필터링
-  const availableTabs = allTabs.filter(
-    (tab) => !tab.premiumOnly || user?.role === "PREMIUM"
-  );
-
-  // 탭 콘텐츠 렌더링
-  const renderContent = () => {
-    switch (activeTab) {
-      case "oneRound":
-        return <OneRoundInfo />;
-      case "multiRound":
-        return <MultiRoundInfo />;
-      case "numberFrequency":
-        return <NumberFrequency />;
-      case "numberRange":
-        return <NumberRangeMatch />;
-      case "premiumAnalysis":
-        return <PremiumAnalysis />;
-      case "next":
-        return <NextPatterns />;
-      case "numberLab":
-        return <NumberLab />;
-      default:
-        return null;
-    }
-  };
-
+export default function Page() {
   return (
     <div className="px-4 sm:px-6 pt-4 pb-10">
-      {/* 탭 UI */}
-      <div className="overflow-x-auto scrollbar-hide mb-4">
-        <div className="flex space-x-4 border-b border-gray-200 min-w-max pb-1">
-          {availableTabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-3 py-2 text-sm sm:text-base rounded-t-lg whitespace-nowrap transition-all
-                ${
-                  activeTab === tab.id
-                    ? "border-b-2 border-blue-600 text-blue-600 font-semibold"
-                    : "text-gray-500 hover:text-gray-700"
-                }
-              `}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      <ComponentHeader
+        title="로또 번호 분석 & 패턴 통계"
+        content="역대 로또 번호의 흐름, 패턴, 추세 분석을 직관적으로 확인할 수 있습니다."
+      />
 
-      {/* 콘텐츠 */}
-      <div className="mt-2">{renderContent()}</div>
+      <AnalyzeClient />
     </div>
   );
 }

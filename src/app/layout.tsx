@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/app/components/Header";
@@ -17,9 +16,22 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Lotto Data Lab",
-  description: "Lotto Data Lab",
+export const metadata = {
+  metadataBase: new URL("https://app.nexlab.ai.kr"),
+  title: {
+    default: "Lotto Data Lab",
+    template: "%s | Lotto Data Lab",
+  },
+  description:
+    "진짜 수동 로또 유저를 위한 데이터 기반 로또 분석 서비스. 번호 통계, 패턴 분석, AI 번호 추천까지 한눈에.",
+  openGraph: {
+    title: "Lotto Data Lab",
+    description:
+      "진짜 수동 로또 유저를 위한 데이터 기반 로또 분석 서비스. 번호 통계, 패턴 분석, AI 번호 추천까지 한눈에.",
+    url: "https://app.nexlab.ai.kr",
+    siteName: "Lotto Data Lab",
+    type: "website",
+  },
 };
 
 export default function RootLayout({

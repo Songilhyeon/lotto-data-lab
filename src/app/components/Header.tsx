@@ -31,8 +31,8 @@ export default function Header() {
     { name: "분석", href: "/analyze" },
     { name: "AI 점수 분석", href: "/ai-recommend" },
     { name: "1,2등 판매점", href: "/winner-stores" },
-    { name: "게시판", href: "/board" },
     { name: "로또기록", href: "/lotto-history" },
+    { name: "게시판", href: "/board" },
   ];
 
   return (
