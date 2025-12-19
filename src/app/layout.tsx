@@ -40,16 +40,6 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <head>
-        {/* 구글 서치 콘솔 메타 태그 */}
-        <meta
-          name="google-site-verification"
-          content={process.env.NEXT_PUBLIC_GSC_CODE}
-        />
-        {/* Open Graph, Twitter Card 등은 metadata로 자동 처리됨 */}
-      </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
         {/* Google Analytics */}
         <Script
           strategy="afterInteractive"
@@ -63,7 +53,22 @@ export default function RootLayout({
             gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}');
           `}
         </Script>
+        {/* 구글 서치 콘솔 메타 태그 */}
+        <meta
+          name="google-site-verification"
+          content={process.env.NEXT_PUBLIC_GSC_CODE}
+        />
 
+        <meta
+          name="naver-site-verification"
+          content={process.env.NEXT_PUBLIC_NSC_CODE}
+        />
+
+        {/* Open Graph, Twitter Card 등은 metadata로 자동 처리됨 */}
+      </head>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
         <AuthProvider>
           <PageViewProvider>
             <Header />
