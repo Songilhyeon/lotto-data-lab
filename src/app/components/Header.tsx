@@ -8,6 +8,7 @@ import { Logo } from "./Footer";
 import { FcGoogle } from "react-icons/fc";
 import { SiNaver } from "react-icons/si";
 import { Menu, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
@@ -20,10 +21,9 @@ export default function Header() {
     naver: process.env.NEXT_PUBLIC_NAVER_API_URI,
   };
 
-  /** ✅ 모든 OAuth 진입점에서 공통으로 쓰는 redirect path */
   const redirectPath = useMemo(() => {
     if (typeof window === "undefined") return "";
-    return encodeURIComponent(window.location.origin); // ← path 제거, origin만
+    return encodeURIComponent(window.location.origin);
   }, []);
 
   const navLinks = [
@@ -38,55 +38,59 @@ export default function Header() {
   return (
     <>
       {/* HEADER */}
-      <header className="bg-white/90 backdrop-blur-md shadow-md sticky top-0 z-50 border-b border-gray-100 h-16 flex items-center">
-        <div className="max-w-6xl mx-auto px-6 w-full flex items-center justify-between">
-          <Logo />
+      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
+        <div className="h-14 md:h-16 max-w-6xl mx-auto px-4 md:px-6 flex items-center justify-between">
+          {/* Logo */}
+          <div className="flex items-center gap-2">
+            <Logo />
+          </div>
 
-          {/* 데스크탑 메뉴 */}
-          <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
+          {/* Desktop Nav */}
+          <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
             {navLinks.map((link) => {
               const isActive = pathname === link.href;
-
               return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`group relative px-3 py-2 transition-all ${
-                    isActive
-                      ? "text-blue-600 font-semibold"
-                      : "text-gray-700 hover:text-blue-600"
-                  }`}
+                  className={`relative px-2 py-1 transition
+                    ${
+                      isActive
+                        ? "text-blue-600 font-semibold"
+                        : "text-gray-700 hover:text-blue-600"
+                    }
+                  `}
                 >
                   {link.name}
                   <span
-                    className={`absolute left-0 -bottom-1 h-0.5 bg-blue-600 transition-all ${
-                      isActive ? "w-full" : "w-0 group-hover:w-full"
-                    }`}
+                    className={`absolute left-0 -bottom-1 h-0.5 bg-blue-600 transition-all
+                      ${isActive ? "w-full" : "w-0 group-hover:w-full"}
+                    `}
                   />
                 </Link>
               );
             })}
 
-            {/* 로그인 / 로그아웃 */}
+            {/* Auth */}
             {user ? (
               <div className="flex items-center gap-3 ml-4">
                 <span
-                  className={`px-2 py-1 text-xs rounded-full font-bold ${
-                    user.role === "PREMIUM"
-                      ? "bg-amber-500 text-white"
-                      : "bg-gray-300 text-gray-700"
-                  }`}
+                  className={`px-2 py-1 text-xs rounded-full font-bold
+                    ${
+                      user.role === "PREMIUM"
+                        ? "bg-amber-500 text-white"
+                        : "bg-gray-300 text-gray-700"
+                    }
+                  `}
                 >
                   {user.role}
                 </span>
-
-                <span className="text-gray-700 truncate max-w-[100px]">
+                <span className="text-gray-700 max-w-[100px] truncate">
                   {user.name}
                 </span>
-
                 <button
                   onClick={logout}
-                  className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 transition"
+                  className="px-3 py-1.5 rounded-md bg-red-500 text-white hover:bg-red-600 transition"
                 >
                   로그아웃
                 </button>
@@ -94,52 +98,88 @@ export default function Header() {
             ) : (
               <button
                 onClick={openLoginModal}
-                className="ml-4 px-4 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+                className="ml-4 px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition"
               >
                 로그인
               </button>
             )}
           </nav>
 
-          {/* mobile hamburger */}
+          {/* Mobile Menu Button */}
           <button
             onClick={() => setIsOpen(true)}
-            className="md:hidden p-2 text-gray-700 hover:bg-gray-200 rounded-md transition"
+            className="md:hidden p-2 rounded-md hover:bg-gray-100 active:bg-gray-200"
           >
             <Menu className="w-6 h-6" />
           </button>
         </div>
       </header>
 
-      {/* 모바일 메뉴 */}
-      {isOpen && (
-        <div className="fixed inset-0 z-150 bg-black/40 backdrop-blur-sm flex">
-          <div className="w-[80vw] max-w-xs h-full bg-white shadow-xl p-6 flex flex-col">
-            <div className="flex justify-between items-center">
-              <Logo />
-              <button
-                onClick={() => setIsOpen(false)}
-                className="text-gray-700 hover:bg-gray-200 p-1 rounded"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-
-            <nav className="flex flex-col mt-10 space-y-6 text-lg font-semibold">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
+      {/* MOBILE DRAWER */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            className="fixed inset-0 z-50 flex"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            {/* Drawer */}
+            <motion.div
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", stiffness: 260, damping: 30 }}
+              className="w-[80vw] max-w-xs bg-white h-full shadow-xl p-5 flex flex-col"
+            >
+              {/* Top */}
+              <div className="flex items-center justify-between">
+                <Logo />
+                <button
                   onClick={() => setIsOpen(false)}
+                  className="p-2 rounded hover:bg-gray-100 active:bg-gray-200"
                 >
-                  {link.name}
-                </Link>
-              ))}
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
 
-              <div className="pt-6 border-t">
+              {/* Nav */}
+              <nav className="mt-10 flex flex-col gap-2 text-base font-semibold">
+                {navLinks.map((link) => {
+                  const isActive = pathname === link.href;
+
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setIsOpen(false)}
+                      className={`
+          relative flex items-center
+          px-4 py-3 rounded-lg
+          transition
+          ${
+            isActive
+              ? "bg-blue-50 text-blue-600 font-bold"
+              : "text-gray-800 hover:bg-gray-100"
+          }
+        `}
+                    >
+                      {/* 왼쪽 Active Bar */}
+                      {isActive && (
+                        <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r bg-blue-600" />
+                      )}
+
+                      <span className="ml-2">{link.name}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+
+              {/* Auth Area */}
+              <div className="mt-auto pt-6 border-t">
                 {user ? (
                   <>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 mb-3">
                       <span
                         className={`text-xs px-2 py-1 rounded-full font-bold ${
                           user.role === "PREMIUM"
@@ -149,7 +189,9 @@ export default function Header() {
                       >
                         {user.role}
                       </span>
-                      <span className="text-gray-700">{user.name}</span>
+                      <span className="text-gray-700 truncate">
+                        {user.name}
+                      </span>
                     </div>
 
                     <button
@@ -157,7 +199,7 @@ export default function Header() {
                         logout();
                         setIsOpen(false);
                       }}
-                      className="mt-4 w-full px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
+                      className="w-full py-2 rounded bg-red-500 text-white hover:bg-red-600 transition"
                     >
                       로그아웃
                     </button>
@@ -168,59 +210,63 @@ export default function Header() {
                       onClick={() =>
                         (window.location.href = `${oauthUrls.google}?state=${redirectPath}`)
                       }
-                      className="w-full px-4 py-2 bg-white border border-gray-300 flex items-center justify-center gap-2 rounded shadow"
+                      className="w-full py-2 border rounded flex items-center justify-center gap-2"
                     >
-                      <FcGoogle className="w-5 h-5" /> Google 로그인
+                      <FcGoogle /> Google 로그인
                     </button>
 
                     <button
                       onClick={() =>
                         (window.location.href = `${oauthUrls.naver}?state=${redirectPath}`)
                       }
-                      className="mt-3 w-full px-4 py-2 bg-[#03C75A] text-white rounded shadow flex items-center justify-center gap-2"
+                      className="mt-3 w-full py-2 rounded bg-[#03C75A] text-white flex items-center justify-center gap-2"
                     >
-                      <SiNaver className="w-5 h-5" /> Naver 로그인
+                      <SiNaver /> Naver 로그인
                     </button>
                   </>
                 )}
               </div>
-            </nav>
-          </div>
+            </motion.div>
 
-          {/* side click close */}
-          <div className="flex-1" onClick={() => setIsOpen(false)} />
-        </div>
-      )}
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.4 }}
+              exit={{ opacity: 0 }}
+              className="flex-1 bg-black"
+              onClick={() => setIsOpen(false)}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* 로그인 모달 */}
+      {/* LOGIN MODAL */}
       {isLoginModalOpen && !user && (
-        <div className="fixed inset-0 z-150 bg-black/50 backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-white rounded-xl p-6 w-80 shadow-2xl">
-            <h2 className="text-xl font-bold text-center mb-4">로그인</h2>
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-4">
+          <div className="w-full max-w-sm bg-white rounded-xl p-6 shadow-2xl">
+            <h2 className="text-lg font-bold text-center mb-5">로그인</h2>
 
             <button
-              onClick={() => {
-                window.location.href = `${oauthUrls.google}?state=${redirectPath}`;
-              }}
-              className="flex items-center justify-center gap-2 w-full bg-white border border-gray-300 hover:bg-gray-100 text-gray-800 px-4 py-2 rounded shadow"
+              onClick={() =>
+                (window.location.href = `${oauthUrls.google}?state=${redirectPath}`)
+              }
+              className="w-full py-2 border rounded flex items-center justify-center gap-2"
             >
-              <FcGoogle className="w-5 h-5" />
-              Google로 로그인
+              <FcGoogle /> Google로 로그인
             </button>
 
             <button
-              onClick={() => {
-                window.location.href = `${oauthUrls.naver}?state=${redirectPath}`;
-              }}
-              className="flex items-center justify-center gap-2 w-full bg-[#03C75A] border border-[#03C75A] hover:bg-[#02b14b] text-white px-4 py-2 rounded shadow mt-3"
+              onClick={() =>
+                (window.location.href = `${oauthUrls.naver}?state=${redirectPath}`)
+              }
+              className="mt-3 w-full py-2 rounded bg-[#03C75A] text-white flex items-center justify-center gap-2"
             >
-              <SiNaver className="w-5 h-5" />
-              Naver로 로그인
+              <SiNaver /> Naver로 로그인
             </button>
 
             <button
               onClick={closeLoginModal}
-              className="mt-5 w-full px-4 py-2 border rounded hover:bg-gray-100"
+              className="mt-5 w-full py-2 border rounded hover:bg-gray-100"
             >
               취소
             </button>

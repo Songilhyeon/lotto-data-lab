@@ -69,3 +69,27 @@ export interface StoreHistoryItem {
   semiAutoWin: number;
   manualWin: number;
 }
+
+export interface StoreWin {
+  drwNo: number;
+  rank: number;
+}
+
+export interface GroupedStore {
+  store: string;
+  address: string;
+  region: string;
+  wins: StoreWin[];
+  totalWins: number;
+  firstWinDrwNo: number;
+  lastWinDrwNo: number;
+}
+
+export interface AllStoresApiResponse {
+  rank?: number;
+  regions: string[];
+  total: number;
+  page: number;
+  limit: number;
+  stores: GroupedStore[];
+}

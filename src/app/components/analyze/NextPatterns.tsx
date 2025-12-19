@@ -136,6 +136,24 @@ export default function NextPatterns() {
   const maxValue = safeCounts.length > 0 ? Math.max(...safeCounts) : 0;
   const minValue = safeCounts.length > 0 ? Math.min(...safeCounts) : 0;
 
+  const getMostAndLeast = () => {
+    if (!results) return { most: [], least: [] };
+    const values = Object.values(frequency);
+    const max = Math.max(...values);
+    const min = Math.min(...values);
+
+    const most = Object.entries(frequency)
+      .filter(([_, count]) => count === max)
+      .map(([num]) => Number(num));
+    const least = Object.entries(frequency)
+      .filter(([_, count]) => count === min)
+      .map(([num]) => Number(num));
+
+    return { most, least };
+  };
+
+  const { most, least } = getMostAndLeast();
+
   return (
     <div className={`${analysisDivStyle()} from-blue-50 to-pink-100`}>
       {/* Header */}
@@ -144,6 +162,13 @@ export default function NextPatterns() {
         content={`특정 회차 당첨 번호가 과거 회차에 등장한 경우, 그 다음 회차에서 나온 번호들의 출현 횟수를 보여줍니다.
                   End 회차를 선택하여 과거 회차에 어떤 번호가 당첨 되었는지 분석할 수 있습니다.`}
       />
+
+      {nextRound && (
+        <div className="min-w-0">
+          {/* DraggableNextRound는 내부에서 고정 포지셔닝을 처리함 */}
+          <DraggableNextRound nextRound={nextRound} most={most} least={least} />
+        </div>
+      )}
 
       {/* Range Filter */}
       <div className={rangeFilterDivStyle + " mt-4"}>
@@ -252,17 +277,6 @@ export default function NextPatterns() {
 
             {/* 검색 결과 + 다음 회차 */}
             <div className="w-full lg:w-96 flex flex-col gap-3">
-              {nextRound && (
-                <div className="min-w-0">
-                  {/* DraggableNextRound는 내부에서 고정 포지셔닝을 처리함 */}
-                  <DraggableNextRound
-                    nextRound={nextRound}
-                    most={[]}
-                    least={[]}
-                  />
-                </div>
-              )}
-
               <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border-2 border-blue-200 flex items-center justify-center">
                 <div className="text-center">
                   <p className="text-sm text-gray-600 mb-1">검색 결과</p>

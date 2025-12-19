@@ -9,6 +9,9 @@ import LockOverlay from "@/app/components/winner-stores/LockOverlay";
 import StoreHistoryChart from "@/app/components/winner-stores/accumulate-tab/StoreHistoryChart";
 import { MdClose } from "react-icons/md";
 import { apiUrl } from "@/app/utils/getUtils";
+import { RiTimelineView } from "react-icons/ri";
+import { MdBarChart } from "react-icons/md";
+import StoreTimelineModal from "@/app/components/winner-stores/StoreTimelineModal";
 
 interface TopStoresCardProps {
   stores: TopStore[];
@@ -64,6 +67,8 @@ export default function TopStoresCard({
   const [historyData, setHistoryData] = useState<StoreHistoryItem[]>([]);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [loading, setLoading] = useState(false);
+  const [showChart, setShowChart] = useState(false);
+  const [showTimeline, setShowTimeline] = useState(false);
 
   // ⭐ 히스토리 캐시
   const [historyCache, setHistoryCache] = useState<
@@ -150,10 +155,9 @@ export default function TopStoresCard({
         <div className="relative">
           <div className="space-y-4">
             {visibleStores.map((item, idx) => (
-              <button
+              <div
                 key={idx}
-                onClick={() => setSelectedStore(item)}
-                className="w-full text-left"
+                className="w-full border rounded-xl bg-white shadow-sm hover:shadow-xl"
               >
                 <TopStoreItem
                   index={isLocked ? 0 : idx + 1}
@@ -165,7 +169,55 @@ export default function TopStoresCard({
                   semiAutoWin={item.semiAutoWin}
                   manualWin={item.manualWin}
                 />
-              </button>
+
+                {!isLocked && (
+                  <div className="flex justify-end gap-2 mt-1 pr-2">
+                    {/* 📊 차트 */}
+                    <button
+                      onClick={() => {
+                        setSelectedStore(item);
+                        setShowChart(true);
+                      }}
+                      className="
+                        flex items-center justify-center
+                        w-9 h-9 sm:w-8 sm:h-8
+                        rounded-full
+                        text-gray-400
+                        hover:text-blue-600
+                        hover:bg-blue-50
+                        active:bg-blue-100
+                        transition
+                        shrink-0
+                      "
+                      title="차트 보기"
+                    >
+                      <MdBarChart size={24} />
+                    </button>
+
+                    {/* 🕒 타임라인 */}
+                    <button
+                      onClick={() => {
+                        setSelectedStore(item);
+                        setShowTimeline(true);
+                      }}
+                      className="
+                        flex items-center justify-center
+                        w-9 h-9 sm:w-8 sm:h-8
+                        rounded-full
+                        text-gray-400
+                        hover:text-blue-600
+                        hover:bg-blue-50
+                        active:bg-blue-100
+                        transition
+                        shrink-0
+                      "
+                      title="타임라인 보기"
+                    >
+                      <RiTimelineView size={24} />
+                    </button>
+                  </div>
+                )}
+              </div>
             ))}
           </div>
 
@@ -173,13 +225,13 @@ export default function TopStoresCard({
         </div>
       </CardContent>
 
-      {/* 모달 */}
-      {selectedStore && !isLocked && (
+      {/* 차트 모달 */}
+      {selectedStore && showChart && !isLocked && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
           <div className="bg-white rounded-xl w-11/12 max-w-3xl max-h-[90vh] overflow-y-auto p-6 relative">
             <button
               className="absolute top-4 right-4 text-gray-500 hover:text-gray-800"
-              onClick={() => setSelectedStore(null)}
+              onClick={() => setShowChart(false)}
             >
               <MdClose size={24} />
             </button>
@@ -216,6 +268,14 @@ export default function TopStoresCard({
             )}
           </div>
         </div>
+      )}
+
+      {selectedStore && showTimeline && !isLocked && (
+        <StoreTimelineModal
+          store={selectedStore.store}
+          address={selectedStore.address}
+          onClose={() => setShowTimeline(false)}
+        />
       )}
     </Card>
   );

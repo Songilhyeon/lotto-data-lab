@@ -25,10 +25,10 @@ export default function TopStoreItem({
   const addressInfo = getAddressInfo(address);
 
   return (
-    <div className="flex items-center justify-between bg-white border rounded-xl p-4 shadow-sm hover:shadow-xl transition">
+    <div className="flex items-center justify-between p-4 ">
       <div className="flex-1">
         <p className="font-semibold text-gray-900 text-sm sm:text-base flex items-center gap-2">
-          <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-md text-xs font-bold">
+          <span className=" text-yellow-700 px-2 py-1 rounded-md text-xs font-bold">
             {index === 0 ? "-" : `${index}`}위
           </span>
           {store}

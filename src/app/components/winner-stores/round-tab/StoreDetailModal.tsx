@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import { LottoStore, StoreHistoryItem } from "@/app/types/stores";
 import { apiUrl } from "@/app/utils/getUtils";
@@ -7,17 +8,17 @@ import AddressLink from "../AddressLink";
 import { useAuth } from "@/app/context/authContext";
 import LockOverlay from "../LockOverlay";
 
-interface StoreDetailProps {
+interface StoreDetailModalProps {
   store: LottoStore;
   onClose: () => void;
-  historyLimit?: number; // 기본 20회
+  historyLimit?: number; // default 20
 }
 
-export default function StoreDetail({
+export default function StoreDetailModal({
   store,
   onClose,
   historyLimit = 20,
-}: StoreDetailProps) {
+}: StoreDetailModalProps) {
   const [history, setHistory] = useState<Record<number, StoreHistoryItem[]>>({
     1: [],
     2: [],
@@ -51,12 +52,12 @@ export default function StoreDetail({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white w-full max-w-xl max-h-[80vh] rounded-lg shadow-lg flex flex-col overflow-hidden">
-        <CardContent className="p-4 sm:p-6 flex flex-col flex-1 min-h-0">
-          {/* 헤더 */}
+      <div className="bg-white w-full max-w-xl h-[80vh] rounded-lg shadow-lg flex flex-col overflow-hidden">
+        <CardContent className="p-4 sm:p-6 flex flex-col h-full min-h-0">
+          {/* Header */}
           <div className="flex items-center justify-between mb-2 shrink-0">
             <h2 className="text-lg font-semibold text-gray-800">
-              {store.store} - 상세 정보
+              {store.store} · 당첨 상세
             </h2>
             <button
               onClick={onClose}
@@ -66,26 +67,25 @@ export default function StoreDetail({
             </button>
           </div>
 
-          {/* 주소 */}
-          <p className="text-sm text-gray-600 mb-2 shrink-0">
+          {/* Address */}
+          <p className="text-sm text-gray-600 mb-3 shrink-0">
             <AddressLink address={store.address} />
           </p>
 
-          {/* 히스토리 영역 래퍼 */}
+          {/* Scroll Area */}
           <div className="relative flex-1 min-h-0">
-            {/* 실제 스크롤 영역 */}
-            <div className="flex-1 min-h-0 overflow-y-auto space-y-4">
+            <div className="h-full overflow-y-auto space-y-4 pr-1">
               {loading ? (
                 <p className="text-sm text-gray-500">로딩 중...</p>
               ) : history[1].length === 0 && history[2].length === 0 ? (
                 <p className="text-sm text-gray-500">당첨 이력이 없습니다.</p>
               ) : (
                 <>
-                  {/* 1등 히스토리 */}
+                  {/* Rank 1 */}
                   {history[1].length > 0 && (
-                    <div>
+                    <section>
                       <h3 className="text-sm font-medium text-gray-700 mb-1">
-                        1등 히스토리
+                        1등 당첨 내역
                       </h3>
                       <div className="grid grid-cols-[60px_1fr_1fr_1fr] gap-2 px-2 text-sm">
                         <div className="font-medium text-gray-700">회차</div>
@@ -108,14 +108,14 @@ export default function StoreDetail({
                           </div>
                         ))}
                       </div>
-                    </div>
+                    </section>
                   )}
 
-                  {/* 2등 히스토리 */}
+                  {/* Rank 2 */}
                   {history[2].length > 0 && (
-                    <div>
+                    <section>
                       <h3 className="text-sm font-medium text-gray-700 mb-1">
-                        2등 히스토리
+                        2등 당첨 내역
                       </h3>
                       <div className="grid grid-cols-2 gap-2">
                         {history[2].map((h, idx) => (
@@ -130,13 +130,12 @@ export default function StoreDetail({
                           </div>
                         ))}
                       </div>
-                    </div>
+                    </section>
                   )}
                 </>
               )}
             </div>
 
-            {/* 🔒 오버레이는 스크롤 밖 */}
             {!user && <LockOverlay />}
           </div>
         </CardContent>

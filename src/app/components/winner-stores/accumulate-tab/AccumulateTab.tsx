@@ -40,7 +40,9 @@ export default function AccumulateTab({
 
   useEffect(() => {
     async function load() {
-      const res = await fetch(`${apiUrl}/lotto/stores?rank=${selectedRank}`);
+      const res = await fetch(
+        `${apiUrl}/lotto/stores/statistics?rank=${selectedRank}`
+      );
       const json: WinnerStoresApiResponse = await res.json();
 
       setData(json);
