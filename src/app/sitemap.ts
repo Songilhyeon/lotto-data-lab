@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-
   // 정적 페이지
   const staticUrls = [
     { url: "/", changefreq: "weekly", priority: 1.0 },
@@ -13,15 +12,14 @@ export async function GET() {
     { url: "/board", changefreq: "daily", priority: 0.7 },
   ];
 
-  // sitemap xml 생성
   const xmlUrls = staticUrls
     .map(
       (page) => `
-  <url>
-    <loc>${siteUrl}${page.url}</loc>
-    <changefreq>${page.changefreq}</changefreq>
-    <priority>${page.priority}</priority>
-  </url>`
+<url>
+  <loc>${siteUrl}${page.url}</loc>
+  <changefreq>${page.changefreq}</changefreq>
+  <priority>${page.priority}</priority>
+</url>`
     )
     .join("\n");
 
