@@ -246,27 +246,54 @@ export default function Header() {
           <div className="w-full max-w-sm bg-white rounded-xl p-6 shadow-2xl">
             <h2 className="text-lg font-bold text-center mb-5">로그인</h2>
 
+            {/* Google */}
             <button
               onClick={() =>
                 (window.location.href = `${oauthUrls.google}?state=${redirectPath}`)
               }
-              className="w-full py-2 border rounded flex items-center justify-center gap-2"
+              className="
+          w-full py-2 border rounded
+          flex items-center justify-center gap-2
+          transition
+          hover:bg-gray-200
+          active:bg-gray-400
+          active:scale-[0.98]
+          focus:outline-none focus:ring-2 focus:ring-gray-300
+        "
             >
               <FcGoogle /> Google로 로그인
             </button>
 
+            {/* Naver */}
             <button
               onClick={() =>
                 (window.location.href = `${oauthUrls.naver}?state=${redirectPath}`)
               }
-              className="mt-3 w-full py-2 rounded bg-[#03C75A] text-white flex items-center justify-center gap-2"
+              className="
+          mt-3 w-full py-2 rounded
+          bg-[#03C75A] text-white
+          flex items-center justify-center gap-2
+          transition
+          hover:bg-[#02b150]
+          active:bg-[#029a46]
+          active:scale-[0.98]
+          focus:outline-none focus:ring-2 focus:ring-[#03C75A]/50
+        "
             >
               <SiNaver /> Naver로 로그인
             </button>
 
+            {/* Cancel */}
             <button
               onClick={closeLoginModal}
-              className="mt-5 w-full py-2 border rounded hover:bg-gray-100"
+              className="
+          mt-5 w-full py-2 border rounded
+          transition
+          hover:bg-gray-200
+          active:bg-gray-400
+          active:scale-[0.98]
+          focus:outline-none focus:ring-2 focus:ring-gray-300
+        "
             >
               취소
             </button>

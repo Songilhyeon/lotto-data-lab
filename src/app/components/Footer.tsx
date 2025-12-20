@@ -1,3 +1,5 @@
+import { bizInfo } from "@/app/constants/bizInfo";
+
 export function Logo({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
   const sizeMap: Record<string, string> = {
     sm: "w-8 h-8",
@@ -62,10 +64,10 @@ export default function Footer() {
           </a>
           <span>|</span>
           <a
-            href="mailto:your-email@example.com"
+            href={`mailto:${bizInfo.contactEmail}`}
             className="hover:text-gray-700"
           >
-            문의: your-email@example.com
+            문의: {bizInfo.contactEmail}
           </a>
         </div>
       </div>

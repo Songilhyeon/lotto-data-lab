@@ -161,23 +161,58 @@ export default function AiAdvancedRecommend() {
         <label className="font-medium text-gray-700">회차 선택:</label>
 
         <div className="flex items-center gap-1">
+          {/* 이전 회차 */}
           <button
             onClick={() => setSelectedRound((prev) => Math.max(prev - 1, 1))}
-            className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300 transition"
+            className="
+              px-2 py-1 bg-gray-200 rounded
+              hover:bg-gray-300 active:bg-gray-400
+              transition disabled:opacity-40
+            "
             disabled={selectedRound <= 1}
           >
             -
           </button>
 
-          <span className="w-16 text-center border px-2 py-1 rounded bg-white">
-            {selectedRound}
-          </span>
+          {/* 회차 직접 입력 */}
+          <input
+            type="number"
+            min={1}
+            max={latestRound}
+            value={selectedRound}
+            onChange={(e) => {
+              const value = Number(e.target.value);
+              if (!Number.isNaN(value)) setSelectedRound(value);
+            }}
+            onBlur={() => {
+              setSelectedRound((prev) =>
+                Math.min(Math.max(prev, 1), latestRound)
+              );
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") e.currentTarget.blur();
+            }}
+            className="
+              min-w-[4.5rem]
+              px-2 py-1
+              text-center
+              border rounded
+              bg-white
+              tabular-nums
+              focus:outline-none focus:ring-2 focus:ring-blue-300
+            "
+          />
 
+          {/* 다음 회차 */}
           <button
             onClick={() =>
               setSelectedRound((prev) => Math.min(prev + 1, latestRound))
             }
-            className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300 transition"
+            className="
+              px-2 py-1 bg-gray-200 rounded
+              hover:bg-gray-300 active:bg-gray-400
+              transition disabled:opacity-40
+            "
             disabled={selectedRound >= latestRound}
           >
             +
