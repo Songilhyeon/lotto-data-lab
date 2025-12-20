@@ -4,11 +4,11 @@ import ChartPreview from "./components/landing/ChartPreview";
 import HowItWorks from "./components/landing/HowItWorks";
 
 export const metadata = {
-  title: "로또 번호 분석 · 통계 · AI 분석 서비스 | Lotto Data Lab",
+  title: "로또 번호 분석·통계 | AI Lotto Data Lab",
   description:
     "로또 당첨 번호 통계, 패턴 분석, 1·2등 당첨 판매점 정보와 AI 기반 로또 번호 분석을 제공하는 데이터 분석 서비스입니다.",
   openGraph: {
-    title: "로또 번호 분석 · 통계 · AI 분석 서비스 | Lotto Data Lab",
+    title: "로또 번호 분석·통계 | AI Lotto Data Lab",
     description:
       "로또 당첨 번호 통계, 패턴 분석, 1·2등 당첨 판매점 정보와 AI 기반 로또 번호 분석을 제공하는 데이터 분석 서비스입니다.",
     url: "https://app.nexlab.ai.kr",
