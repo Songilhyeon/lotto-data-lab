@@ -20,7 +20,7 @@ export default function Page() {
     <div className="px-4 sm:px-6 pt-4 pb-10">
       <ComponentHeader
         title="AI 기반 로또 번호 점수 분석"
-        content="데이터 기반으로 계산된 AI 추천 번호와 패턴/빈도/클러스터 분석을 한눈에 확인하세요."
+        content="데이터 기반으로 계산된 AI 분석 정보와 패턴/빈도/클러스터 분석을 한눈에 확인하세요."
         srOnly={true}
       />
 
