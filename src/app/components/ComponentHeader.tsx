@@ -1,10 +1,23 @@
+interface ComponentHeaderProps {
+  title: string;
+  content: string;
+  srOnly?: boolean; // ✅ 추가
+}
+
 export default function ComponentHeader({
   title,
   content,
-}: {
-  title: string;
-  content: string;
-}) {
+  srOnly = false,
+}: ComponentHeaderProps) {
+  if (srOnly) {
+    return (
+      <>
+        <h1 className="sr-only">{title}</h1>
+        <p className="sr-only">{content}</p>
+      </>
+    );
+  }
+
   return (
     <div className="bg-white shadow-sm rounded-xl p-3 sm:p-4 border border-gray-200">
       <h1 className="text-lg sm:text-2xl font-bold text-gray-800 tracking-tight">

@@ -22,6 +22,7 @@ export default function Page() {
       <ComponentHeader
         title="📋 피드백 게시판"
         content="문제점, 개선사항, 궁금한 점 등을 자유롭게 남겨보세요."
+        srOnly={true}
       />
       <BoardClient />
     </div>

@@ -5,6 +5,7 @@ import { useAuth } from "@/app/context/authContext";
 import Link from "next/link";
 import { apiUrl } from "@/app/utils/getUtils";
 import { componentBodyDivStyle } from "@/app/utils/getDivStyle";
+import ComponentHeader from "@/app/components/ComponentHeader";
 
 interface Post {
   id: string;
@@ -60,6 +61,10 @@ export default function BoardClient() {
 
   return (
     <main className={`${componentBodyDivStyle()} from-pink-50 to-indigo-100`}>
+      <ComponentHeader
+        title="📋 피드백 게시판"
+        content="문제점, 개선사항, 궁금한 점 등을 자유롭게 남겨보세요."
+      />
       {/* 글쓰기 버튼 */}
       <div className="mb-6">
         {user ? (

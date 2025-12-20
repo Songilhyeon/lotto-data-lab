@@ -14,6 +14,7 @@ export default function Page() {
       <ComponentHeader
         title="로또 역대 기록 순위 분석"
         content="당첨자 수·당첨금·판매액 기준 TOP 기록을 확인하세요."
+        srOnly={true}
       />
       {/* Client Component */}
       <HistoryClient />

@@ -22,6 +22,7 @@ export default function Page() {
       <ComponentHeader
         title="1·2등 로또 당첨 판매점 목록"
         content="전국 1·2등 로또 당첨 판매점 정보를 누적 횟수, 지역별 통계와 함께 확인할 수 있습니다."
+        srOnly={true}
       />
 
       <WinnerStoresClient />

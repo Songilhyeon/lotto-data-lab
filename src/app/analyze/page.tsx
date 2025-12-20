@@ -22,6 +22,7 @@ export default function Page() {
       <ComponentHeader
         title="로또 번호 분석 & 패턴 통계"
         content="역대 로또 번호의 흐름, 패턴, 추세 분석을 직관적으로 확인할 수 있습니다."
+        srOnly={true}
       />
 
       <AnalyzeClient />
