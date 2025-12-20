@@ -1,4 +1,3 @@
-// app/winner-stores/page.tsx
 import WinnerStoresClient from "./WinnerStoresClient";
 import ComponentHeader from "@/app/components/ComponentHeader";
 

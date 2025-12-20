@@ -1,4 +1,3 @@
-// app/board/page.tsx
 import BoardClient from "./BoardClient";
 import ComponentHeader from "@/app/components/ComponentHeader";
 

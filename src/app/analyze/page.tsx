@@ -1,4 +1,3 @@
-// app/analyze/page.tsx
 import AnalyzeClient from "./AnalyzeClient";
 import ComponentHeader from "@/app/components/ComponentHeader";
 
