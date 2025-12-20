@@ -19,15 +19,15 @@ const geistMono = Geist_Mono({
 export const metadata = {
   metadataBase: new URL("https://app.nexlab.ai.kr"),
   title: {
-    default: "로또 번호 분석 · 통계 · AI 추천 | Lotto Data Lab",
+    default: "로또 번호 분석 · 통계 · AI 분석 | Lotto Data Lab",
     template: "%s | Lotto Data Lab",
   },
   description:
-    "로또 당첨 번호 통계, 1·2등 당첨 판매점 분석, AI 기반 로또 번호 추천까지 제공하는 데이터 기반 로또 분석 서비스입니다.",
+    "로또 당첨 번호 통계, 1·2등 당첨 판매점 분석, AI 기반 로또 번호 분석까지 제공하는 데이터 기반 로또 분석 서비스입니다.",
   openGraph: {
-    title: "로또 번호 분석 · 통계 · AI 추천 | Lotto Data Lab",
+    title: "로또 번호 분석 · 통계 · AI 분석 | Lotto Data Lab",
     description:
-      "로또 당첨 번호 통계, 1·2등 당첨 판매점 분석, AI 기반 로또 번호 추천까지 제공하는 데이터 기반 로또 분석 서비스입니다.",
+      "로또 당첨 번호 통계, 1·2등 당첨 판매점 분석, AI 기반 로또 번호 분석까지 제공하는 데이터 기반 로또 분석 서비스입니다.",
     url: "https://app.nexlab.ai.kr",
     siteName: "Lotto Data Lab",
     type: "website",
