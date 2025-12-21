@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import AnalyzeClient from "./AnalyzeClient";
 import ComponentHeader from "@/app/components/ComponentHeader";
 
@@ -24,7 +25,16 @@ export default function Page() {
         srOnly={true}
       />
 
-      <AnalyzeClient />
+      {/* 🔑 핵심 수정 포인트 */}
+      <Suspense
+        fallback={
+          <div className="py-6 text-sm text-gray-500">
+            분석 데이터 로딩 중...
+          </div>
+        }
+      >
+        <AnalyzeClient />
+      </Suspense>
     </div>
   );
 }
