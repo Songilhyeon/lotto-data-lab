@@ -1,7 +1,8 @@
 import Hero from "./components/landing/Hero";
-import FeatureCards from "./components/landing/FeatureCards";
-import ChartPreview from "./components/landing/ChartPreview";
+import ChartPreviewWrapper from "./components/landing/ChartPreviewWrapper";
 import HowItWorks from "./components/landing/HowItWorks";
+import HomeDashboardSummary from "./components/landing/HomeDashboardSummary";
+import NextRoundPreviewWrapper from "./components/landing/NextRoundPreviewWrapper";
 
 export const metadata = {
   title: "로또 번호 분석·통계 | AI Lotto Data Lab",
@@ -29,17 +30,15 @@ export default function LandingPage() {
       {/* Hero: Client Component */}
       <Hero />
 
-      {/* 주요 기능 & 미리보기 */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 text-center mb-8 sm:mb-12">
-          주요 기능 & 미리보기
-        </h2>
+      {/* ⭐ 대시보드 요약 섹션 */}
+      <HomeDashboardSummary />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-12">
-          {/* FeatureCards & ChartPreview: Client Component */}
-          <FeatureCards />
-          <ChartPreview />
-        </div>
+      {/* 📊 과거 통계 미리보기 */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12 grid gap-8 md:grid-cols-2">
+        <ChartPreviewWrapper />
+
+        {/* 🔮 다음 회차 분석 요약 */}
+        <NextRoundPreviewWrapper />
       </section>
 
       {/* HowItWorks: Client Component */}

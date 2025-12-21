@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@/app/context/authContext";
 import { gaEvent } from "@/app/lib/gtag";
 
@@ -18,22 +19,39 @@ const allTabs = [
   { id: "multiRound", label: "기간별 정보", premiumOnly: false },
   { id: "numberFrequency", label: "번호별 빈도수", premiumOnly: false },
   { id: "numberRange", label: "번호 구간", premiumOnly: false },
-  { id: "next", label: "다음 회차", premiumOnly: false },
+  { id: "next", label: "다음 회차 분석", premiumOnly: false },
   { id: "numberLab", label: "번호 실험실", premiumOnly: false },
   { id: "premiumAnalysis", label: "통합 정보", premiumOnly: false },
 ];
 
 export default function AnalyzeClient() {
-  const [activeTab, setActiveTab] = useState("oneRound");
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const { user } = useAuth();
-
-  useEffect(() => {
-    gaEvent("tab_change", { tab_id: activeTab });
-  }, [activeTab]);
 
   const availableTabs = allTabs.filter(
     (tab) => !tab.premiumOnly || user?.role === "PREMIUM"
   );
+
+  // 🔥 URL 쿼리 기반 초기 탭
+  const initialTab =
+    searchParams.get("tab") &&
+    availableTabs.some((t) => t.id === searchParams.get("tab"))
+      ? searchParams.get("tab")!
+      : "oneRound";
+
+  const [activeTab, setActiveTab] = useState(initialTab);
+
+  // GA 이벤트
+  useEffect(() => {
+    gaEvent("tab_change", { tab_id: activeTab });
+  }, [activeTab]);
+
+  // 탭 클릭 시 URL 동기화
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId);
+    router.replace(`/analyze?tab=${tabId}`, { scroll: false });
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -64,7 +82,7 @@ export default function AnalyzeClient() {
           {availableTabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabChange(tab.id)}
               className={`px-3 py-2 text-sm sm:text-base rounded-t-lg whitespace-nowrap transition-all
                 ${
                   activeTab === tab.id

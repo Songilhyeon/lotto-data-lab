@@ -9,7 +9,7 @@ export const getLatestRound = (): number => {
   const diff = 6 - day; // 토요일까지 남은 일수
   const thisSaturday = new Date(now);
   thisSaturday.setDate(now.getDate() + diff);
-  thisSaturday.setHours(21, 35, 0, 0); // 21:35:00.000, 서버보다 5분 늦게 회차 갱신
+  thisSaturday.setHours(21, 15, 0, 0); // 21:15:00.000, 서버보다 5분 늦게 회차 갱신
 
   // 4. 만약 현재 시간이 토요일 21:00 이후라면 이번 주 회차 포함
   const referenceDate =
