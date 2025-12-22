@@ -37,9 +37,6 @@ export default function BasicSummary() {
     includeBonus: !includeBonus,
   });
 
-  // -------------------------------
-  // 데이터 fetch
-  // -------------------------------
   const fetchData = async () => {
     const prev = prevParamsRef.current;
     if (
@@ -55,8 +52,7 @@ export default function BasicSummary() {
         `${apiUrl}/lotto/rounds?start=${start}&end=${end}&includeBonus=${includeBonus}`
       );
       const json = await res.json();
-      if (json.success) setData(json.data);
-      else setData([]);
+      setData(json.success ? json.data : []);
     } catch (err) {
       console.error(err);
       setData([]);
@@ -77,9 +73,9 @@ export default function BasicSummary() {
   };
   const clearRecentSelect = () => setSelectedRecent(null);
 
-  // -------------------------------
+  // -------------------
   // 통계 계산
-  // -------------------------------
+  // -------------------
   const allNumbers = data.flatMap((d) => [
     d.drwtNo1,
     d.drwtNo2,
@@ -92,12 +88,11 @@ export default function BasicSummary() {
 
   const oddCount = allNumbers.filter((n) => n % 2 === 1).length;
   const evenCount = allNumbers.length - oddCount;
-
   const lowCount = allNumbers.filter((n) => n <= 22).length;
   const highCount = allNumbers.length - lowCount;
 
   const lastDigitCount = Array(10).fill(0);
-  allNumbers.forEach((n) => (lastDigitCount[n % 10] += 1));
+  allNumbers.forEach((n) => lastDigitCount[n % 10]++);
 
   const ranges10 = Array.from({ length: 5 }, (_, i) => ({
     range: `${i * 10 + 1}-${i === 4 ? 45 : (i + 1) * 10}`,
@@ -106,9 +101,9 @@ export default function BasicSummary() {
     ).length,
   }));
 
-  // -------------------------------
-  // 연속 번호 (한 회차 안)
-  // -------------------------------
+  // -------------------
+  // 연속 번호
+  // -------------------
   const consecutiveNumbers: { round: number; sequence: number[] }[] = [];
   data.forEach((d) => {
     const numbers = [
@@ -120,7 +115,6 @@ export default function BasicSummary() {
       d.drwtNo6,
       ...(includeBonus ? [d.bnusNo] : []),
     ].sort((a, b) => a - b);
-
     let seq: number[] = [numbers[0]];
     for (let i = 1; i < numbers.length; i++) {
       if (numbers[i] === numbers[i - 1] + 1) seq.push(numbers[i]);
@@ -135,9 +129,9 @@ export default function BasicSummary() {
   });
   consecutiveNumbers.sort((a, b) => b.round - a.round);
 
-  // -------------------------------
-  // 연속 출현 번호 (여러 회차)
-  // -------------------------------
+  // -------------------
+  // 연속 출현 번호
+  // -------------------
   const numberRoundsMap: Record<number, number[]> = {};
   data.forEach((d) => {
     [
@@ -171,9 +165,9 @@ export default function BasicSummary() {
   });
   streakNumbers.sort((a, b) => b.rounds[0] - a.rounds[0]);
 
-  // -------------------------------
+  // -------------------
   // 번호별 추세 라인 차트
-  // -------------------------------
+  // -------------------
   const lineChartData = data.map((d) => ({
     round: d.drwNo,
     n1: d.drwtNo1,
@@ -198,16 +192,12 @@ export default function BasicSummary() {
     { label: "높음(23~45)", count: highCount },
   ];
 
-  // -------------------------------
-  // 렌더
-  // -------------------------------
   return (
     <div className={`${componentBodyDivStyle()} from-blue-50 to-cyan-100`}>
       <ComponentHeader
         title="📊 번호 패턴 요약"
-        content="선택된 회차 범위 동안의 홀/짝, 낮음/높음, 끝자리 통계, 연속 패턴, 번호별 추세를 확인할 수 있습니다."
+        content="선택된 회차 범위 동안의 기본 통계를 확인할 수 있습니다."
       />
-
       <div className={rangeFilterDivStyle}>
         <RangeFilterBar
           start={start}
@@ -222,12 +212,11 @@ export default function BasicSummary() {
           clearRecentSelect={clearRecentSelect}
         />
       </div>
-
       <div className="flex justify-start mt-2 mb-6">
         <LookUpButton onClick={fetchData} loading={loading} />
       </div>
 
-      {/* 2x2 카드 */}
+      {/* 기본 통계 */}
       <div className="flex flex-col md:flex-row gap-6 mt-4">
         <div className="flex-1 bg-white rounded-xl shadow p-4">
           <h3 className="text-sm font-semibold mb-2">홀/짝 통계</h3>
@@ -240,7 +229,6 @@ export default function BasicSummary() {
             </BarChart>
           </ResponsiveContainer>
         </div>
-
         <div className="flex-1 bg-white rounded-xl shadow p-4">
           <h3 className="text-sm font-semibold mb-2">낮음/높음 통계</h3>
           <ResponsiveContainer width="100%" height={150}>
@@ -254,33 +242,33 @@ export default function BasicSummary() {
         </div>
       </div>
 
-      {/* 끝자리 통계 */}
-      <div className="bg-white rounded-xl shadow p-4 mt-6">
-        <h3 className="text-sm font-semibold mb-2">끝자리 통계</h3>
-        <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={lastDigitChartData}>
-            <XAxis dataKey="digit" />
-            <YAxis allowDecimals={false} />
-            <RechartTooltip />
-            <Bar dataKey="count" fill="#10b981" />
-          </BarChart>
-        </ResponsiveContainer>
+      {/* 끝자리 + 10단위 */}
+      <div className="flex flex-col md:flex-row gap-6 mt-6">
+        <div className="flex-1 bg-white rounded-xl shadow p-4">
+          <h3 className="text-sm font-semibold mb-2">끝자리 통계</h3>
+          <ResponsiveContainer width="100%" height={150}>
+            <BarChart data={lastDigitChartData}>
+              <XAxis dataKey="digit" />
+              <YAxis allowDecimals={false} />
+              <RechartTooltip />
+              <Bar dataKey="count" fill="#10b981" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="flex-1 bg-white rounded-xl shadow p-4">
+          <h3 className="text-sm font-semibold mb-2">10단위 구간 통계</h3>
+          <ResponsiveContainer width="100%" height={150}>
+            <BarChart data={ranges10}>
+              <XAxis dataKey="range" />
+              <YAxis allowDecimals={false} />
+              <RechartTooltip />
+              <Bar dataKey="count" fill="#8b5cf6" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
-      {/* 10단위 구간 통계 */}
-      <div className="bg-white rounded-xl shadow p-4 mt-6">
-        <h3 className="text-sm font-semibold mb-2">10단위 구간 통계</h3>
-        <ResponsiveContainer width="100%" height={150}>
-          <BarChart data={ranges10}>
-            <XAxis dataKey="range" />
-            <YAxis allowDecimals={false} />
-            <RechartTooltip />
-            <Bar dataKey="count" fill="#8b5cf6" />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* 연속 번호 카드 */}
+      {/* 연속 번호 */}
       {consecutiveNumbers.length > 0 && (
         <div className="bg-white rounded-xl shadow p-4 mt-6">
           <h3 className="text-sm font-semibold mb-2">연속된 번호 🔥</h3>
@@ -297,7 +285,7 @@ export default function BasicSummary() {
         </div>
       )}
 
-      {/* 연속 출현 번호 카드 */}
+      {/* 연속 출현 번호 */}
       {streakNumbers.length > 0 && (
         <div className="bg-white rounded-xl shadow p-4 mt-6">
           <h3 className="text-sm font-semibold mb-2">연속 출현 번호 🔥</h3>
@@ -314,7 +302,7 @@ export default function BasicSummary() {
         </div>
       )}
 
-      {/* 번호별 추세 라인 차트 */}
+      {/* 번호별 추세 */}
       <div className="bg-white rounded-xl shadow p-4 mt-6">
         <h3 className="text-sm font-semibold mb-2">번호별 추세</h3>
         <ResponsiveContainer width="100%" height={250}>

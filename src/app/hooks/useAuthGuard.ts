@@ -7,8 +7,8 @@ export default function useAuthGuard() {
 
   return {
     user,
-    // isAuthed: !!user,
-    isAuthed: true,
+    isAuthed: !!user,
+    // isAuthed: true,
     openLoginModal,
   };
 }

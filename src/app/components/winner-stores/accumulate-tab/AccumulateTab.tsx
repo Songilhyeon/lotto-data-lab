@@ -36,7 +36,7 @@ export default function AccumulateTab({
   data,
   setData,
 }: Props) {
-  const { user } = useAuthGuard();
+  const { isAuthed } = useAuthGuard();
 
   useEffect(() => {
     async function load() {
@@ -64,11 +64,12 @@ export default function AccumulateTab({
 
   if (!data) return <div>Loading...</div>;
 
-  const accessLevel = user
-    ? user.role === "PREMIUM"
-      ? "PREMIUM"
-      : "LOGIN"
-    : "GUEST";
+  // const accessLevel = user
+  //   ? user.role === "PREMIUM"
+  //     ? "PREMIUM"
+  //     : "LOGIN"
+  //   : "GUEST";
+  const accessLevel = isAuthed ? "LOGIN" : "GUEST";
 
   const filteredTopStores: TopStore[] =
     selectedRegion === "전국"
