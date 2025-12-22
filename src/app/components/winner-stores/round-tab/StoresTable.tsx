@@ -37,7 +37,9 @@ export default function StoresTable({ stores, rank }: StoresTableProps) {
           <thead>
             <tr className="bg-gray-50 text-gray-600 text-xs sm:text-sm">
               <th className="px-2 sm:px-3 py-2 text-left w-10">#</th>
-              <th className="px-2 sm:px-3 py-2 text-left">판매점</th>
+              <th className="px-2 sm:px-3 py-2 text-left">
+                판매점(타임라인보기)
+              </th>
               <th className="px-2 sm:px-3 py-2 text-left hidden sm:table-cell">
                 주소
               </th>

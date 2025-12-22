@@ -31,7 +31,7 @@ export default function HowItWorks() {
         </h2>
 
         <p className="text-gray-600 text-base md:text-lg mb-12 max-w-2xl mx-auto leading-relaxed">
-          로또 데이터 실험실은 모든 회차 데이터를 바탕으로
+          Lotto Data Lab은 모든 회차 데이터를 바탕으로
           <span className="text-blue-600 font-semibold">
             패턴, 출현 빈도, 다음 회차 흐름
           </span>

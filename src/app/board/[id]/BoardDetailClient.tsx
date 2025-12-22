@@ -2,9 +2,9 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/app/context/authContext";
 import CommentInput from "@/app/components/board/CommentInput";
 import { componentBodyDivStyle } from "@/app/utils/getDivStyle";
+import useAuthGuard from "@/app/hooks/useAuthGuard";
 
 interface CommentType {
   id: string;
@@ -28,7 +28,7 @@ interface Props {
 
 export default function BoardDetailClient({ initialPost }: Props) {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user } = useAuthGuard();
 
   const [post, setPost] = useState<PostType>(initialPost);
   const [loading, setLoading] = useState(false);

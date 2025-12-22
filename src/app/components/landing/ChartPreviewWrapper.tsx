@@ -1,4 +1,4 @@
-import ChartPreview from "./ChartPreview";
+import ChartPreviewClientWrapper from "./ChartPreviewClientWrapper";
 
 async function getChartPreviewData() {
   const res = await fetch(
@@ -15,5 +15,5 @@ async function getChartPreviewData() {
 export default async function ChartPreviewWrapper() {
   const data = await getChartPreviewData();
 
-  return <ChartPreview data={data} />;
+  return <ChartPreviewClientWrapper data={data} />;
 }

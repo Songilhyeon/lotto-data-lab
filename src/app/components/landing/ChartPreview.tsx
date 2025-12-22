@@ -9,7 +9,6 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-
 interface Props {
   data: {
     topNumbers: { number: number; count: number }[];
@@ -17,7 +16,7 @@ interface Props {
   };
 }
 
-export default function ChartPreview({ data }: Props) {
+export default function ChartPreviewClient({ data }: Props) {
   return (
     <div className="bg-white rounded-2xl border shadow-sm p-6 sm:p-8">
       <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">
@@ -34,10 +33,10 @@ export default function ChartPreview({ data }: Props) {
         <h4 className="text-sm font-semibold text-gray-700 mb-3">
           최근 자주 나온 번호 TOP 5
         </h4>
-        <div className="w-full h-48">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data.topNumbers}>
-              <XAxis dataKey="number" fontSize={12} />
+        <div className="w-full h-40">
+          <ResponsiveContainer width="100%" aspect={3}>
+            <BarChart data={data.rangeStats}>
+              <XAxis dataKey="range" fontSize={12} />
               <YAxis fontSize={12} />
               <Tooltip />
               <Bar dataKey="count" />
@@ -52,7 +51,7 @@ export default function ChartPreview({ data }: Props) {
           번호 구간 분포
         </h4>
         <div className="w-full h-40">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" aspect={3}>
             <BarChart data={data.rangeStats}>
               <XAxis dataKey="range" fontSize={12} />
               <YAxis fontSize={12} />

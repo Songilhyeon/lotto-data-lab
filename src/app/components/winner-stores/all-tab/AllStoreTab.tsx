@@ -7,7 +7,7 @@ import LockOverlay from "@/app/components/winner-stores/LockOverlay";
 import AllStoreItem from "@/app/components/winner-stores/all-tab/AllStoreItem";
 import StoreTimelineModal from "@/app/components/winner-stores/StoreTimelineModal";
 import RankTabs from "@/app/components/winner-stores/RankTabs";
-import { useAuth } from "@/app/context/authContext";
+import useAuthGuard from "@/app/hooks/useAuthGuard";
 import RegionTabs from "@/app/components/winner-stores/RegionTabs";
 import { componentBodyDivStyle } from "@/app/utils/getDivStyle";
 
@@ -19,7 +19,7 @@ interface Props {
 }
 
 export default function AllStoresTab({ selectedRank, setSelectedRank }: Props) {
-  const { user } = useAuth();
+  const { isAuthed } = useAuthGuard();
 
   const [stores, setStores] = useState<GroupedStore[]>([]);
   const [regions, setRegions] = useState<string[]>([]);
@@ -89,7 +89,7 @@ export default function AllStoresTab({ selectedRank, setSelectedRank }: Props) {
   }
 
   return (
-    <div className={`${componentBodyDivStyle()} from-indigo-50 to-purple-100`}>
+    <div className={`${componentBodyDivStyle()} from-violet-50 to-purple-100`}>
       {/* Rank Tabs */}
       <RankTabs
         selectedRank={selectedRank}
@@ -108,7 +108,7 @@ export default function AllStoresTab({ selectedRank, setSelectedRank }: Props) {
 
       <Card className="relative">
         <CardContent className="space-y-5 sm:space-y-6">
-          {!user && <LockOverlay />}
+          {!isAuthed && <LockOverlay />}
 
           {/* 🔍 검색 */}
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">

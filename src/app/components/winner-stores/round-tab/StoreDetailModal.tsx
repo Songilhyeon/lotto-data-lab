@@ -5,7 +5,7 @@ import { LottoStore, StoreHistoryItem } from "@/app/types/stores";
 import { apiUrl } from "@/app/utils/getUtils";
 import { CardContent } from "@/app/components/winner-stores/Card";
 import AddressLink from "../AddressLink";
-import { useAuth } from "@/app/context/authContext";
+import useAuthGuard from "@/app/hooks/useAuthGuard";
 import LockOverlay from "../LockOverlay";
 
 interface StoreDetailModalProps {
@@ -24,7 +24,7 @@ export default function StoreDetailModal({
     2: [],
   });
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const { isAuthed } = useAuthGuard();
 
   useEffect(() => {
     async function fetchHistory() {
@@ -136,7 +136,7 @@ export default function StoreDetailModal({
               )}
             </div>
 
-            {!user && <LockOverlay />}
+            {!isAuthed && <LockOverlay />}
           </div>
         </CardContent>
       </div>

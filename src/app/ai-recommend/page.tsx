@@ -1,5 +1,6 @@
 import AiRecommendClient from "./AiRecommendClient";
 import ComponentHeader from "@/app/components/ComponentHeader";
+import RequireAuth from "@/app/components/RequireAuth";
 
 export const metadata = {
   title: "AI 기반 로또 번호 점수 분석",
@@ -24,7 +25,9 @@ export default function Page() {
         srOnly={true}
       />
 
-      <AiRecommendClient />
+      <RequireAuth>
+        <AiRecommendClient />
+      </RequireAuth>
     </div>
   );
 }

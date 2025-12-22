@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { useAuth } from "@/app/context/authContext";
 import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
 import LottoBall from "@/app/components/LottoBall";
 import DraggableNextRound from "@/app/components/DraggableNextRound";
@@ -19,7 +18,6 @@ export default function PremiumAnalysis() {
   const [result, setResult] = useState<PremiumAnalysisData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
   const [openKey, setOpenKey] = useState<string | null>("recent");
 
   const prevParamsRef = useRef({
@@ -160,21 +158,6 @@ export default function PremiumAnalysis() {
     };
   };
 
-  if (!user)
-    return (
-      <div className="w-full flex justify-center mt-10 px-4">
-        <div className="bg-white shadow-md rounded-xl px-6 py-5 text-center max-w-md">
-          <p className="text-lg font-semibold text-gray-700 mb-2">
-            로그인이 필요해요 😊
-          </p>
-          <p className="text-gray-500 text-sm">
-            이 기능은 로그인 사용자만 이용할 수 있어요. 로그인 후 다시
-            이용해주세요!
-          </p>
-        </div>
-      </div>
-    );
-
   const highlights = result
     ? getHighlightNumbers(result)
     : { maxNumbers: [], minNumbers: [] };
@@ -217,7 +200,7 @@ export default function PremiumAnalysis() {
 
         <div className="flex items-center gap-2">
           <label className="font-medium text-sm sm:text-base">
-            이전 빈도 회차수
+            최근 빈도 회차수
           </label>
           <input
             type="number"

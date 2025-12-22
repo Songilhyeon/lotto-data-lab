@@ -12,7 +12,7 @@ import {
   MethodStats,
   RegionStat,
 } from "@/app/types/stores";
-import { useAuth } from "@/app/context/authContext";
+import useAuthGuard from "@/app/hooks/useAuthGuard";
 import { componentBodyDivStyle } from "@/app/utils/getDivStyle";
 
 interface Props {
@@ -36,7 +36,7 @@ export default function AccumulateTab({
   data,
   setData,
 }: Props) {
-  const { user } = useAuth();
+  const { user } = useAuthGuard();
 
   useEffect(() => {
     async function load() {

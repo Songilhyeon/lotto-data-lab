@@ -1,9 +1,9 @@
 "use client";
 
-import { useAuth } from "@/app/context/authContext";
+import useAuthGuard from "@/app/hooks/useAuthGuard";
 
 function LockOverlay() {
-  const { openLoginModal } = useAuth();
+  const { openLoginModal } = useAuthGuard();
 
   return (
     <div className="absolute inset-0 z-20 pointer-events-none">

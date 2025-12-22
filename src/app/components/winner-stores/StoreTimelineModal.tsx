@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { apiUrl } from "@/app/utils/getUtils";
 import { CardContent } from "@/app/components/winner-stores/Card";
 import AddressLink from "./AddressLink";
-import { useAuth } from "@/app/context/authContext";
+import useAuthGuard from "@/app/hooks/useAuthGuard";
 import LockOverlay from "./LockOverlay";
 
 interface TimelineItem {
@@ -37,7 +37,7 @@ export default function StoreTimelineModal({
   const [timeline, setTimeline] = useState<TimelineYear[]>([]);
   const [loading, setLoading] = useState(true);
   const [yearFilter, setYearFilter] = useState<YearFilter>("3");
-  const { user } = useAuth();
+  const { isAuthed } = useAuthGuard();
   const renderedStreaks = new Set<number>();
 
   useEffect(() => {
@@ -274,7 +274,7 @@ export default function StoreTimelineModal({
               )}
             </div>
 
-            {!user && <LockOverlay />}
+            {!isAuthed && <LockOverlay />}
           </div>
         </CardContent>
       </div>

@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAuth } from "@/app/context/authContext";
 import Link from "next/link";
 import { apiUrl } from "@/app/utils/getUtils";
 import { componentBodyDivStyle } from "@/app/utils/getDivStyle";
 import ComponentHeader from "@/app/components/ComponentHeader";
+import useAuthGuard from "../hooks/useAuthGuard";
 
 interface Post {
   id: string;
@@ -24,7 +24,7 @@ interface PostListResponse {
 const PAGE_SIZE = 10;
 
 export default function BoardClient() {
-  const { user, openLoginModal } = useAuth();
+  const { user, openLoginModal } = useAuthGuard();
   const [posts, setPosts] = useState<Post[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);

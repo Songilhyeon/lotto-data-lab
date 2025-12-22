@@ -1,11 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  NumberScoreDetail,
-  IfAiNextFreqRecommendResult,
-  WeightConfig,
-} from "@/app/types/api";
+import { IfAiNextFreqRecommendResult, WeightConfig } from "@/app/types/api";
 import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
 import { componentBodyDivStyle } from "@/app/utils/getDivStyle";
 import ComponentHeader from "@/app/components/ComponentHeader";
@@ -13,11 +9,12 @@ import ClusterUnitSelector from "@/app/components/ai-recommend/ClusterUnitSelect
 import { LottoDraw } from "@/app/types/lottoNumbers";
 import DraggableNextRound from "@/app/components/DraggableNextRound";
 import LottoBall from "../LottoBall";
+import ScoreBarList from "@/app/components/ai-recommend/ScoreBarList";
 
 export default function AiNextRecommend() {
   const latestRound = getLatestRound(); // 최신 회차
   const [selectedRound, setSelectedRound] = useState<number>(latestRound); // 분석 회차
-  const [clusterUnit, setClusterUnit] = useState<number>(5);
+  const [clusterUnit, setClusterUnit] = useState<number>(7);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<IfAiNextFreqRecommendResult | null>(
     null
@@ -62,56 +59,37 @@ export default function AiNextRecommend() {
     }
   };
 
-  const renderFullScoreBars = (scores: NumberScoreDetail[]) => {
-    if (!scores) return null;
+  /* -----------------------------
+   * nextRound 강조 정보
+   * ----------------------------- */
+  const hitNumberSet = nextRound ? new Set<number>(nextRound.numbers) : null;
 
-    const sorted = [...scores].sort((a, b) => b.final - a.final);
-    const maxScore = Math.max(...sorted.map((s) => s.final));
+  const bonusNumber = nextRound?.bonus;
 
-    return (
-      <div className="mt-4 space-y-2">
-        <h3 className="font-semibold text-sm sm:text-base text-gray-700">
-          🎛 전체 번호 점수 분포 (점수 높은 순)
-        </h3>
-
-        {sorted.map((s) => {
-          const width = (s.final / maxScore) * 100;
-          return (
-            <div key={s.num} className="flex items-center gap-2 sm:gap-3">
-              <span className="w-6 text-sm sm:text-base font-bold">
-                {s.num}
-              </span>
-              <div className="flex-1 bg-gray-200 h-4 rounded overflow-hidden">
-                <div
-                  className="bg-blue-500 h-4 rounded"
-                  style={{ width: `${width}%` }}
-                />
-              </div>
-              <span className="w-14 text-xs sm:text-sm text-gray-600 text-right">
-                {s.final.toFixed(2)}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
-
+  /* -----------------------------
+   * 결과 렌더링
+   * ----------------------------- */
   const renderResult = () => {
     if (loading) return <div>점수 분석 중...</div>;
     if (!result) return <div>분석 결과가 없습니다.</div>;
 
     return (
       <div className="mt-2 p-4 border rounded bg-green-50">
-        {/* 점수 기반 상위 번호 */}
-        <div className="flex flex-wrap gap-2 mb-2">
+        {/* 추천 번호 */}
+        <div className="flex flex-wrap gap-2 mb-4">
           {result.combination.map((n) => (
             <LottoBall key={n} number={n} size="lg" />
           ))}
         </div>
 
-        {/* 전체 점수 그래프 */}
-        {result.scores && renderFullScoreBars(result.scores)}
+        {/* 점수 바 */}
+        {result.scores && (
+          <ScoreBarList
+            scores={result.scores}
+            hitNumberSet={hitNumberSet}
+            bonusNumber={bonusNumber}
+          />
+        )}
       </div>
     );
   };

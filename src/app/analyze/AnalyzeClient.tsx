@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useAuth } from "@/app/context/authContext";
 import { gaEvent } from "@/app/lib/gtag";
 
 import OneRoundInfo from "@/app/components/analyze/OneRoundInfo";
@@ -12,14 +11,17 @@ import NextPatterns from "@/app/components/analyze/NextPatterns";
 import NumberLab from "@/app/components/analyze/NumberLab";
 import NumberRangeMatch from "@/app/components/analyze/NumberRange";
 import PremiumAnalysis from "@/app/components/analyze/PremiumAnalysis";
+import RequireAuth from "../components/RequireAuth";
+import BasicSummary from "@/app/components/analyze/BasicSummary";
 
 // 모든 탭 정의
 const allTabs = [
   { id: "oneRound", label: "회차 정보", premiumOnly: false },
   { id: "multiRound", label: "기간별 정보", premiumOnly: false },
+  { id: "basicSummary", label: "기본 분석", premiumOnly: false },
   { id: "numberFrequency", label: "번호별 빈도수", premiumOnly: false },
   { id: "numberRange", label: "번호 구간", premiumOnly: false },
-  { id: "next", label: "다음 회차 분석", premiumOnly: false },
+  { id: "next", label: "일치 개수", premiumOnly: false },
   { id: "numberLab", label: "번호 실험실", premiumOnly: false },
   { id: "premiumAnalysis", label: "통합 정보", premiumOnly: false },
 ];
@@ -27,10 +29,10 @@ const allTabs = [
 export default function AnalyzeClient() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { user } = useAuth();
 
   const availableTabs = allTabs.filter(
-    (tab) => !tab.premiumOnly || user?.role === "PREMIUM"
+    // (tab) => !tab.premiumOnly || user?.role === "PREMIUM"
+    (tab) => !tab.premiumOnly
   );
 
   // 🔥 URL 쿼리 기반 초기 탭
@@ -59,12 +61,18 @@ export default function AnalyzeClient() {
         return <OneRoundInfo />;
       case "multiRound":
         return <MultiRoundInfo />;
+      case "basicSummary":
+        return <BasicSummary />;
       case "numberFrequency":
         return <NumberFrequency />;
       case "numberRange":
         return <NumberRangeMatch />;
       case "premiumAnalysis":
-        return <PremiumAnalysis />;
+        return (
+          <RequireAuth>
+            <PremiumAnalysis />;
+          </RequireAuth>
+        );
       case "next":
         return <NextPatterns />;
       case "numberLab":

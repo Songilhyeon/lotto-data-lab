@@ -34,7 +34,8 @@ export default function LandingPage() {
       <HomeDashboardSummary />
 
       {/* 📊 과거 통계 미리보기 */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12 grid gap-8 md:grid-cols-2">
+      {/* <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12 grid gap-8 md:grid-cols-2"> */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12 grid gap-8 md:grid-cols-2 min-w-0">
         <ChartPreviewWrapper />
 
         {/* 🔮 다음 회차 분석 요약 */}

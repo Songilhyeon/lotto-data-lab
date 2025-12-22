@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
-import { useAuth } from "@/app/context/authContext";
+import useAuthGuard from "@/app/hooks/useAuthGuard";
 
 interface TossPaymentsWindow extends Window {
   TossPayments?: {
@@ -12,7 +12,7 @@ interface TossPaymentsWindow extends Window {
 }
 
 export default function PremiumPage() {
-  const { user, openLoginModal } = useAuth();
+  const { user, openLoginModal } = useAuthGuard();
   const currentRound = getLatestRound();
 
   const [trendText, setTrendText] = useState<string>(

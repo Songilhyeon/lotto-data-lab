@@ -1,19 +1,19 @@
 "use client";
 import { useState } from "react";
-import { useAuth } from "@/app/context/authContext";
+import useAuthGuard from "../hooks/useAuthGuard";
 import { apiUrl } from "../utils/getUtils";
 
 export default function SubscriptionButtons() {
-  const { user } = useAuth();
+  const { isAuthed, user } = useAuthGuard();
   const [loading, setLoading] = useState(false);
 
   const startFreeTrial = async () => {
-    if (!user) return;
+    if (!isAuthed) return;
     setLoading(true);
     await fetch(`${apiUrl}/subscription/free`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: user.id }),
+      body: JSON.stringify({ userId: user!.id }),
     });
     setLoading(false);
   };

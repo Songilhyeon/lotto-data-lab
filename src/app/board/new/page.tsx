@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAuth } from "@/app/context/authContext";
 import { apiUrl } from "@/app/utils/getUtils";
 import { useRouter } from "next/navigation";
 import { componentBodyDivStyle } from "@/app/utils/getDivStyle";
+import useAuthGuard from "@/app/hooks/useAuthGuard";
 
 interface PostResponse {
   ok: boolean;
@@ -14,7 +14,7 @@ interface PostResponse {
 const MAX_CONTENT_LENGTH = 2000;
 
 export default function NewPostPage() {
-  const { user, openLoginModal } = useAuth();
+  const { isAuthed, openLoginModal } = useAuthGuard();
   const router = useRouter();
 
   const [title, setTitle] = useState("");
@@ -24,8 +24,8 @@ export default function NewPostPage() {
 
   /** 🔐 비로그인 시 로그인 모달 */
   useEffect(() => {
-    if (!user) openLoginModal();
-  }, [user, openLoginModal]);
+    if (!isAuthed) openLoginModal();
+  }, [isAuthed, openLoginModal]);
 
   /** ⚠️ 작성 중 이탈 방지 */
   useEffect(() => {
@@ -39,7 +39,7 @@ export default function NewPostPage() {
     return () => window.removeEventListener("beforeunload", handler);
   }, [title, content]);
 
-  if (!user) return null;
+  if (!isAuthed) return null;
 
   const submit = async () => {
     if (loading) return;

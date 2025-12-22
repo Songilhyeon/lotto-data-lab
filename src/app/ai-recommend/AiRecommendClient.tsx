@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAuth } from "../context/authContext";
 import { gaEvent } from "@/app/lib/gtag";
 import AiRecommend from "@/app/components/ai-recommend/AiRecommend";
 import AiNextRecommend from "@/app/components/ai-recommend/AiNextRecommend";
@@ -15,29 +14,14 @@ const allTabs = [
 
 export default function AiRecommendClient() {
   const [activeTab, setActiveTab] = useState("AiRecommend");
-  const { user } = useAuth();
 
   useEffect(() => {
     gaEvent("tab_change", { tab_id: activeTab });
   }, [activeTab]);
 
-  if (!user)
-    return (
-      <div className="w-full flex justify-center mt-10 px-4">
-        <div className="bg-white shadow-md rounded-xl px-4 py-5 text-center sm:px-6 sm:py-6">
-          <p className="text-lg font-semibold text-gray-700 mb-2">
-            로그인이 필요해요 😊
-          </p>
-          <p className="text-gray-500 text-sm">
-            이 기능은 로그인 사용자만 이용할 수 있어요. 로그인 후 다시
-            이용해주세요!
-          </p>
-        </div>
-      </div>
-    );
-
   const availableTabs = allTabs.filter(
-    (tab) => !tab.premiumOnly || user?.role === "PREMIUM"
+    // (tab) => !tab.premiumOnly || user?.role === "PREMIUM"
+    (tab) => !tab.premiumOnly
   );
 
   return (
