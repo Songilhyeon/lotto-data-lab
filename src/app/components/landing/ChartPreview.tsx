@@ -35,8 +35,8 @@ export default function ChartPreviewClient({ data }: Props) {
         </h4>
         <div className="w-full h-40">
           <ResponsiveContainer width="100%" aspect={3}>
-            <BarChart data={data.rangeStats}>
-              <XAxis dataKey="range" fontSize={12} />
+            <BarChart data={data.topNumbers}>
+              <XAxis dataKey="number" fontSize={12} />
               <YAxis fontSize={12} />
               <Tooltip />
               <Bar dataKey="count" />

@@ -101,6 +101,24 @@ export default function BasicSummary() {
     ).length,
   }));
 
+  const ranges7 = Array.from({ length: 7 }, (_, i) => {
+    const start = i * 7 + 1;
+    const end = i === 6 ? 45 : start + 6;
+    return {
+      range: `${start}-${end}`,
+      count: allNumbers.filter((n) => n >= start && n <= end).length,
+    };
+  });
+
+  const ranges5 = Array.from({ length: 9 }, (_, i) => {
+    const start = i * 5 + 1;
+    const end = i === 8 ? 45 : start + 4;
+    return {
+      range: `${start}-${end}`,
+      count: allNumbers.filter((n) => n >= start && n <= end).length,
+    };
+  });
+
   // -------------------
   // 연속 번호
   // -------------------
@@ -263,6 +281,33 @@ export default function BasicSummary() {
               <YAxis allowDecimals={false} />
               <RechartTooltip />
               <Bar dataKey="count" fill="#8b5cf6" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* 7단위 / 5단위 구간 */}
+      <div className="flex flex-col md:flex-row gap-6 mt-6">
+        <div className="flex-1 bg-white rounded-xl shadow p-4">
+          <h3 className="text-sm font-semibold mb-2">7단위 구간 통계</h3>
+          <ResponsiveContainer width="100%" height={180}>
+            <BarChart data={ranges7}>
+              <XAxis dataKey="range" fontSize={12} />
+              <YAxis allowDecimals={false} />
+              <RechartTooltip />
+              <Bar dataKey="count" fill="#06b6d4" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="flex-1 bg-white rounded-xl shadow p-4">
+          <h3 className="text-sm font-semibold mb-2">5단위 구간 통계</h3>
+          <ResponsiveContainer width="100%" height={180}>
+            <BarChart data={ranges5}>
+              <XAxis dataKey="range" fontSize={12} />
+              <YAxis allowDecimals={false} />
+              <RechartTooltip />
+              <Bar dataKey="count" fill="#22c55e" />
             </BarChart>
           </ResponsiveContainer>
         </div>

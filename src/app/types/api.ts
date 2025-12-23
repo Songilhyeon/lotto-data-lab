@@ -15,8 +15,9 @@ export interface NumberScoreDetail {
   pattern: number;
   cluster: number;
   random: number;
-  nextFreq?: number;
-  final: number;
+  nextFreq: number;
+  finalRaw: number; // ✅ 원본 점수
+  final: number; // ✅ 정규화 점수 (0~100)
 }
 
 // 일반 AI 추천 결과
@@ -99,3 +100,41 @@ export const AiPresets: AiPreset[] = [
     },
   },
 ];
+
+export interface AiScoreBase {
+  num: number;
+
+  /** 내부 계산 점수 (raw) */
+  finalRaw: number;
+
+  /** UI 표시용 점수 (0~100) */
+  final: number;
+
+  // --------------------
+  // 공통 feature
+  // --------------------
+  hot?: number;
+  cold?: number;
+
+  // streak
+  streakRun?: number; // Independent
+  streak?: number; // Next / Advanced
+
+  // pattern
+  patternScore?: number; // Independent
+  pattern?: number; // Next / Advanced
+
+  // cluster / density
+  density?: number; // Independent
+  cluster?: number; // Next / Advanced
+
+  // decay
+  decayScore?: number;
+
+  // random
+  noise?: number;
+  random?: number;
+
+  // next-round
+  nextFreq?: number;
+}

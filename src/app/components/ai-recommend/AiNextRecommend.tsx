@@ -20,6 +20,9 @@ export default function AiNextRecommend() {
     null
   );
   const [nextRound, setNextRound] = useState<LottoDraw | null>(null);
+  const [scoreMode, setScoreMode] = useState<"raw" | "normalized">(
+    "normalized"
+  );
 
   // weight 기본값
   const weights: WeightConfig = {
@@ -86,6 +89,7 @@ export default function AiNextRecommend() {
         {result.scores && (
           <ScoreBarList
             scores={result.scores}
+            mode={scoreMode}
             hitNumberSet={hitNumberSet}
             bonusNumber={bonusNumber}
           />
@@ -181,13 +185,34 @@ export default function AiNextRecommend() {
         </span>
       </div>
 
-      {/* 분석 실행 버튼 */}
-      <button
-        onClick={fetchAnalysis}
-        className="bg-green-500 text-white px-4 py-2 sm:px-6 sm:py-3 rounded mb-4 w-full sm:w-auto text-sm sm:text-base font-medium shadow-md hover:bg-green-600 active:bg-green-700 transition-colors"
-      >
-        점수 분석 실행
-      </button>
+      {/* 실행 */}
+      <div className="flex gap-2 mb-2">
+        <button
+          onClick={fetchAnalysis}
+          className="bg-green-500 text-white px-4 py-2 sm:px-6 sm:py-3 rounded mb-4 w-full sm:w-auto font-medium shadow-md hover:bg-green-600"
+        >
+          점수 분석 실행
+        </button>
+        <button
+          onClick={() => setScoreMode("normalized")}
+          className={`px-4 py-2 sm:px-6 sm:py-3 rounded mb-4 w-full sm:w-auto font-medium shadow-md ${
+            scoreMode === "normalized"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-200"
+          }`}
+        >
+          정규화 점수
+        </button>
+
+        <button
+          onClick={() => setScoreMode("raw")}
+          className={`px-4 py-2 sm:px-6 sm:py-3 rounded mb-4 w-full sm:w-auto font-medium shadow-md ${
+            scoreMode === "raw" ? "bg-blue-600 text-white" : "bg-gray-200"
+          }`}
+        >
+          원본 점수
+        </button>
+      </div>
 
       {nextRound && (
         <div className="min-w-0">

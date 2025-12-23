@@ -7,6 +7,7 @@ import {
   WeightConfig,
   AiPreset,
   AiPresets,
+  AiScoreBase,
 } from "@/app/types/api";
 import { componentBodyDivStyle } from "@/app/utils/getDivStyle";
 import ComponentHeader from "@/app/components/ComponentHeader";
@@ -16,6 +17,7 @@ import { LottoDraw } from "@/app/types/lottoNumbers";
 import DraggableNextRound from "@/app/components/DraggableNextRound";
 import LottoBall from "../LottoBall";
 import ScoreBarList from "@/app/components/ai-recommend/ScoreBarList";
+import AiScoreExplainCard from "@/app/components/ai-recommend/AiScoreExplainCard";
 
 export default function AiAdvancedRecommend() {
   const latestRound = getLatestRound();
@@ -27,6 +29,10 @@ export default function AiAdvancedRecommend() {
   const [loading, setLoading] = useState(false);
   const [weights, setWeights] = useState<WeightConfig>({ ...preset.weight });
   const [nextRound, setNextRound] = useState<LottoDraw | null>(null);
+  const [scoreMode, setScoreMode] = useState<"raw" | "normalized">(
+    "normalized"
+  );
+  const [selectedScore, setSelectedScore] = useState<AiScoreBase | null>(null);
 
   /* -----------------------------
    * Preset / Weight
@@ -97,8 +103,10 @@ export default function AiAdvancedRecommend() {
         {result.scores && (
           <ScoreBarList
             scores={result.scores}
+            mode={scoreMode}
             hitNumberSet={hitNumberSet}
             bonusNumber={bonusNumber}
+            onSelect={setSelectedScore}
           />
         )}
       </div>
@@ -111,8 +119,8 @@ export default function AiAdvancedRecommend() {
   return (
     <div className={`${componentBodyDivStyle()} from-pink-50 to-indigo-100`}>
       <ComponentHeader
-        title="🤖 AI 기반 심층 점수 분석"
-        content={`과거 당첨 흐름, 번호가 겹치는 정도, 번호 구간별 특징, 최근에 자주 나온 번호 등을 모두 활용하여 각 번호를 점수화 합니다.
+        title="🤖 심층 모델"
+        content={`과거 당첨 흐름, 번호 일치, 구간별 특징, 최근 출현 번호 등을 활용하여 번호를 점수화 합니다.
 회차를 선택하여 과거 회차에 어떤 번호가 당첨 되었는지 분석할 수 있습니다.`}
       />
 
@@ -194,12 +202,33 @@ export default function AiAdvancedRecommend() {
       </div>
 
       {/* 실행 */}
-      <button
-        onClick={fetchAnalysis}
-        className="bg-green-500 text-white px-4 py-2 rounded mb-4"
-      >
-        점수 분석 실행
-      </button>
+      <div className="flex gap-2 mb-2">
+        <button
+          onClick={fetchAnalysis}
+          className="bg-green-500 text-white px-4 py-2 sm:px-6 sm:py-3 rounded mb-4 w-full sm:w-auto font-medium shadow-md hover:bg-green-600"
+        >
+          점수 분석 실행
+        </button>
+        <button
+          onClick={() => setScoreMode("normalized")}
+          className={`px-4 py-2 sm:px-6 sm:py-3 rounded mb-4 w-full sm:w-auto font-medium shadow-md ${
+            scoreMode === "normalized"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-200"
+          }`}
+        >
+          정규화 점수
+        </button>
+
+        <button
+          onClick={() => setScoreMode("raw")}
+          className={`px-4 py-2 sm:px-6 sm:py-3 rounded mb-4 w-full sm:w-auto font-medium shadow-md ${
+            scoreMode === "raw" ? "bg-blue-600 text-white" : "bg-gray-200"
+          }`}
+        >
+          원본 점수
+        </button>
+      </div>
 
       {nextRound && (
         <div className="min-w-0">
@@ -207,6 +236,7 @@ export default function AiAdvancedRecommend() {
         </div>
       )}
 
+      {selectedScore && <AiScoreExplainCard score={selectedScore} />}
       <div className="overflow-y-auto max-h-[80vh]">{renderResult()}</div>
     </div>
   );

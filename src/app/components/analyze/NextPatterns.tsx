@@ -194,30 +194,6 @@ export default function NextPatterns() {
         <div className="shrink-0">
           <LookUpButton onClick={fetchData} loading={loading} />
         </div>
-
-        <div className="w-full sm:w-auto bg-white rounded-2xl shadow-xl p-3 sm:p-4">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-center gap-3">
-            <h2 className="text-base sm:text-lg font-semibold text-gray-800 shrink-0">
-              기준 회차와 당첨 번호 일치 개수
-            </h2>
-
-            <div className="flex flex-wrap gap-2 justify-start md:justify-center">
-              {[1, 2, 3, 4].map((match) => (
-                <button
-                  key={match}
-                  onClick={() => setMinMatch(match)}
-                  className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all shadow-sm ${
-                    minMatch === match
-                      ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white transform scale-105 shadow-lg"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  {match === 4 ? "4개 이상" : `${match}개`}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Loading */}
@@ -251,26 +227,50 @@ export default function NextPatterns() {
 
       {/* Selected Round Info */}
       {!loading && selectedRound && (
-        <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
+        <div className="bg-white rounded-2xl shadow-xl p-3 sm:p-6 mb-6">
           <div className="flex flex-col lg:flex-row gap-4">
+            {/* 일치 개수 선택 */}
+            <div className="w-full lg:w-auto bg-white rounded-2xl shadow-md p-3 sm:p-4">
+              <div className="flex flex-col gap-3 items-center">
+                <h2 className="text-sm sm:text-base font-semibold text-gray-800 text-center">
+                  당첨 번호 일치 개수 선택
+                </h2>
+
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {[1, 2, 3, 4].map((match) => (
+                    <button
+                      key={match}
+                      onClick={() => setMinMatch(match)}
+                      className={`px-3 py-2 sm:px-4 sm:py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all ${
+                        minMatch === match
+                          ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white scale-105 shadow-md"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      }`}
+                    >
+                      {match === 4 ? "4개 이상" : `${match}개`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
             {/* 기준 회차 */}
-            <div className="flex-1 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 border-2 border-green-200">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-lg font-bold text-gray-800">
+            <div className="flex-1 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-3 sm:p-4 border border-green-200">
+              <div className="text-center mb-3">
+                <span className="text-base sm:text-lg font-bold text-gray-800">
                   📌 기준 회차: {selectedRound.round}회
                 </span>
               </div>
+
               <div className="flex flex-wrap gap-2 justify-center items-center">
                 {selectedRound.numbers.map((num, index) => (
-                  <div key={index}>
-                    <LottoBall number={num} />
-                  </div>
+                  <LottoBall key={index} number={num} />
                 ))}
-                {/* 보너스 */}
+
                 {includeBonus && selectedRound?.bonus && (
                   <div className="flex items-center">
-                    <span className="mx-1 text-sm font-semibold text-yellow-600">
-                      /
+                    <span className="mx-1 text-xs sm:text-sm font-semibold text-yellow-600">
+                      +
                     </span>
                     <LottoBall number={selectedRound.bonus} />
                   </div>
@@ -278,22 +278,24 @@ export default function NextPatterns() {
               </div>
             </div>
 
-            {/* 검색 결과 + 다음 회차 */}
-            <div className="w-full lg:w-96 flex flex-col gap-3">
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border-2 border-blue-200 flex items-center justify-center">
-                <div className="text-center">
-                  <p className="text-sm text-gray-600 mb-1">검색 결과</p>
-                  <p className="text-2xl font-bold text-gray-800">
-                    {results.length}
-                    <span className="text-base font-normal text-gray-600">
-                      {" "}
-                      / {end - start + 1} 회차
-                    </span>
-                  </p>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {minMatch === 4 ? "4개 이상" : `${minMatch}개`} 일치
-                  </p>
-                </div>
+            {/* 검색 결과 */}
+            <div className="w-full lg:w-80">
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200 text-center">
+                <p className="text-xs sm:text-sm text-gray-600 mb-1">
+                  검색 결과
+                </p>
+
+                <p className="text-xl sm:text-2xl font-bold text-gray-800">
+                  {results.length}
+                  <span className="text-sm sm:text-base font-normal text-gray-600">
+                    {" "}
+                    / {end - start + 1} 회차
+                  </span>
+                </p>
+
+                <p className="text-xs sm:text-sm text-gray-600 mt-1">
+                  {minMatch === 4 ? "4개 이상" : `${minMatch}개`} 일치
+                </p>
               </div>
             </div>
           </div>

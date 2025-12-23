@@ -1,12 +1,14 @@
 "use client";
 
-import { NumberScoreDetail } from "@/app/types/api";
+import { AiScoreBase } from "@/app/types/api";
 
 interface ScoreBarListProps {
-  scores: NumberScoreDetail[];
+  scores: AiScoreBase[];
+  mode?: "raw" | "normalized";
   hitNumberSet?: Set<number> | null;
   bonusNumber?: number;
   title?: string;
+  onSelect?: (score: AiScoreBase) => void;
 }
 
 export default function ScoreBarList({
@@ -14,47 +16,48 @@ export default function ScoreBarList({
   hitNumberSet,
   bonusNumber,
   title = "🎛 전체 번호 점수 분포 (점수 높은 순)",
+  onSelect,
+  mode = "raw", // 기본값 raw
 }: ScoreBarListProps) {
   if (!scores || scores.length === 0) return null;
 
-  const sorted = [...scores].sort((a, b) => b.final - a.final);
-  const maxScore = Math.max(...sorted.map((s) => s.final));
+  // mode에 따라 점수 선택
+  const getScore = (s: AiScoreBase) => {
+    if (mode === "normalized") return s.final ?? s.finalRaw;
+    return s.finalRaw;
+  };
+
+  const sorted = [...scores].sort((a, b) => getScore(b) - getScore(a));
+  const maxScore = Math.max(...sorted.map(getScore));
 
   return (
     <div className="mt-4 space-y-2">
       <h3 className="font-semibold text-sm sm:text-base text-gray-700">
-        {title}
+        {title} ({mode})
       </h3>
 
       {sorted.map((s) => {
-        const width = (s.final / maxScore) * 100;
+        const score = getScore(s);
+        const width = (score / maxScore) * 100;
         const isHit = hitNumberSet?.has(s.num);
         const isBonus = bonusNumber === s.num;
 
         return (
           <div
             key={s.num}
-            className={`flex items-center gap-2 sm:gap-3 px-1 rounded ${
-              isBonus ? "bg-purple-50" : isHit ? "bg-yellow-50" : ""
-            }`}
+            onClick={() => onSelect?.(s)}
+            className={`flex items-center gap-2 sm:gap-3 px-1 rounded cursor-pointer
+              hover:bg-blue-50 transition
+              ${isBonus ? "bg-purple-50" : isHit ? "bg-yellow-50" : ""}
+            `}
           >
             {/* 번호 */}
-            <span
-              className={`w-6 text-sm sm:text-base font-bold ${
-                isBonus
-                  ? "text-green-700"
-                  : isHit
-                  ? "text-red-600"
-                  : "text-gray-800"
-              }`}
-            >
-              {s.num}
-            </span>
+            <span className="w-6 font-bold">{s.num}</span>
 
             {/* 점수 바 */}
             <div className="flex-1 bg-gray-200 h-4 rounded overflow-hidden">
               <div
-                className={`h-4 rounded transition-all ${
+                className={`h-4 rounded ${
                   isBonus
                     ? "bg-green-500"
                     : isHit
@@ -66,17 +69,7 @@ export default function ScoreBarList({
             </div>
 
             {/* 점수 */}
-            <span className="w-14 text-xs sm:text-sm text-gray-600 text-right">
-              {s.final.toFixed(2)}
-            </span>
-
-            {/* 아이콘 */}
-            {/* {isHit && !isBonus && (
-              <span className="text-xs font-semibold text-red-600">🎯</span>
-            )}
-            {isBonus && (
-              <span className="text-xs font-semibold text-purple-600">⭐</span>
-            )} */}
+            <span className="w-14 text-xs text-right">{score.toFixed(1)}</span>
           </div>
         );
       })}

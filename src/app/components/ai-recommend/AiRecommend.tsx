@@ -18,6 +18,9 @@ export default function AiRecommend() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<IfAiRecommendResult | null>(null);
   const [nextRound, setNextRound] = useState<LottoDraw | null>(null);
+  const [scoreMode, setScoreMode] = useState<"raw" | "normalized">(
+    "normalized"
+  );
 
   const fetchAnalysis = async () => {
     setLoading(true);
@@ -54,6 +57,7 @@ export default function AiRecommend() {
         {result.scores && (
           <ScoreBarList
             scores={result.scores}
+            mode={scoreMode}
             hitNumberSet={hitNumberSet}
             bonusNumber={bonusNumber}
           />
@@ -67,7 +71,7 @@ export default function AiRecommend() {
       {/* Header */}
       <ComponentHeader
         title="🛡️ 기본 모델"
-        content={`가장 많이 나온 번호, 자주 함께 등장한 조합, 번호 그룹 경향 등 기본적인 통계만으로 안정적으로 점수를 계산하는 모델입니다.
+        content={`출현 빈도, 자주 출현 조합, 번호 그룹 등 기본적인 통계만으로 점수를 계산하는 모델입니다.
                   회차를 선택하여 과거 회차에 어떤 번호가 당첨 되었는지 분석할 수 있습니다.`}
       />
 
@@ -149,13 +153,34 @@ export default function AiRecommend() {
         </span>
       </div>
 
-      {/* 분석 실행 버튼 */}
-      <button
-        onClick={fetchAnalysis}
-        className="bg-green-500 text-white px-4 py-2 sm:px-6 sm:py-3 rounded mb-4 w-full sm:w-auto text-sm sm:text-base font-medium shadow-md hover:bg-green-600"
-      >
-        점수 분석 실행
-      </button>
+      {/* 실행 */}
+      <div className="flex gap-2 mb-2">
+        <button
+          onClick={fetchAnalysis}
+          className="bg-green-500 text-white px-4 py-2 sm:px-6 sm:py-3 rounded mb-4 w-full sm:w-auto font-medium shadow-md hover:bg-green-600"
+        >
+          점수 분석 실행
+        </button>
+        <button
+          onClick={() => setScoreMode("normalized")}
+          className={`px-4 py-2 sm:px-6 sm:py-3 rounded mb-4 w-full sm:w-auto font-medium shadow-md ${
+            scoreMode === "normalized"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-200"
+          }`}
+        >
+          정규화 점수
+        </button>
+
+        <button
+          onClick={() => setScoreMode("raw")}
+          className={`px-4 py-2 sm:px-6 sm:py-3 rounded mb-4 w-full sm:w-auto font-medium shadow-md ${
+            scoreMode === "raw" ? "bg-blue-600 text-white" : "bg-gray-200"
+          }`}
+        >
+          원본 점수
+        </button>
+      </div>
 
       {nextRound && (
         <div className="min-w-0">

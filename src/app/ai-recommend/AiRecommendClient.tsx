@@ -5,11 +5,13 @@ import { gaEvent } from "@/app/lib/gtag";
 import AiRecommend from "@/app/components/ai-recommend/AiRecommend";
 import AiNextRecommend from "@/app/components/ai-recommend/AiNextRecommend";
 import AiAdvancedRecommend from "@/app/components/ai-recommend/AiAdvancedRecommend";
+import AiVariantRecommend from "@/app/components/ai-recommend/AiVariantRecommend";
 
 const allTabs = [
-  { id: "AiRecommend", label: "기본 분석", premiumOnly: false },
-  { id: "AiNextRecommend", label: "다음 회차 기반 분석", premiumOnly: false },
-  { id: "AiAdvancedRecommend", label: "심층 분석", premiumOnly: false },
+  { id: "AiRecommend", label: "기본 점수 분석", premiumOnly: false },
+  { id: "AiNextRecommend", label: "다음 회차 분석", premiumOnly: false },
+  { id: "AiVariantRecommend", label: "전략 시뮬레이션", premiumOnly: false },
+  { id: "AiAdvancedRecommend", label: "심층 점수 모델", premiumOnly: false },
 ];
 
 export default function AiRecommendClient() {
@@ -69,6 +71,14 @@ export default function AiRecommendClient() {
           }}
         >
           <AiAdvancedRecommend />
+        </div>
+
+        <div
+          style={{
+            display: activeTab === "AiVariantRecommend" ? "block" : "none",
+          }}
+        >
+          <AiVariantRecommend />
         </div>
       </div>
     </div>
