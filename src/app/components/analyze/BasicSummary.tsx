@@ -66,11 +66,24 @@ export default function BasicSummary() {
     fetchData();
   }, [includeBonus]);
 
+  const handleEndChange = (value: number) => {
+    if (value < start) setStart(value);
+    setEnd(value);
+    setSelectedRecent(null);
+  };
+
+  const handleStartChange = (value: number) => {
+    if (value > end) setEnd(value);
+    setStart(value);
+    setSelectedRecent(null);
+  };
+
   const handleRecent = (count: number) => {
     setSelectedRecent(count);
     setStart(Math.max(1, end - count + 1));
     if (count === latestRound) setEnd(count);
   };
+
   const clearRecentSelect = () => setSelectedRecent(null);
 
   // -------------------
@@ -216,15 +229,15 @@ export default function BasicSummary() {
         title="📊 번호 패턴 요약"
         content="선택된 회차 범위 동안의 기본 통계를 확인할 수 있습니다."
       />
-      <div className={rangeFilterDivStyle}>
+      <div className={rangeFilterDivStyle + " mt-4 sm:mt-6"}>
         <RangeFilterBar
           start={start}
           end={end}
           latest={latestRound}
           includeBonus={includeBonus}
           selectedRecent={selectedRecent}
-          setStart={setStart}
-          setEnd={setEnd}
+          setStart={handleStartChange}
+          setEnd={handleEndChange}
           setIncludeBonus={setIncludeBonus}
           onRecentSelect={handleRecent}
           clearRecentSelect={clearRecentSelect}
