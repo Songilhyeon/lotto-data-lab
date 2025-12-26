@@ -120,7 +120,7 @@ export default function AiAdvancedRecommend() {
     <div className={`${componentBodyDivStyle()} from-pink-50 to-indigo-100`}>
       <ComponentHeader
         title="🤖 심층 모델"
-        content={`과거 당첨 흐름, 번호 일치, 구간별 특징, 최근 출현 번호 등을 활용하여 번호를 점수화 합니다.
+        content={`7가지 분석 가중치를 직접 조절하는 맞춤형 AI 모델.
 회차를 선택하여 과거 회차에 어떤 번호가 당첨 되었는지 분석할 수 있습니다.`}
       />
 
@@ -205,7 +205,7 @@ export default function AiAdvancedRecommend() {
       <div className="flex gap-2 mb-2">
         <button
           onClick={fetchAnalysis}
-          className="bg-green-500 text-white px-4 py-2 sm:px-6 sm:py-3 rounded mb-4 w-full sm:w-auto font-medium shadow-md hover:bg-green-600"
+          className="bg-green-500 text-white px-4 py-2 sm:px-6 sm:py-3 rounded mb-4 w-full sm:w-auto font-medium shadow-md hover:bg-green-600 active:scale-95"
         >
           점수 분석 실행
         </button>

@@ -42,7 +42,9 @@ export default function Header() {
         <div className="h-14 md:h-16 max-w-6xl mx-auto px-4 md:px-6 flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center gap-2">
-            <Logo />
+            <Link href="/" className="cursor-pointer">
+              <Logo />
+            </Link>
           </div>
 
           {/* Desktop Nav */}

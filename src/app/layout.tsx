@@ -5,6 +5,8 @@ import Footer from "@/app/components/Footer";
 import { AuthProvider } from "@/app/context/authContext";
 import Script from "next/script";
 import { PageViewProvider } from "@/app/PageViewProvider";
+import { PickNumberProvider } from "@/app/context/pickNumberContext";
+import FloatingPickButton from "@/app/components/FloatingPickButton";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -72,7 +74,10 @@ export default function RootLayout({
         <AuthProvider>
           <PageViewProvider>
             <Header />
-            <main>{children}</main>
+            <PickNumberProvider>
+              <main>{children}</main>
+              <FloatingPickButton />
+            </PickNumberProvider>
             <Footer />
           </PageViewProvider>
         </AuthProvider>

@@ -18,7 +18,7 @@ export default function Logo() {
           rounded-full
         "
       />
-      <span className="ml-3 text-xl sm:text-2xl md:text-3xl font-bold text-yellow-500">
+      <span className="ml-3 text-sm md:text-md font-bold text-yellow-500">
         Lotto Data Lab
       </span>
     </div>

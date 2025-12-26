@@ -49,9 +49,22 @@ export default function LottoBall({
     : "scale-90";
 
   // ⭐ max/min 강조 테두리
+  // const highlightClasses = clsx({
+  //   "ring-4 ring-red-500": highlightMax,
+  //   "ring-4 ring-blue-500": highlightMin,
+  // });
+  // const highlightClasses = clsx({
+  //   "shadow-xl shadow-red-500": highlightMax,
+  //   "shadow-xl shadow-blue-500": highlightMin,
+  // });
   const highlightClasses = clsx({
-    "ring-4 ring-red-500": highlightMax,
-    "ring-4 ring-blue-500": highlightMin,
+    // 최대 빈도 → 밝은 황금빛 glow
+    "shadow-[0_0_0_3px_rgba(255,0,0,0.1),0_0_12px_6px_rgba(255,0,0,1)]":
+      highlightMax,
+
+    // 최소 빈도 → 밝은 하늘색 glow
+    "shadow-[0_0_0_3px_rgba(0,0,255,0.1),0_0_12px_6px_rgba(0,0,255,1)]":
+      highlightMin,
   });
 
   return (

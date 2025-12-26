@@ -16,7 +16,7 @@ const defaultLabels: Record<keyof WeightConfig, string> = {
   pattern: "패턴 조합 영향",
   cluster: "번호 그룹/클러스터 영향",
   random: "무작위 요소 영향",
-  nextFreq: "이전 → 다음 번호 연관성 영향",
+  nextFreq: "이전 → 다음 회차 연관성 영향",
 };
 
 const WeightSliderGroup: React.FC<WeightSliderGroupProps> = ({

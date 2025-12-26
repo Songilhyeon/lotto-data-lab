@@ -27,12 +27,12 @@ export default function AiNextRecommend() {
   // weight 기본값
   const weights: WeightConfig = {
     hot: 1,
-    cold: 1,
+    cold: 0.5,
     streak: 1,
     pattern: 1,
-    cluster: 1,
+    cluster: 0.5,
     random: 1,
-    nextFreq: 1,
+    nextFreq: 5, // 🎯 50% 비중! (다른 모든 것의 합보다 큼)
   };
 
   const fetchAnalysis = async () => {
@@ -103,7 +103,7 @@ export default function AiNextRecommend() {
       {/* Header */}
       <ComponentHeader
         title="📊 다음 회차 기반 모델"
-        content={`이전 회차 번호가 다음 회차에 어떤 번호로 이어졌는지 분석하여 각 번호를 점수화하는 모델입니다. 
+        content={`번호 간 '이어짐 패턴'을 분석하여, 이전 회차에서 다음 회차로 이어질 가능성이 높은 번호를 점수화한 AI 모델. 
                   회차를 선택하여 과거 회차에 어떤 번호가 당첨 되었는지 분석할 수 있습니다.`}
       />
 

@@ -6,10 +6,7 @@ function LockOverlay() {
   const { openLoginModal } = useAuthGuard();
 
   return (
-    <div className="absolute inset-0 z-20 pointer-events-none">
-      {/* 🔒 완전 가림 영역 (하단) */}
-      <div className="absolute inset-x-0 bottom-0 h-16 bg-white" />
-
+    <div className="absolute inset-0 z-20 pointer-events-auto">
       {/* 🌫 그라데이션 영역 */}
       {/* <div
         className="
@@ -23,14 +20,14 @@ function LockOverlay() {
       {/* 🌫 블러 오버레이 */}
       <div
         className="
-    absolute inset-0
-    bg-white/40
-    backdrop-blur-sm
-  "
+          absolute inset-0
+          bg-white/10
+          backdrop-blur-sm
+        "
       />
 
       {/* 🔘 로그인 버튼 */}
-      <div className="absolute inset-x-0 bottom-0 flex justify-center pointer-events-auto">
+      <div className="absolute inset-x-0 bottom-0 flex justify-center">
         <button
           onClick={openLoginModal}
           className="

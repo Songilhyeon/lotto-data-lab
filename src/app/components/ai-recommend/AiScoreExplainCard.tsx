@@ -27,7 +27,7 @@ export default function AiScoreExplainCard({ score }: Props) {
         )}
 
         {(score.streakRun !== undefined || score.streak !== undefined) && (
-          <li>📈 연속 출현 지표: {value(score.streakRun ?? score.streak)}</li>
+          <li>📈 연속 출현 점수: {value(score.streakRun ?? score.streak)}</li>
         )}
 
         {(score.patternScore !== undefined || score.pattern !== undefined) && (
@@ -35,7 +35,9 @@ export default function AiScoreExplainCard({ score }: Props) {
         )}
 
         {(score.density !== undefined || score.cluster !== undefined) && (
-          <li>🧱 구간/밀집도 점수: {value(score.density ?? score.cluster)}</li>
+          <li>
+            🧱 그룹/클러스터 점수: {value(score.density ?? score.cluster)}
+          </li>
         )}
 
         {score.decayScore !== undefined && (
@@ -43,7 +45,7 @@ export default function AiScoreExplainCard({ score }: Props) {
         )}
 
         {score.nextFreq !== undefined && (
-          <li>➡️ 다음 회차 연관성: {value(score.nextFreq)}</li>
+          <li>➡️ 다음 회차 연관성 점수: {value(score.nextFreq)}</li>
         )}
 
         {score.noise !== undefined && (
@@ -53,7 +55,7 @@ export default function AiScoreExplainCard({ score }: Props) {
 
       <div className="mt-3 pt-2 border-t text-xs text-gray-500 space-y-1">
         <p>
-          • 내부 계산 점수: <b>{value(score.finalRaw)}</b>
+          • 가중치 적용 점수: <b>{value(score.finalRaw)}</b>
         </p>
         <p>
           • 비교용 점수 (0~100): <b>{value(score.final)}</b>
