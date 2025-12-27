@@ -1,8 +1,9 @@
 import Hero from "./components/landing/Hero";
-import ChartPreviewWrapper from "./components/landing/ChartPreviewWrapper";
-import HowItWorks from "./components/landing/HowItWorks";
 import HomeDashboardSummary from "./components/landing/HomeDashboardSummary";
 import NextRoundPreviewWrapper from "./components/landing/NextRoundPreviewWrapper";
+import { getTodayInsight } from "@/app/lib/getTodayInsight";
+import { getTodayInsightContext } from "@/app/lib/getTodayInsightContext";
+import TodayInsightBanner from "@/app/components/landing/TodayInsightBanner";
 
 export const metadata = {
   title: "로또 번호 분석·통계 | AI Lotto Data Lab",
@@ -18,7 +19,12 @@ export const metadata = {
   },
 };
 
-export default function LandingPage() {
+// ✅ async Server Component
+export default async function LandingPage() {
+  // ✅ 반드시 await
+  const analysisContext = await getTodayInsightContext();
+  const insight = getTodayInsight(analysisContext);
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* SEO용 H1 */}
@@ -27,23 +33,16 @@ export default function LandingPage() {
         Data Lab
       </h1>
 
-      {/* Hero: Client Component */}
       <Hero />
 
-      {/* ⭐ 대시보드 요약 섹션 */}
+      {/* 👉 나중에 연결 */}
+      <TodayInsightBanner insight={insight} />
+
       <HomeDashboardSummary />
 
-      {/* 📊 과거 통계 미리보기 */}
-      {/* <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12 grid gap-8 md:grid-cols-2"> */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12 grid gap-8 md:grid-cols-2 min-w-0">
-        <ChartPreviewWrapper />
-
-        {/* 🔮 다음 회차 분석 요약 */}
         <NextRoundPreviewWrapper />
       </section>
-
-      {/* HowItWorks: Client Component */}
-      <HowItWorks />
     </div>
   );
 }

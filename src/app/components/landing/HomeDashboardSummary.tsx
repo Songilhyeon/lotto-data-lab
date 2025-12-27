@@ -63,7 +63,7 @@ export default async function HomeDashboardSummary() {
               href="/ai-recommend"
               className="inline-block mt-3 text-sm text-blue-600 font-medium hover:underline"
             >
-              AI 추천 보기 →
+              AI 분석 점수 보기 →
             </Link>
           </div>
 

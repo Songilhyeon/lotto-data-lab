@@ -21,7 +21,7 @@ export default function PremiumPage() {
   const [loading, setLoading] = useState(true);
   const [recommended, setRecommended] = useState<number[]>([]);
 
-  // AI 추천 데이터 fetch
+  // AI 분석 점수 데이터 fetch
   useEffect(() => {
     const fetchAIData = async () => {
       setLoading(true);
@@ -193,7 +193,7 @@ export default function PremiumPage() {
               </div>
               {!loading && recommended.length > 0 && (
                 <div className="mt-4 p-4 bg-indigo-50 text-indigo-700 rounded-xl border border-indigo-100 shadow-sm text-sm">
-                  <strong>추천 번호:</strong> {recommended.join(", ")}
+                  <strong>분석 점수 TOP6 번호:</strong> {recommended.join(", ")}
                 </div>
               )}
             </div>

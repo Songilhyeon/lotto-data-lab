@@ -20,7 +20,7 @@ export interface NumberScoreDetail {
   final: number; // ✅ 정규화 점수 (0~100)
 }
 
-// 일반 AI 추천 결과
+// 일반 AI 분석 점수 결과
 export interface IfAiRecommendResult {
   round: number;
   recommended: number[];
@@ -29,7 +29,7 @@ export interface IfAiRecommendResult {
   generatedAt: string;
 }
 
-// NextFreq AI 추천 결과
+// NextFreq AI 분석 점수 결과
 export interface IfAiNextFreqRecommendResult {
   combination: number[];
   details: NumberScoreDetail[];

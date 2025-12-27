@@ -1,4 +1,5 @@
 import Link from "next/link";
+import clsx from "clsx";
 
 interface Props {
   data: {
@@ -8,8 +9,17 @@ interface Props {
       minMatch: number;
       totalMatchedRounds: number;
     };
-    signals: { id: string; label: string; desc: string }[];
-    highlight: { hot: number[]; watch: number[] };
+    headline?: string;
+    signals: {
+      id: string;
+      label: string;
+      desc: string;
+      strength?: "weak" | "normal" | "strong";
+    }[];
+    highlight: {
+      hot: number[];
+      watch: number[];
+    };
   };
 }
 
@@ -19,6 +29,13 @@ export default function NextRoundPreview({ data }: Props) {
       <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">
         다음 회차 번호 분석 요약
       </h3>
+
+      {/* 🧠 핵심 판단 headline */}
+      {data.headline && (
+        <p className="text-sm sm:text-base font-semibold text-blue-900 mb-3">
+          {data.headline}
+        </p>
+      )}
 
       {/* 🔍 분석 기준 설명 */}
       {data.basis && (
@@ -34,7 +51,15 @@ export default function NextRoundPreview({ data }: Props) {
       {/* 📌 관찰 시그널 */}
       <ul className="space-y-2 mb-4">
         {data.signals.map((s) => (
-          <li key={s.id} className="text-sm text-gray-700">
+          <li
+            key={s.id}
+            className={clsx(
+              "text-sm",
+              s.strength === "strong" && "text-red-700 font-medium",
+              s.strength === "normal" && "text-gray-800",
+              s.strength === "weak" && "text-gray-600"
+            )}
+          >
             • <span className="font-medium">{s.label}</span> — {s.desc}
           </li>
         ))}

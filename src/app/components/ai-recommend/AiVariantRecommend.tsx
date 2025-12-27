@@ -110,8 +110,8 @@ export default function AiVariantRecommend() {
 
     return (
       <div className="bg-white rounded-xl shadow p-4">
-        {/* 추천 조합 */}
-        <h3 className="font-bold mb-2">추천 조합</h3>
+        {/* 점수계산 조합 */}
+        <h3 className="font-bold mb-2">분석 점수 TOP6 번호</h3>
         <div className="flex gap-2 flex-wrap mb-4">
           {result.combination.map((n) => (
             <LottoBall key={n} number={n} size="lg" />

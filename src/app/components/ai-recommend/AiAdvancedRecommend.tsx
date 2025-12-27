@@ -92,7 +92,8 @@ export default function AiAdvancedRecommend() {
 
     return (
       <div className="mt-2 p-4 border rounded bg-green-50">
-        {/* 추천 번호 */}
+        {/* 점수계산 번호 */}
+        <h3 className="font-bold mb-2">분석 점수 TOP6 번호</h3>
         <div className="flex flex-wrap gap-2 mb-4">
           {result.combination.map((n) => (
             <LottoBall key={n} number={n} size="lg" />
