@@ -13,6 +13,7 @@ import {
 import { apiUrl } from "@/app/utils/getUtils";
 import { componentBodyDivStyle } from "@/app/utils/getDivStyle";
 import ComponentHeader from "@/app/components/ComponentHeader";
+import NumberLabPagination from "./NumberLabPagination";
 
 interface MatchResult {
   round: number;
@@ -359,6 +360,18 @@ export default function NumberLab() {
           </div>
         </div>
       )}
+
+      {/* Results List */}
+      {!loading &&
+        selectedNumbers.length === 1 &&
+        analysisResult[1]?.length > 0 && (
+          <div className="mt-4">
+            <NumberLabPagination
+              results={analysisResult[1]}
+              selectedRound={undefined}
+            />
+          </div>
+        )}
     </div>
   );
 }
