@@ -1,8 +1,13 @@
 "use client";
 
-import PerNumberTable, { PerNumberRow } from "./IntervalPerNumberTable";
+import PerNumberTable from "./IntervalPerNumberTable";
+import { PerNumberRow } from "@/app/types/api";
 
-export default function IntervalPattern({ data }: { data: PerNumberRow[] }) {
+export default function IntervalPatternTable({
+  data,
+}: {
+  data: PerNumberRow[];
+}) {
   const tableData = data.map((row) => ({
     ...row,
     latestPattern: row.latestPattern ?? null,

@@ -18,6 +18,12 @@ interface Props {
   setSelectedRank: (v: 1 | 2) => void;
 }
 
+/* ----------------------------
+   정렬 타입
+---------------------------- */
+type SortKey = "name" | "latestRound" | "winCount" | "firstRound";
+type SortOrder = "asc" | "desc";
+
 export default function AllStoresTab({ selectedRank, setSelectedRank }: Props) {
   const { isAuthed } = useAuthGuard();
 
@@ -40,6 +46,17 @@ export default function AllStoresTab({ selectedRank, setSelectedRank }: Props) {
   } | null>(null);
 
   /* ----------------------------
+      정렬 상태 (API 연동)
+  ---------------------------- */
+  const [sortOption, setSortOption] = useState<{
+    key: SortKey;
+    order: SortOrder;
+  }>({
+    key: "latestRound",
+    order: "desc",
+  });
+
+  /* ----------------------------
       데이터 로드
   ---------------------------- */
   useEffect(() => {
@@ -52,6 +69,8 @@ export default function AllStoresTab({ selectedRank, setSelectedRank }: Props) {
         rank: String(selectedRank),
         page: String(currentPage),
         limit: String(pageSize),
+        sortKey: sortOption.key,
+        sortOrder: sortOption.order,
       });
 
       if (selectedRegion !== "전국") params.append("region", selectedRegion);
@@ -76,16 +95,31 @@ export default function AllStoresTab({ selectedRank, setSelectedRank }: Props) {
     return () => {
       ignore = true;
     };
-  }, [selectedRank, selectedRegion, appliedKeyword, currentPage]);
+  }, [
+    selectedRank,
+    selectedRegion,
+    appliedKeyword,
+    currentPage,
+    sortOption, // ✅ 정렬 변경 시 재요청
+  ]);
 
   const totalPages = Math.ceil(total / pageSize);
 
+  /* ----------------------------
+      Rank 변경 핸들러
+  ---------------------------- */
   function handleRankChange(rank: 1 | 2) {
     setSelectedRank(rank);
     setSelectedRegion("전국");
     setCurrentPage(1);
     setSearchKeyword("");
     setAppliedKeyword("");
+
+    // Rank별 기본 정렬 UX
+    setSortOption({
+      key: rank === 1 ? "latestRound" : "winCount",
+      order: "desc",
+    });
   }
 
   return (
@@ -110,40 +144,102 @@ export default function AllStoresTab({ selectedRank, setSelectedRank }: Props) {
         <CardContent className="space-y-5 sm:space-y-6">
           {!isAuthed && <LockOverlay />}
 
-          {/* 🔍 검색 */}
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-            <input
-              value={searchKeyword}
-              onChange={(e) => setSearchKeyword(e.target.value)}
-              onKeyDown={(e) =>
-                e.key === "Enter" && setAppliedKeyword(searchKeyword)
-              }
-              placeholder="판매점명 또는 주소 검색"
-              className="
-                border px-3 py-2.5
-                rounded-lg
-                w-full
-                text-sm
-                focus:outline-none focus:ring-2 focus:ring-indigo-200
-              "
-            />
-            <button
-              onClick={() => {
-                setAppliedKeyword(searchKeyword);
-                setCurrentPage(1);
-              }}
-              className="
-                px-4 py-2.5
-                rounded-lg
-                bg-black text-white
-                text-sm font-medium
-                hover:bg-gray-800
-                active:bg-gray-900
-                transition
-              "
-            >
-              검색
-            </button>
+          {/* 🔍 검색 + 정렬 */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+            {/* 검색 영역 */}
+            <div className="flex items-center gap-2 flex-1">
+              <input
+                value={searchKeyword}
+                onChange={(e) => setSearchKeyword(e.target.value)}
+                onKeyDown={(e) =>
+                  e.key === "Enter" && setAppliedKeyword(searchKeyword)
+                }
+                placeholder="판매점명 또는 주소"
+                className="
+                  h-9
+                  flex-1
+                  border
+                  px-3
+                  rounded-lg
+                  text-sm
+                  focus:outline-none
+                  focus:ring-2
+                  focus:ring-indigo-200
+                "
+              />
+              <button
+                onClick={() => {
+                  setAppliedKeyword(searchKeyword);
+                  setCurrentPage(1);
+                }}
+                className="
+                  h-9
+                  px-4
+                  rounded-lg
+                  bg-black
+                  text-white
+                  text-sm
+                  font-medium
+                  hover:bg-gray-800
+                  active:bg-gray-900
+                  transition
+                  whitespace-nowrap
+                "
+              >
+                검색
+              </button>
+            </div>
+
+            {/* 정렬 영역 */}
+            <div className="flex items-center gap-2">
+              <select
+                value={sortOption.key}
+                onChange={(e) => {
+                  setSortOption((prev) => ({
+                    ...prev,
+                    key: e.target.value as SortKey,
+                  }));
+                  setCurrentPage(1);
+                }}
+                className="
+        h-9
+        border
+        rounded-lg
+        px-2.5
+        text-sm
+        bg-white
+      "
+              >
+                <option value="latestRound">최근 당첨순</option>
+                <option value="winCount">당첨 횟수순</option>
+                <option value="name">판매점명순</option>
+                <option value="firstRound">최초 당첨순</option>
+              </select>
+
+              <button
+                onClick={() =>
+                  setSortOption((prev) => ({
+                    ...prev,
+                    order: prev.order === "asc" ? "desc" : "asc",
+                  }))
+                }
+                className="
+        h-9
+        w-9
+        border
+        rounded-lg
+        text-sm
+        flex
+        items-center
+        justify-center
+        hover:bg-gray-100
+        transition
+      "
+                title={sortOption.order === "asc" ? "오름차순" : "내림차순"}
+              >
+                {sortOption.order === "asc" ? "▲" : "▼"}
+              </button>
+            </div>
           </div>
 
           {/* 리스트 */}

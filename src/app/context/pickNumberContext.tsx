@@ -21,7 +21,7 @@ const PickNumberContext = createContext<PickNumberContextType>({
   closePanel: () => {},
 });
 
-export const maxSelect = 10;
+export const maxSelect = 45;
 const STORAGE_KEY = "lotto_pick_numbers_v1";
 
 /* ----------------------------------

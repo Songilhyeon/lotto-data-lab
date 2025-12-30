@@ -16,15 +16,10 @@ import { buildIntervalEnsemble } from "@/app/utils/intervalUtils";
 import ClusterUnitSelector from "../ai-recommend/ClusterUnitSelector";
 import LookUpButton from "./LookUpButton";
 import { IntervalUnitHelp, IntervalBucketLegend } from "./IntervalHelp";
-import IntervalPattern from "./IntervalPattern";
-
-type PerNumberRow = {
-  num: number;
-  latestPattern: string | null;
-  sampleCount: number;
-  currentGap: number | null;
-  lastGap: number | null;
-};
+import IntervalPatternTable from "./IntervalPatternTable";
+import DraggableNextRound from "../DraggableNextRound";
+import { LottoDraw } from "@/app/types/lottoNumbers";
+import { PerNumberRow } from "@/app/types/api";
 
 type IntervalPatternResponse = {
   ok: boolean;
@@ -34,6 +29,7 @@ type IntervalPatternResponse = {
   baseNumbers?: number[];
   perNumber: PerNumberRow[];
   ensemble: { num: number; score: number }[];
+  nextRound?: LottoDraw;
 };
 
 const fetcher = async (url: string): Promise<IntervalPatternResponse> => {
@@ -97,6 +93,13 @@ export default function IntervalPatternTab() {
         title="📐 Interval 패턴 분석"
         content="번호 출현 간격(Interval)의 분포 경향을 구간 단위로 분석합니다."
       />
+
+      {data?.nextRound && (
+        <div className="min-w-0">
+          {/* DraggableNextRound는 내부에서 고정 포지셔닝을 처리함 */}
+          <DraggableNextRound nextRound={data.nextRound} />
+        </div>
+      )}
 
       <div className={`${rangeFilterDivStyle} mt-3`}>
         <RangeFilterBar
@@ -171,7 +174,7 @@ export default function IntervalPatternTab() {
 
             <IntervalBucketLegend />
 
-            <IntervalPattern data={data.perNumber} />
+            <IntervalPatternTable data={data.perNumber} />
           </section>
 
           <section className="text-xs text-gray-400 border-t pt-4">

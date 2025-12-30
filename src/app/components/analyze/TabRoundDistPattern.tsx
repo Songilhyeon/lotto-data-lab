@@ -8,6 +8,10 @@ import {
 } from "@/app/utils/getDivStyle";
 import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
 import LookUpButton from "./LookUpButton";
+import DraggableNextRound from "../DraggableNextRound";
+import { LottoDraw } from "@/app/types/lottoNumbers";
+import ComponentHeader from "@/app/components/ComponentHeader";
+import LottoBall from "../LottoBall";
 
 type RoundDistPattern = {
   numbers: number[];
@@ -37,6 +41,7 @@ type RoundPatternResponse = {
     numbers: { num: number; score: number }[];
     patterns: { pattern: string; probability: number }[];
   };
+  nextRound?: LottoDraw;
 };
 
 const fetcher = async (url: string): Promise<RoundPatternResponse> => {
@@ -86,15 +91,18 @@ export default function RoundDistPatternTab() {
   return (
     <div className={`${componentBodyDivStyle()} from-indigo-50 to-purple-100`}>
       {/* Header */}
-      <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-md p-6 mb-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">
-          📊 회차별 번호 분포 패턴 분석
-        </h2>
-        <p className="text-sm text-gray-600">
-          선택 회차의 번호 간 간격 패턴을 분석하고, 과거 유사 패턴의 다음 회차를
-          참고합니다.
-        </p>
-      </div>
+      <ComponentHeader
+        title=" 📊 회차별 번호 분포 패턴 분석"
+        content="선택 회차의 번호 간 간격 패턴을 분석하고, 과거 유사 패턴의 다음 회차를
+          참고합니다."
+      />
+
+      {data?.nextRound && (
+        <div className="min-w-0">
+          {/* DraggableNextRound는 내부에서 고정 포지셔닝을 처리함 */}
+          <DraggableNextRound nextRound={data.nextRound} />
+        </div>
+      )}
 
       {/* 설정 패널 */}
       <div className={rangeFilterDivStyle}>
@@ -200,7 +208,7 @@ export default function RoundDistPatternTab() {
       {/* 초기 상태 (조회 전) */}
       {!isLoading && !data && !error && (
         <div className="mt-6 text-sm text-gray-500 text-center bg-white/80 backdrop-blur-sm rounded-lg p-8">
-          분석할 회차와 옵션을 선택한 뒤 <b>분석 시작</b> 버튼을 눌러주세요.
+          분석할 회차와 옵션을 선택한 뒤 <b>조회하기</b> 버튼을 눌러주세요.
         </div>
       )}
 
@@ -227,12 +235,7 @@ export default function RoundDistPatternTab() {
                 </p>
                 <div className="flex gap-2 flex-wrap">
                   {data.pattern.numbers.map((num) => (
-                    <div
-                      key={num}
-                      className="w-10 h-10 rounded-full bg-indigo-500 text-white flex items-center justify-center font-semibold text-sm shadow-sm"
-                    >
-                      {num}
-                    </div>
+                    <LottoBall key={num} number={num} />
                   ))}
                 </div>
               </div>
@@ -306,47 +309,62 @@ export default function RoundDistPatternTab() {
             </h3>
 
             {data.similarMatches.length > 0 ? (
-              <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
+              <div
+                className="
+      grid grid-cols-1 md:grid-cols-2
+      gap-4
+      max-h-[28rem] overflow-y-auto pr-2
+    "
+              >
                 {data.similarMatches.map((match) => (
                   <div
                     key={match.matchedRound}
-                    className="bg-gray-50/80 rounded-lg p-4 hover:bg-gray-100/80 transition-colors"
+                    className="
+          rounded-xl border border-gray-200 bg-white p-4 shadow-sm
+          hover:shadow-md transition-shadow
+        "
                   >
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <span className="font-bold text-indigo-600 text-lg">
+                    {/* 상단 헤더 */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg font-bold text-indigo-600">
                           {match.matchedRound}회
                         </span>
-                        <span className="ml-2 text-xs font-mono text-gray-600 bg-white px-2 py-1 rounded">
+                        <span className="text-xs font-mono text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
                           {match.matchedPattern}
                         </span>
                       </div>
-                      <span className="text-sm font-semibold text-green-600 bg-green-50 px-3 py-1 rounded-full">
+
+                      <span className="text-xs font-semibold text-green-700 bg-green-100 px-3 py-1 rounded-full">
                         유사도 {(match.similarity * 100).toFixed(0)}%
                       </span>
                     </div>
 
-                    <div className="text-xs text-gray-600 mb-2">
-                      <span className="font-medium">번호:</span>{" "}
-                      {match.matchedNumbers.join(", ")}
-                    </div>
-                    <div className="text-xs text-gray-600 mb-3">
-                      <span className="font-medium">간격:</span>{" "}
-                      {match.matchedGaps.join(", ")}
+                    {/* 번호 영역 */}
+                    <div className="mb-3">
+                      <div className="flex gap-1.5 flex-wrap">
+                        {match.matchedNumbers.map((num) => (
+                          <LottoBall key={num} number={num} size="sm" />
+                        ))}
+                      </div>
                     </div>
 
-                    <div className="border-t pt-3">
+                    {/* 메타 정보 */}
+                    <div className="grid grid-cols-1 gap-2 text-xs text-gray-600 mb-4">
+                      <div>
+                        <span className="font-medium text-gray-500">간격</span>
+                        <div>{match.matchedGaps.join(", ")}</div>
+                      </div>
+                    </div>
+
+                    {/* 다음 회차 */}
+                    <div className="rounded-lg bg-gray-50 p-3 border border-gray-200">
                       <p className="text-xs text-gray-500 mb-2 font-medium">
                         → {match.nextRound}회 (다음 회차)
                       </p>
                       <div className="flex gap-1.5 flex-wrap">
                         {match.nextNumbers.map((num) => (
-                          <div
-                            key={num}
-                            className="w-8 h-8 rounded-full bg-purple-500 text-white text-xs flex items-center justify-center font-semibold shadow-sm"
-                          >
-                            {num}
-                          </div>
+                          <LottoBall key={num} number={num} size="sm" />
                         ))}
                       </div>
                     </div>
@@ -354,10 +372,13 @@ export default function RoundDistPatternTab() {
                 ))}
               </div>
             ) : (
-              <div className="text-center text-gray-500 py-8 bg-gray-50/50 rounded-lg">
-                유사도 {minSimilarity} 이상인 패턴이 없습니다.
-                <br />
-                <span className="text-sm">최소 유사도를 낮춰보세요.</span>
+              <div className="text-center text-gray-500 py-10 bg-gray-50 rounded-xl border border-dashed">
+                <p className="font-medium">
+                  유사도 {minSimilarity}% 이상인 패턴이 없습니다
+                </p>
+                <p className="text-sm mt-1 text-gray-400">
+                  최소 유사도를 낮춰보세요
+                </p>
               </div>
             )}
           </section>
@@ -366,7 +387,7 @@ export default function RoundDistPatternTab() {
           {data.prediction.numbers.length > 0 && (
             <section className="bg-white/90 backdrop-blur-sm rounded-xl shadow-md p-6">
               <h3 className="font-bold text-lg mb-2 text-gray-800">
-                🎲 예측 번호 (앙상블)
+                🎲 번호 점수 (앙상블)
               </h3>
               <p className="text-xs text-gray-500 mb-4">
                 유사 패턴의 다음 회차 번호를 유사도 가중치로 집계한 결과입니다.
@@ -375,8 +396,8 @@ export default function RoundDistPatternTab() {
               <div className="grid grid-cols-5 md:grid-cols-10 gap-3">
                 {data.prediction.numbers.slice(0, 20).map((item) => (
                   <div key={item.num} className="text-center">
-                    <div className="w-11 h-11 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white flex items-center justify-center font-bold text-sm mx-auto shadow-md">
-                      {item.num}
+                    <div className="w-11 h-11 rounded-full text-white flex items-center justify-center font-bold text-sm mx-auto shadow-md">
+                      <LottoBall number={item.num} size="lg" />
                     </div>
                     <div className="text-xs text-gray-500 mt-1.5 font-medium">
                       {(item.score * 100).toFixed(0)}

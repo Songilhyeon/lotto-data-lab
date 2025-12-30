@@ -1,12 +1,6 @@
 import React from "react";
-
-export type PerNumberRow = {
-  num: number;
-  latestPattern: string | null;
-  sampleCount: number;
-  currentGap: number | null;
-  lastGap: number | null;
-};
+import LottoBall from "../LottoBall";
+import { PerNumberRow } from "@/app/types/api";
 
 export default function PerNumberTable({ data }: { data: PerNumberRow[] }) {
   const formatPattern = (pattern: string | null) => {
@@ -53,6 +47,21 @@ export default function PerNumberTable({ data }: { data: PerNumberRow[] }) {
     return <span className="text-gray-600">{gap}회</span>;
   };
 
+  const formatAppearCount = (count: number) => {
+    if (count === 0) {
+      return <span className="text-gray-400 text-xs">미출현</span>;
+    }
+
+    const colorClass =
+      count >= 10
+        ? "text-blue-700 font-semibold"
+        : count >= 5
+        ? "text-blue-600"
+        : "text-gray-700";
+
+    return <span className={colorClass}>{count}회</span>;
+  };
+
   return (
     <div className="overflow-x-auto">
       <table className="table-auto text-sm border w-full">
@@ -67,6 +76,10 @@ export default function PerNumberTable({ data }: { data: PerNumberRow[] }) {
             </th>
             <th className="px-3 py-2 text-left">
               <div>패턴 빈도</div>
+              <div className="text-xs font-normal text-gray-500">(범위 내)</div>
+            </th>
+            <th className="px-3 py-2 text-left">
+              <div>출현 횟수</div>
               <div className="text-xs font-normal text-gray-500">(범위 내)</div>
             </th>
             <th className="px-3 py-2 text-left">
@@ -90,13 +103,14 @@ export default function PerNumberTable({ data }: { data: PerNumberRow[] }) {
               className="border-t hover:bg-gray-50 transition-colors"
             >
               <td className="px-3 py-2">
-                <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-800 font-semibold">
-                  {row.num}
-                </span>
+                <LottoBall number={row.num} size="sm" />
               </td>
               <td className="px-3 py-2">{formatPattern(row.latestPattern)}</td>
               <td className="px-3 py-2">
-                {formatSample(row.latestPattern, row.sampleCount)}
+                {formatSample(row.latestPattern, row.patternSampleCount)}
+              </td>
+              <td className="px-3 py-2">
+                {formatAppearCount(row.appearCount)}
               </td>
               <td className="px-3 py-2">{formatCurrentGap(row.currentGap)}</td>
               <td className="px-3 py-2">{formatLastGap(row.lastGap)}</td>

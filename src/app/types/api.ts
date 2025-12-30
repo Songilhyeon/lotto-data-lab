@@ -138,3 +138,12 @@ export interface AiScoreBase {
   // next-round
   nextFreq?: number;
 }
+
+export type PerNumberRow = {
+  num: number;
+  latestPattern: string | null;
+  patternSampleCount: number;
+  appearCount: number;
+  currentGap: number | null;
+  lastGap: number | null;
+};

@@ -94,8 +94,6 @@ export default function AccumulateTab({
           regionCount: item.regionCount,
         })) ?? [];
 
-  console.log(data);
-
   return (
     <div className={`${componentBodyDivStyle()} from-indigo-50 to-purple-100`}>
       <RankTabs selectedRank={selectedRank} setSelectedRank={setSelectedRank} />

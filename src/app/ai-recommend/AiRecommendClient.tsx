@@ -6,6 +6,7 @@ import AiRecommend from "@/app/components/ai-recommend/AiRecommend";
 import AiNextRecommend from "@/app/components/ai-recommend/AiNextRecommend";
 import AiAdvancedRecommend from "@/app/components/ai-recommend/AiAdvancedRecommend";
 import AiVariantRecommend from "@/app/components/ai-recommend/AiVariantRecommend";
+import RequireAuth from "@/app/components/RequireAuth";
 
 const allTabs = [
   { id: "AiRecommend", label: "기본 점수 분석", premiumOnly: false },
@@ -64,22 +65,23 @@ export default function AiRecommendClient() {
         >
           <AiNextRecommend />
         </div>
+        <RequireAuth>
+          <div
+            style={{
+              display: activeTab === "AiVariantRecommend" ? "block" : "none",
+            }}
+          >
+            <AiVariantRecommend />
+          </div>
 
-        <div
-          style={{
-            display: activeTab === "AiAdvancedRecommend" ? "block" : "none",
-          }}
-        >
-          <AiAdvancedRecommend />
-        </div>
-
-        <div
-          style={{
-            display: activeTab === "AiVariantRecommend" ? "block" : "none",
-          }}
-        >
-          <AiVariantRecommend />
-        </div>
+          <div
+            style={{
+              display: activeTab === "AiAdvancedRecommend" ? "block" : "none",
+            }}
+          >
+            <AiAdvancedRecommend />
+          </div>
+        </RequireAuth>
       </div>
     </div>
   );

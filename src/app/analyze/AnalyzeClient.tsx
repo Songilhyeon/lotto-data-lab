@@ -4,17 +4,17 @@ import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { gaEvent } from "@/app/lib/gtag";
 
-import OneRoundInfo from "@/app/components/analyze/OneRoundInfo";
-import MultiRoundInfo from "@/app/components/analyze/MultiRoundInfo";
-import NumberFrequency from "@/app/components/analyze/NumberFrequency";
-import NextPatterns from "@/app/components/analyze/NextPatterns";
-import NumberLab from "@/app/components/analyze/NumberLab";
-import NumberRangeMatch from "@/app/components/analyze/NumberRange";
-import PremiumAnalysis from "@/app/components/analyze/PremiumAnalysis";
+import OneRoundInfo from "@/app/components/analyze/TabOneRoundInfo";
+import MultiRoundInfo from "@/app/components/analyze/TabMultiRoundInfo";
+import NumberFrequency from "@/app/components/analyze/TabNumberFrequency";
+import NextPatterns from "@/app/components/analyze/TabNextPatterns";
+import NumberLab from "@/app/components/analyze/TabNumberLab";
+import NumberRangeMatch from "@/app/components/analyze/TabNumberRange";
+import PremiumAnalysis from "@/app/components/analyze/TabPremiumAnalysis";
 import RequireAuth from "../components/RequireAuth";
-import BasicSummary from "@/app/components/analyze/BasicSummary";
-import IntervalPatternTab from "@/app/components/analyze/IntervalPatternTab";
-import RoundDistPatternTab from "@/app/components/analyze/RoundDistPatternTab";
+import BasicSummary from "@/app/components/analyze/TabBasicSummary";
+import IntervalPatternTab from "@/app/components/analyze/TabIntervalPattern";
+import RoundDistPatternTab from "@/app/components/analyze/TabRoundDistPattern";
 
 // 모든 탭 정의
 const allTabs = [
@@ -71,12 +71,7 @@ export default function AnalyzeClient() {
         return <NumberFrequency />;
       case "numberRange":
         return <NumberRangeMatch />;
-      case "premiumAnalysis":
-        return (
-          <RequireAuth>
-            <PremiumAnalysis />;
-          </RequireAuth>
-        );
+
       case "next":
         return <NextPatterns />;
       case "intervalPattern":
@@ -85,6 +80,12 @@ export default function AnalyzeClient() {
         return <RoundDistPatternTab />;
       case "numberLab":
         return <NumberLab />;
+      case "premiumAnalysis":
+        return (
+          <RequireAuth>
+            <PremiumAnalysis />;
+          </RequireAuth>
+        );
       default:
         return null;
     }
