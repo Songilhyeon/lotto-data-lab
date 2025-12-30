@@ -20,19 +20,43 @@ const geistMono = Geist_Mono({
 
 export const metadata = {
   metadataBase: new URL("https://app.nexlab.ai.kr"),
+
   title: {
-    default: "로또 번호 분석·통계 | AI Lotto Data Lab",
-    template: "%s | Lotto Data Lab",
+    default: "로또 번호 분석·통계 | 회차별 당첨 데이터 & 판매점 분석",
+    template: "%s | 로또 데이터 분석",
   },
+
   description:
-    "로또 당첨 번호 통계, 1·2등 당첨 판매점 분석, AI 기반 로또 번호 분석까지 제공하는 데이터 기반 로또 분석 서비스입니다.",
+    "로또 당첨 번호를 회차별로 분석하고, 번호 패턴·간격·통계와 1·2등 당첨 판매점 정보를 제공합니다. AI 기반 로또 번호 분석 서비스.",
+
+  keywords: [
+    "로또 번호 분석",
+    "로또 당첨 번호",
+    "로또 회차 분석",
+    "로또 판매점",
+    "로또 통계",
+    "로또 패턴 분석",
+    "AI 로또",
+    "로또 데이터",
+    "로또 1등 판매점",
+    "로또 2등 판매점",
+  ],
+
   openGraph: {
-    title: "로또 번호 분석·통계 | AI Lotto Data Lab",
+    title: "로또 번호 분석·통계 | 회차별 당첨 데이터 & 판매점 분석",
     description:
-      "로또 당첨 번호 통계, 1·2등 당첨 판매점 분석, AI 기반 로또 번호 분석까지 제공하는 데이터 기반 로또 분석 서비스입니다.",
+      "로또 당첨 번호를 회차별로 분석하고, 번호 패턴·간격·통계와 1·2등 당첨 판매점 정보를 제공합니다.",
     url: "https://app.nexlab.ai.kr",
-    siteName: "Lotto Data Lab",
+    siteName: "로또 데이터 분석",
     type: "website",
+    locale: "ko_KR",
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "로또 번호 분석·통계 | 회차별 당첨 데이터",
+    description:
+      "로또 당첨 번호 통계, 회차 분석, 판매점 데이터를 한눈에 확인하세요.",
   },
 };
 
