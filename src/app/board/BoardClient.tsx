@@ -62,8 +62,9 @@ export default function BoardClient() {
   return (
     <main className={`${componentBodyDivStyle()} from-pink-50 to-indigo-100`}>
       <ComponentHeader
-        title="📋 피드백 게시판"
-        content="문제점, 개선사항, 궁금한 점 등을 자유롭게 남겨보세요."
+        title="📋 서비스 피드백 & 제안"
+        content="이 서비스는 아직 발전 중입니다.
+                불편한 점, 오류, 아이디어를 자유롭게 남겨주세요."
       />
       {/* 글쓰기 버튼 */}
       <div className="mb-6">
@@ -72,14 +73,14 @@ export default function BoardClient() {
             href="/board/new"
             className="inline-block px-4 py-2 bg-blue-600 text-white font-medium rounded-md shadow hover:bg-blue-700 transition-colors"
           >
-            글쓰기
+            피드백 남기기
           </Link>
         ) : (
           <button
             onClick={openLoginModal}
             className="inline-block px-4 py-2 bg-blue-600 text-white font-medium rounded-md shadow hover:bg-blue-700 transition-colors"
           >
-            로그인 후 글쓰기
+            로그인 후 피드백 남기기
           </button>
         )}
       </div>

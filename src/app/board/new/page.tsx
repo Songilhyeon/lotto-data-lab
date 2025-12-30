@@ -5,6 +5,7 @@ import { apiUrl } from "@/app/utils/getUtils";
 import { useRouter } from "next/navigation";
 import { componentBodyDivStyle } from "@/app/utils/getDivStyle";
 import useAuthGuard from "@/app/hooks/useAuthGuard";
+import ComponentHeader from "@/app/components/ComponentHeader";
 
 interface PostResponse {
   ok: boolean;
@@ -91,7 +92,11 @@ export default function NewPostPage() {
   return (
     <div className="p-4">
       <main className={`${componentBodyDivStyle()} from-pink-50 to-indigo-100`}>
-        <h1 className="text-3xl font-bold mb-6">📝 게시글 작성</h1>
+        <ComponentHeader
+          title="📝 게시글 작성"
+          content="🙏 이 게시판은 서비스 개선을 위한 공간입니다.
+                  모든 글은 운영자가 직접 확인합니다."
+        />
 
         {error && <p className="mb-4 text-red-500 font-medium">{error}</p>}
 
