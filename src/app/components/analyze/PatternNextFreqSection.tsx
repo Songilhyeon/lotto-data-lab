@@ -40,7 +40,7 @@ export default function PatternNextFreqSection({
   const maxNums = nums.filter((n) => (freq[n] ?? 0) === maxVal);
   const minNums = nums.filter((n) => (freq[n] ?? 0) === minVal);
 
-  const hideMax = maxVal === 1;
+  const hideMax = maxVal <= 1;
   const hideMin = minVal === 0;
 
   return (

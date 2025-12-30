@@ -47,6 +47,7 @@ export interface PremiumAnalysisData {
   };
 
   /** 패턴 */
+  pattern15NextFreq: Record<number, number>;
   pattern10NextFreq: Record<number, number>;
   pattern7NextFreq: Record<number, number>;
   pattern5NextFreq: Record<number, number>;

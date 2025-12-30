@@ -119,6 +119,23 @@ export default function PremiumAnalysis() {
       });
     }
 
+    // pattern15NextFreq
+    if (openKey === "pattern15") {
+      const freq = data.pattern15NextFreq;
+      const entries = Object.entries(freq);
+      if (!entries.length) return;
+      const values = entries.map(([, v]) => v);
+      const maxValue = Math.max(...values);
+      const minValue = Math.min(...values);
+
+      entries
+        .filter(([, v]) => v === maxValue)
+        .forEach(([k]) => maxSet.add(Number(k)));
+      entries
+        .filter(([, v]) => v === minValue)
+        .forEach(([k]) => minSet.add(Number(k)));
+    }
+
     // pattern10NextFreq
     if (openKey === "pattern10") {
       const freq = data.pattern10NextFreq;
@@ -138,6 +155,23 @@ export default function PremiumAnalysis() {
 
     if (openKey === "pattern7") {
       const freq = data.pattern7NextFreq;
+      const entries = Object.entries(freq);
+      if (!entries.length) return;
+      const values = entries.map(([, v]) => v);
+      const maxValue = Math.max(...values);
+      const minValue = Math.min(...values);
+
+      entries
+        .filter(([, v]) => v === maxValue)
+        .forEach(([k]) => maxSet.add(Number(k)));
+      entries
+        .filter(([, v]) => v === minValue)
+        .forEach(([k]) => minSet.add(Number(k)));
+    }
+
+    // pattern5NextFreq
+    if (openKey === "pattern5") {
+      const freq = data.pattern5NextFreq;
       const entries = Object.entries(freq);
       if (!entries.length) return;
       const values = entries.map(([, v]) => v);
@@ -409,13 +443,25 @@ export default function PremiumAnalysis() {
 
             {/* Pattern sections */}
             <Accordion
+              title="15패턴 → 다음 회차"
+              chartKey="pattern15"
+              openKey={openKey}
+              setOpenKey={setOpenKey}
+            >
+              <PatternNextFreqSection
+                title="15패턴 다음 회차 빈도수"
+                data={result.pattern15NextFreq}
+              />
+            </Accordion>
+
+            <Accordion
               title="10패턴 → 다음 회차"
               chartKey="pattern10"
               openKey={openKey}
               setOpenKey={setOpenKey}
             >
               <PatternNextFreqSection
-                title="10패턴 다음 회차"
+                title="10패턴 다음 회차 빈도수"
                 data={result.pattern10NextFreq}
               />
             </Accordion>
@@ -427,8 +473,20 @@ export default function PremiumAnalysis() {
               setOpenKey={setOpenKey}
             >
               <PatternNextFreqSection
-                title="7패턴 다음 회차"
+                title="7패턴 다음 회차 빈도수"
                 data={result.pattern7NextFreq}
+              />
+            </Accordion>
+
+            <Accordion
+              title="5패턴 → 다음 회차"
+              chartKey="pattern5"
+              openKey={openKey}
+              setOpenKey={setOpenKey}
+            >
+              <PatternNextFreqSection
+                title="5패턴 다음 회차 빈도수"
+                data={result.pattern5NextFreq}
               />
             </Accordion>
           </div>
