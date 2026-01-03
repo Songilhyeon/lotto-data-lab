@@ -223,7 +223,7 @@ export default function AiNextRecommend() {
       <div className="flex gap-2 mb-2">
         <button
           onClick={() => fetchAnalysis(false)}
-          className="bg-green-500 text-white px-4 py-2 sm:px-6 sm:py-3 rounded mb-4 w-full sm:w-auto font-medium shadow-md hover:bg-green-600"
+          className="bg-green-500 text-white px-4 py-2 sm:px-6 sm:py-3 rounded mb-4 w-full sm:w-auto font-medium shadow-md hover:bg-green-600 active:scale-95"
         >
           점수 분석 실행
         </button>
