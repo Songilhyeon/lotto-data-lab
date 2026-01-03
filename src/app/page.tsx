@@ -33,6 +33,11 @@ export default async function LandingPage() {
         Data Lab
       </h1>
 
+      <p className="sr-only">
+        Lotto Data Lab은 로또 당첨 번호 통계, 패턴 분석, AI 기반 번호 점수
+        계산과 1·2등 당첨 판매점 데이터를 제공하는 데이터 분석 서비스입니다.
+      </p>
+
       <Hero />
 
       {/* 👉 나중에 연결 */}

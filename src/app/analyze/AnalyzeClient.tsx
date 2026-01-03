@@ -24,9 +24,9 @@ const allTabs = [
   { id: "numberFrequency", label: "번호별 빈도수", premiumOnly: false },
   { id: "numberRange", label: "번호 구간", premiumOnly: false },
   { id: "next", label: "일치 개수", premiumOnly: false },
+  { id: "numberLab", label: "번호 실험실", premiumOnly: false },
   { id: "intervalPattern", label: "출현 간격", premiumOnly: false },
   { id: "roundDistPattern", label: "번호 간격", premiumOnly: false },
-  { id: "numberLab", label: "번호 실험실", premiumOnly: false },
   { id: "premiumAnalysis", label: "통합 정보", premiumOnly: false },
 ];
 
@@ -74,12 +74,20 @@ export default function AnalyzeClient() {
 
       case "next":
         return <NextPatterns />;
-      case "intervalPattern":
-        return <IntervalPatternTab />;
-      case "roundDistPattern":
-        return <RoundDistPatternTab />;
       case "numberLab":
         return <NumberLab />;
+      case "intervalPattern":
+        return (
+          <RequireAuth>
+            <IntervalPatternTab />
+          </RequireAuth>
+        );
+      case "roundDistPattern":
+        return (
+          <RequireAuth>
+            <RoundDistPatternTab />
+          </RequireAuth>
+        );
       case "premiumAnalysis":
         return (
           <RequireAuth>

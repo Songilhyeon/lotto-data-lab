@@ -45,6 +45,8 @@ export default function MultiRoundInfo() {
       return;
 
     setLoading(true);
+    let success = false;
+
     try {
       const res = await fetch(
         `${apiUrl}/lotto/rounds?start=${start}&end=${end}&includeBonus=${includeBonus}`
@@ -58,12 +60,15 @@ export default function MultiRoundInfo() {
         setLottoData(sorted);
       }
       setCurrentPage(1);
+      success = true;
     } catch (err) {
       console.error(err);
       setLottoData(null);
     } finally {
       setLoading(false);
-      prevParamsRef.current = { start, end, includeBonus };
+      if (success) {
+        prevParamsRef.current = { start, end, includeBonus };
+      }
     }
   };
 

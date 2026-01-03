@@ -59,6 +59,7 @@ export default function NumberFrequency() {
     }
 
     setLoading(true);
+    let success = false;
     try {
       const res = await fetch(
         `${apiUrl}/lotto/frequency?start=${start}&end=${end}&includeBonus=${includeBonus}`
@@ -68,6 +69,7 @@ export default function NumberFrequency() {
       setResults(data.data);
       setDraws(data.data.roundResults || []);
       setNextRound(data.data.nextRound || null);
+      success = true;
     } catch (err) {
       console.error(err);
       setResults(null);
@@ -75,7 +77,9 @@ export default function NumberFrequency() {
       setNextRound(null);
     } finally {
       setLoading(false);
-      prevParamsRef.current = { start, end, includeBonus };
+      if (success) {
+        prevParamsRef.current = { start, end, includeBonus };
+      }
     }
   };
 

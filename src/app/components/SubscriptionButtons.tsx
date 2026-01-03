@@ -12,8 +12,9 @@ export default function SubscriptionButtons() {
     setLoading(true);
     await fetch(`${apiUrl}/subscription/free`, {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: user!.id }),
+      body: JSON.stringify({}), // ✅ userId 제거
     });
     setLoading(false);
   };
@@ -23,11 +24,11 @@ export default function SubscriptionButtons() {
     setLoading(true);
     await fetch(`${apiUrl}/subscription/toss`, {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        userId: user.id,
-        amount: 5000,
-        tossPaymentId: "...",
+        amount: 3900,
+        tossPaymentId: "TODO", // 실제 결제 후 paymentKey 등으로 교체
       }),
     });
     setLoading(false);

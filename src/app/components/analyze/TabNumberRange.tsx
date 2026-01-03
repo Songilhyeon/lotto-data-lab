@@ -66,6 +66,7 @@ export default function NumberRangeMatch() {
     }
 
     setLoading(true);
+    let success = false;
     try {
       const res = await fetch(
         `${apiUrl}/lotto/range?start=${start}&end=${end}&includeBonus=${includeBonus}&tolerance=${tolerance}`
@@ -81,6 +82,7 @@ export default function NumberRangeMatch() {
         setSelectedRound(null);
         setNextRound(null);
       }
+      success = true;
     } catch (err) {
       console.error(err);
       setData(null);
@@ -88,7 +90,9 @@ export default function NumberRangeMatch() {
       setNextRound(null);
     } finally {
       setLoading(false);
-      prevParamsRef.current = { start, end, includeBonus, tolerance }; // 🔹 저장
+      if (success) {
+        prevParamsRef.current = { start, end, includeBonus, tolerance }; // 🔹 저장
+      }
     }
   };
 

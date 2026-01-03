@@ -45,7 +45,7 @@ type RoundPatternResponse = {
 };
 
 const fetcher = async (url: string): Promise<RoundPatternResponse> => {
-  const res = await fetch(url);
+  const res = await fetch(url, { credentials: "include" }); // ✅ 여기!
   if (!res.ok) throw new Error("API Error");
   return res.json();
 };

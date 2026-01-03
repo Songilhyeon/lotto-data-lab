@@ -210,7 +210,8 @@ export default function Header() {
                   <>
                     <button
                       onClick={() =>
-                        (window.location.href = `${oauthUrls.google}?state=${redirectPath}`)
+                        // (window.location.href = `${oauthUrls.google}?state=${redirectPath}`)
+                        (window.location.href = `${oauthUrls.google}`)
                       }
                       className="w-full py-2 border rounded flex items-center justify-center gap-2"
                     >
@@ -219,7 +220,8 @@ export default function Header() {
 
                     <button
                       onClick={() =>
-                        (window.location.href = `${oauthUrls.naver}?state=${redirectPath}`)
+                        // (window.location.href = `${oauthUrls.naver}?state=${redirectPath}`)
+                        (window.location.href = `${oauthUrls.naver}`)
                       }
                       className="mt-3 w-full py-2 rounded bg-[#03C75A] text-white flex items-center justify-center gap-2"
                     >
@@ -251,7 +253,8 @@ export default function Header() {
             {/* Google */}
             <button
               onClick={() =>
-                (window.location.href = `${oauthUrls.google}?state=${redirectPath}`)
+                // (window.location.href = `${oauthUrls.google}?state=${redirectPath}`)
+                (window.location.href = `${oauthUrls.google}`)
               }
               className="
           w-full py-2 border rounded
@@ -269,7 +272,8 @@ export default function Header() {
             {/* Naver */}
             <button
               onClick={() =>
-                (window.location.href = `${oauthUrls.naver}?state=${redirectPath}`)
+                // (window.location.href = `${oauthUrls.naver}?state=${redirectPath}`)
+                (window.location.href = `${oauthUrls.naver}`)
               }
               className="
           mt-3 w-full py-2 rounded

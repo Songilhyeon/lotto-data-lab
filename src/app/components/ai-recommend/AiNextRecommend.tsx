@@ -10,6 +10,21 @@ import { LottoDraw } from "@/app/types/lottoNumbers";
 import DraggableNextRound from "@/app/components/DraggableNextRound";
 import LottoBall from "../LottoBall";
 import ScoreBarList from "@/app/components/ai-recommend/ScoreBarList";
+import useRequestDedup from "@/app/hooks/useRequestDedup";
+
+type NextRecommendParams = {
+  clusterUnit: number;
+  round: number;
+  weights: {
+    hot: number;
+    cold: number;
+    streak: number;
+    pattern: number;
+    cluster: number;
+    random: number;
+    nextFreq: number;
+  };
+};
 
 export default function AiNextRecommend() {
   const latestRound = getLatestRound(); // 최신 회차
@@ -24,6 +39,9 @@ export default function AiNextRecommend() {
     "normalized"
   );
 
+  // ✅ 성공한 요청만 dedup 대상으로 저장, 실패 시 재시도 가능
+  const { begin, commit, rollback } = useRequestDedup<NextRecommendParams>();
+
   // weight 기본값
   const weights: WeightConfig = {
     hot: 1,
@@ -32,10 +50,27 @@ export default function AiNextRecommend() {
     pattern: 1,
     cluster: 0.5,
     random: 1,
-    nextFreq: 5, // 🎯 50% 비중! (다른 모든 것의 합보다 큼)
+    nextFreq: 5,
   };
 
-  const fetchAnalysis = async () => {
+  const fetchAnalysis = async (force = false) => {
+    const params: NextRecommendParams = {
+      clusterUnit,
+      round: selectedRound,
+      weights: {
+        hot: weights.hot,
+        cold: weights.cold,
+        streak: weights.streak,
+        pattern: weights.pattern,
+        cluster: weights.cluster,
+        random: weights.random,
+        nextFreq: weights.nextFreq,
+      },
+    };
+
+    const attempt = begin(params, force);
+    if (!attempt.ok) return;
+
     setLoading(true);
     try {
       const query = new URLSearchParams({
@@ -52,33 +87,38 @@ export default function AiNextRecommend() {
       });
 
       const res = await fetch(
-        `${apiUrl}/lotto/premium/recommend-next?${query.toString()}`
+        `${apiUrl}/lotto/premium/recommend-next?${query.toString()}`,
+        {
+          // ✅ 공개 엔드포인트면 필요 없음
+          // ✅ auth 걸어둔 엔드포인트면 아래 주석 해제
+          // credentials: "include",
+        }
       );
+
+      if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+
       const json = await res.json();
       setResult(json.result);
-      setNextRound(json.result?.nextRound);
+      setNextRound(json.result?.nextRound ?? null);
+
+      commit(attempt.key); // ✅ 성공 확정
+    } catch (e) {
+      console.error(e);
+      rollback(); // ✅ 실패하면 재시도 허용
     } finally {
       setLoading(false);
     }
   };
 
-  /* -----------------------------
-   * nextRound 강조 정보
-   * ----------------------------- */
   const hitNumberSet = nextRound ? new Set<number>(nextRound.numbers) : null;
-
   const bonusNumber = nextRound?.bonus;
 
-  /* -----------------------------
-   * 결과 렌더링
-   * ----------------------------- */
   const renderResult = () => {
     if (loading) return <div>점수 분석 중...</div>;
     if (!result) return <div>분석 결과가 없습니다.</div>;
 
     return (
       <div className="mt-2 p-4 border rounded bg-green-50">
-        {/* 계산 점수 TOP6 번호 */}
         <h3 className="font-bold mb-2">분석 점수 TOP6 번호</h3>
         <div className="flex flex-wrap gap-2 mb-4">
           {result.combination.map((n) => (
@@ -86,7 +126,6 @@ export default function AiNextRecommend() {
           ))}
         </div>
 
-        {/* 점수 바 */}
         {result.scores && (
           <ScoreBarList
             scores={result.scores}
@@ -101,14 +140,12 @@ export default function AiNextRecommend() {
 
   return (
     <div className={`${componentBodyDivStyle()} from-green-50 to-purple-100`}>
-      {/* Header */}
       <ComponentHeader
         title="📊 다음 회차 기반 모델"
         content={`번호 간 '이어짐 패턴'을 분석하여, 이전 회차에서 다음 회차로 이어질 가능성이 높은 번호를 점수화한 AI 모델. 
                   회차를 선택하여 과거 회차에 어떤 번호가 당첨 되었는지 분석할 수 있습니다.`}
       />
 
-      {/* clusterUnit 선택 */}
       <ClusterUnitSelector
         clusterUnit={clusterUnit}
         setClusterUnit={setClusterUnit}
@@ -119,7 +156,6 @@ export default function AiNextRecommend() {
         <label className="font-medium text-gray-700">회차 선택:</label>
 
         <div className="flex items-center gap-1">
-          {/* 이전 회차 */}
           <button
             onClick={() => setSelectedRound((prev) => Math.max(prev - 1, 1))}
             className="
@@ -132,7 +168,6 @@ export default function AiNextRecommend() {
             -
           </button>
 
-          {/* 회차 직접 입력 */}
           <input
             type="number"
             min={1}
@@ -161,7 +196,6 @@ export default function AiNextRecommend() {
             "
           />
 
-          {/* 다음 회차 */}
           <button
             onClick={() =>
               setSelectedRound((prev) => Math.min(prev + 1, latestRound))
@@ -177,7 +211,6 @@ export default function AiNextRecommend() {
           </button>
         </div>
 
-        {/* 최신 회차 클릭하면 적용 */}
         <span
           className="text-gray-500 cursor-pointer hover:underline"
           onClick={() => setSelectedRound(latestRound)}
@@ -189,11 +222,20 @@ export default function AiNextRecommend() {
       {/* 실행 */}
       <div className="flex gap-2 mb-2">
         <button
-          onClick={fetchAnalysis}
+          onClick={() => fetchAnalysis(false)}
           className="bg-green-500 text-white px-4 py-2 sm:px-6 sm:py-3 rounded mb-4 w-full sm:w-auto font-medium shadow-md hover:bg-green-600"
         >
           점수 분석 실행
         </button>
+
+        {/* ✅ 같은 params라도 강제 재실행 */}
+        {/* <button
+          onClick={() => fetchAnalysis(true)}
+          className="bg-gray-200 px-4 py-2 sm:px-6 sm:py-3 rounded mb-4 w-full sm:w-auto font-medium shadow-md hover:bg-gray-300"
+        >
+          강제 새로고침
+        </button> */}
+
         <button
           onClick={() => setScoreMode("normalized")}
           className={`px-4 py-2 sm:px-6 sm:py-3 rounded mb-4 w-full sm:w-auto font-medium shadow-md ${
@@ -217,12 +259,10 @@ export default function AiNextRecommend() {
 
       {nextRound && (
         <div className="min-w-0">
-          {/* DraggableNextRound는 내부에서 고정 포지셔닝을 처리함 */}
           <DraggableNextRound nextRound={nextRound} most={[]} least={[]} />
         </div>
       )}
 
-      {/* 결과 영역 */}
       <div className="overflow-y-auto max-h-[80vh]">{renderResult()}</div>
     </div>
   );

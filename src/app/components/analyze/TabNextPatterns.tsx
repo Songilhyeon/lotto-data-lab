@@ -66,6 +66,8 @@ export default function NextPatterns() {
     }
 
     setLoading(true);
+    let success = false;
+
     try {
       const res = await fetch(
         `${apiUrl}/lotto/next?start=${start}&end=${end}&includeBonus=${includeBonus}&minMatch=${minMatch}`
@@ -84,6 +86,7 @@ export default function NextPatterns() {
       setSelectedRound(json.data.selectedRound ?? null);
       setResults(json.data.results ?? []);
       setFrequency(json.data.nextFrequency ?? {});
+      success = true;
     } catch (err) {
       console.error(err);
       setNextRound(null);
@@ -92,7 +95,9 @@ export default function NextPatterns() {
       setFrequency({});
     } finally {
       setLoading(false);
-      prevParamsRef.current = { start, end, includeBonus, minMatch }; // ← params 저장
+      if (success) {
+        prevParamsRef.current = { start, end, includeBonus, minMatch }; // ← params 저장
+      }
     }
   };
 

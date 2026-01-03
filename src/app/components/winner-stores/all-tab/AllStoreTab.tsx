@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { apiUrl } from "@/app/utils/getUtils";
 import { Card, CardContent } from "@/app/components/winner-stores/Card";
 import LockOverlay from "@/app/components/winner-stores/LockOverlay";
@@ -19,7 +19,7 @@ interface Props {
 }
 
 /* ----------------------------
-   정렬 타입
+  정렬 타입
 ---------------------------- */
 type SortKey = "name" | "latestRound" | "winCount" | "firstRound";
 type SortOrder = "asc" | "desc";
@@ -56,11 +56,44 @@ export default function AllStoresTab({ selectedRank, setSelectedRank }: Props) {
     order: "desc",
   });
 
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
   /* ----------------------------
-      데이터 로드
+      검색 적용 (동일 값이면 스킵 + trim)
+  ---------------------------- */
+  const applyKeyword = useCallback(() => {
+    const next = searchKeyword.trim();
+    if (next === appliedKeyword) return; // ✅ 동일 키워드면 스킵
+    setAppliedKeyword(next);
+    setCurrentPage(1);
+  }, [searchKeyword, appliedKeyword]);
+
+  /* ----------------------------
+      Rank 변경 핸들러
+  ---------------------------- */
+  const handleRankChange = useCallback(
+    (rank: 1 | 2) => {
+      setSelectedRank(rank);
+      setSelectedRegion("전국");
+      setCurrentPage(1);
+      setSearchKeyword("");
+      setAppliedKeyword("");
+
+      // Rank별 기본 정렬 UX
+      setSortOption({
+        key: rank === 1 ? "latestRound" : "winCount",
+        order: "desc",
+      });
+    },
+    [setSelectedRank]
+  );
+
+  /* ----------------------------
+      데이터 로드 (AbortController + 로딩중 연타 방지)
   ---------------------------- */
   useEffect(() => {
-    let ignore = false;
+    const controller = new AbortController();
+    let mounted = true;
 
     async function fetchStores() {
       setLoading(true);
@@ -78,49 +111,33 @@ export default function AllStoresTab({ selectedRank, setSelectedRank }: Props) {
 
       try {
         const res = await fetch(
-          `${apiUrl}/lotto/stores/all?${params.toString()}`
+          `${apiUrl}/lotto/stores/all?${params.toString()}`,
+          { signal: controller.signal } // ✅ 이전 요청 취소 가능
         );
+
+        if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+
         const json: AllStoresApiResponse = await res.json();
-        if (ignore) return;
+        if (!mounted) return;
 
         setStores(json.stores);
         setTotal(json.total);
         setRegions(json.regions);
+      } catch (e: unknown) {
+        // ✅ Abort는 정상 흐름으로 취급
+        if (e instanceof Error && e.name !== "AbortError") console.error(e);
       } finally {
-        if (!ignore) setLoading(false);
+        if (mounted) setLoading(false);
       }
     }
 
     fetchStores();
+
     return () => {
-      ignore = true;
+      mounted = false;
+      controller.abort(); // ✅ cleanup 시 이전 요청 취소
     };
-  }, [
-    selectedRank,
-    selectedRegion,
-    appliedKeyword,
-    currentPage,
-    sortOption, // ✅ 정렬 변경 시 재요청
-  ]);
-
-  const totalPages = Math.ceil(total / pageSize);
-
-  /* ----------------------------
-      Rank 변경 핸들러
-  ---------------------------- */
-  function handleRankChange(rank: 1 | 2) {
-    setSelectedRank(rank);
-    setSelectedRegion("전국");
-    setCurrentPage(1);
-    setSearchKeyword("");
-    setAppliedKeyword("");
-
-    // Rank별 기본 정렬 UX
-    setSortOption({
-      key: rank === 1 ? "latestRound" : "winCount",
-      order: "desc",
-    });
-  }
+  }, [selectedRank, selectedRegion, appliedKeyword, currentPage, sortOption]);
 
   return (
     <div className={`${componentBodyDivStyle()} from-violet-50 to-purple-100`}>
@@ -135,6 +152,7 @@ export default function AllStoresTab({ selectedRank, setSelectedRank }: Props) {
         regions={regions}
         selectedRegion={selectedRegion}
         setSelectedRegion={(r) => {
+          if (loading) return; // ✅ 로딩 중 연타 방지
           setSelectedRegion(r);
           setCurrentPage(1);
         }}
@@ -151,9 +169,7 @@ export default function AllStoresTab({ selectedRank, setSelectedRank }: Props) {
               <input
                 value={searchKeyword}
                 onChange={(e) => setSearchKeyword(e.target.value)}
-                onKeyDown={(e) =>
-                  e.key === "Enter" && setAppliedKeyword(searchKeyword)
-                }
+                onKeyDown={(e) => e.key === "Enter" && applyKeyword()}
                 placeholder="판매점명 또는 주소"
                 className="
                   h-9
@@ -168,10 +184,8 @@ export default function AllStoresTab({ selectedRank, setSelectedRank }: Props) {
                 "
               />
               <button
-                onClick={() => {
-                  setAppliedKeyword(searchKeyword);
-                  setCurrentPage(1);
-                }}
+                disabled={loading} // ✅ 로딩 중 중복 요청 방지
+                onClick={applyKeyword}
                 className="
                   h-9
                   px-4
@@ -184,6 +198,8 @@ export default function AllStoresTab({ selectedRank, setSelectedRank }: Props) {
                   active:bg-gray-900
                   transition
                   whitespace-nowrap
+                  disabled:opacity-50
+                  disabled:cursor-not-allowed
                 "
               >
                 검색
@@ -193,22 +209,25 @@ export default function AllStoresTab({ selectedRank, setSelectedRank }: Props) {
             {/* 정렬 영역 */}
             <div className="flex items-center gap-2">
               <select
+                disabled={loading} // ✅ 로딩 중 정렬 변경 방지
                 value={sortOption.key}
                 onChange={(e) => {
-                  setSortOption((prev) => ({
-                    ...prev,
-                    key: e.target.value as SortKey,
-                  }));
+                  const nextKey = e.target.value as SortKey;
+                  setSortOption((prev) =>
+                    prev.key === nextKey ? prev : { ...prev, key: nextKey }
+                  );
                   setCurrentPage(1);
                 }}
                 className="
-        h-9
-        border
-        rounded-lg
-        px-2.5
-        text-sm
-        bg-white
-      "
+                  h-9
+                  border
+                  rounded-lg
+                  px-2.5
+                  text-sm
+                  bg-white
+                  disabled:opacity-50
+                  disabled:cursor-not-allowed
+                "
               >
                 <option value="latestRound">최근 당첨순</option>
                 <option value="winCount">당첨 횟수순</option>
@@ -217,6 +236,7 @@ export default function AllStoresTab({ selectedRank, setSelectedRank }: Props) {
               </select>
 
               <button
+                disabled={loading} // ✅ 로딩 중 토글 방지
                 onClick={() =>
                   setSortOption((prev) => ({
                     ...prev,
@@ -224,17 +244,19 @@ export default function AllStoresTab({ selectedRank, setSelectedRank }: Props) {
                   }))
                 }
                 className="
-        h-9
-        w-9
-        border
-        rounded-lg
-        text-sm
-        flex
-        items-center
-        justify-center
-        hover:bg-gray-100
-        transition
-      "
+                  h-9
+                  w-9
+                  border
+                  rounded-lg
+                  text-sm
+                  flex
+                  items-center
+                  justify-center
+                  hover:bg-gray-100
+                  transition
+                  disabled:opacity-50
+                  disabled:cursor-not-allowed
+                "
                 title={sortOption.order === "asc" ? "오름차순" : "내림차순"}
               >
                 {sortOption.order === "asc" ? "▲" : "▼"}
@@ -268,14 +290,15 @@ export default function AllStoresTab({ selectedRank, setSelectedRank }: Props) {
           {totalPages > 1 && (
             <div className="flex justify-center items-center gap-4 pt-2 sm:pt-4">
               <button
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage((p) => p - 1)}
+                disabled={loading || currentPage === 1} // ✅ 로딩 중 연타 방지
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 className="
                   px-4 py-2
                   rounded-lg
                   bg-gray-100
                   text-sm
                   disabled:opacity-40
+                  disabled:cursor-not-allowed
                   active:bg-gray-200
                 "
               >
@@ -285,14 +308,17 @@ export default function AllStoresTab({ selectedRank, setSelectedRank }: Props) {
                 {currentPage} / {totalPages}
               </span>
               <button
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage((p) => p + 1)}
+                disabled={loading || currentPage === totalPages} // ✅ 로딩 중 연타 방지
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                }
                 className="
                   px-4 py-2
                   rounded-lg
                   bg-gray-100
                   text-sm
                   disabled:opacity-40
+                  disabled:cursor-not-allowed
                   active:bg-gray-200
                 "
               >

@@ -8,6 +8,7 @@ import LottoBall from "@/app/components/LottoBall";
 import DraggableNextRound from "@/app/components/DraggableNextRound";
 import ScoreBarList from "@/app/components/ai-recommend/ScoreBarList";
 import { AiScoreBase } from "@/app/types/api";
+import useRequestDedup from "@/app/hooks/useRequestDedup";
 
 const AI_VARIANTS = [
   {
@@ -25,11 +26,7 @@ const AI_VARIANTS = [
     label: "🧱 군집형",
     desc: "구간 밀집도 중심 (거의 동일 결과)",
   },
-  {
-    key: "decay",
-    label: "⏳ 최근형",
-    desc: "최근 회차 가중 (항상 동일 결과)",
-  },
+  { key: "decay", label: "⏳ 최근형", desc: "최근 회차 가중 (항상 동일 결과)" },
   {
     key: "chaos",
     label: "🎲 혼합형",
@@ -53,6 +50,11 @@ interface AiVariantResult {
   nextRound?: NextRoundInfo | null;
 }
 
+type VariantDedupParams = {
+  round: number;
+  variant: VariantKey;
+};
+
 export default function AiVariantRecommend() {
   const latestRound = getLatestRound();
 
@@ -65,27 +67,48 @@ export default function AiVariantRecommend() {
     "normalized"
   );
 
-  const isChaos = variant === "chaos";
+  const isChaos = variant === "chaos" || variant === "cluster";
 
-  const fetchAnalysis = async () => {
+  const { begin, commit, rollback } = useRequestDedup<VariantDedupParams>();
+
+  const fetchAnalysis = async (force = false) => {
+    // ✅ chaos는 dedup 적용 금지 (항상 실행)
+    // ✅ 그 외는 성공한 동일 params면 스킵
+    let attemptKey: string | null = null;
+
+    if (!isChaos) {
+      const params: VariantDedupParams = { round, variant };
+      const attempt = begin(params, force);
+      if (!attempt.ok) return;
+      attemptKey = attempt.key;
+    }
+
     setLoading(true);
 
     try {
       const res = await fetch(`${apiUrl}/lotto/premium/recommend-variant`, {
         method: "POST",
+        credentials: "include", // ✅ auth 걸어둔 상태면 필수
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           round,
           variant,
-          seed: isChaos ? Date.now() : undefined,
+          ...(isChaos ? { seed: Date.now() } : {}),
         }),
       });
+
+      if (!res.ok) throw new Error(`Request failed: ${res.status}`);
 
       const data: AiVariantResult = await res.json();
       setResult(data);
       setNextRound(data.nextRound ?? null);
+
+      // ✅ chaos가 아닐 때만 commit (dedup 확정)
+      if (!isChaos && attemptKey) commit(attemptKey);
     } catch (err) {
       console.error(err);
+      // ✅ chaos가 아닐 때만 rollback (재시도 허용)
+      if (!isChaos) rollback();
     } finally {
       setLoading(false);
     }
@@ -110,7 +133,6 @@ export default function AiVariantRecommend() {
 
     return (
       <div className="bg-white rounded-xl shadow p-4">
-        {/* 점수계산 조합 */}
         <h3 className="font-bold mb-2">분석 점수 TOP6 번호</h3>
         <div className="flex gap-2 flex-wrap mb-4">
           {result.combination.map((n) => (
@@ -118,7 +140,6 @@ export default function AiVariantRecommend() {
           ))}
         </div>
 
-        {/* 점수 분포 (정규화 기준) */}
         <ScoreBarList
           scores={result.scores}
           mode={scoreMode}
@@ -197,11 +218,20 @@ export default function AiVariantRecommend() {
       {/* 실행 */}
       <div className="flex gap-2 mb-2">
         <button
-          onClick={fetchAnalysis}
+          onClick={() => fetchAnalysis(false)}
           className="bg-green-500 text-white px-4 py-2 sm:px-6 sm:py-3 rounded mb-4 w-full sm:w-auto font-medium shadow-md hover:bg-green-600"
         >
           점수 분석 실행
         </button>
+
+        {/* ✅ chaos가 아닐 때만 의미 있음: 같은 params라도 강제 재실행 */}
+        {/* <button
+          onClick={() => fetchAnalysis(true)}
+          className="bg-gray-200 px-4 py-2 sm:px-6 sm:py-3 rounded mb-4 w-full sm:w-auto font-medium shadow-md hover:bg-gray-300"
+        >
+          강제 새로고침
+        </button> */}
+
         <button
           onClick={() => setScoreMode("normalized")}
           className={`px-4 py-2 sm:px-6 sm:py-3 rounded mb-4 w-full sm:w-auto font-medium shadow-md ${

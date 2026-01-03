@@ -42,7 +42,7 @@ export default function PremiumAnalysis() {
 
     setLoading(true);
     setError(null);
-
+    let success = false;
     try {
       const res = await fetch(
         `${apiUrl}/lotto/premium/analysis?round=${round}&bonusIncluded=${bonusIncluded}&recent=${recentCount}`,
@@ -54,11 +54,14 @@ export default function PremiumAnalysis() {
 
       if (json.ok) setResult(json.data);
       else setError("분석 데이터를 가져올 수 없습니다.");
+      success = true;
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "알 수 없는 에러");
     } finally {
       setLoading(false);
-      prevParamsRef.current = { round, bonusIncluded, recentCount };
+      if (success) {
+        prevParamsRef.current = { round, bonusIncluded, recentCount };
+      }
     }
   };
 

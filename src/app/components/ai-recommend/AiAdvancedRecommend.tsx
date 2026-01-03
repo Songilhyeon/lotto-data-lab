@@ -18,6 +18,22 @@ import DraggableNextRound from "@/app/components/DraggableNextRound";
 import LottoBall from "../LottoBall";
 import ScoreBarList from "@/app/components/ai-recommend/ScoreBarList";
 import AiScoreExplainCard from "@/app/components/ai-recommend/AiScoreExplainCard";
+import useRequestDedup from "@/app/hooks/useRequestDedup";
+
+type AdvancedDedupParams = {
+  round: number;
+  presetName: string;
+  clusterUnit: number;
+  customWeights: {
+    hot: number;
+    cold: number;
+    streak: number;
+    pattern: number;
+    cluster: number;
+    random: number;
+    nextFreq: number;
+  };
+};
 
 export default function AiAdvancedRecommend() {
   const latestRound = getLatestRound();
@@ -34,9 +50,8 @@ export default function AiAdvancedRecommend() {
   );
   const [selectedScore, setSelectedScore] = useState<AiScoreBase | null>(null);
 
-  /* -----------------------------
-   * Preset / Weight
-   * ----------------------------- */
+  const { begin, commit, rollback } = useRequestDedup<AdvancedDedupParams>();
+
   const handlePresetChange = (presetName: string) => {
     const selectedPreset = AiPresets.find((p) => p.name === presetName);
     if (!selectedPreset) return;
@@ -48,51 +63,64 @@ export default function AiAdvancedRecommend() {
     setWeights({ ...preset.weight });
   };
 
-  /* -----------------------------
-   * Fetch
-   * ----------------------------- */
-  const fetchAnalysis = async () => {
+  const fetchAnalysis = async (force = false) => {
+    const dedupParams: AdvancedDedupParams = {
+      round: selectedRound,
+      presetName: preset.name,
+      clusterUnit,
+      customWeights: {
+        hot: weights.hot,
+        cold: weights.cold,
+        streak: weights.streak,
+        pattern: weights.pattern,
+        cluster: weights.cluster,
+        random: weights.random,
+        nextFreq: weights.nextFreq,
+      },
+    };
+
+    const attempt = begin(dedupParams, force);
+    if (!attempt.ok) return;
+
     setLoading(true);
     try {
       const res = await fetch(`${apiUrl}/lotto/premium/recommend-advanced`, {
         method: "POST",
+        credentials: "include", // ✅ auth 걸어둔 상태면 필수
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           round: selectedRound,
           presetName: preset.name,
           clusterUnit,
-          seed: Date.now(),
+          seed: Date.now(), // ✅ 서버용 seed (dedup 비교엔 미포함)
           customWeights: weights,
         }),
       });
 
+      if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+
       const data: IfAiRecommendation = await res.json();
       setResult(data);
       setNextRound(data.nextRound || null);
+
+      commit(attempt.key); // ✅ 성공 확정
     } catch (err) {
       console.error(err);
+      rollback(); // ✅ 실패면 재시도 가능
     } finally {
       setLoading(false);
     }
   };
 
-  /* -----------------------------
-   * nextRound 강조 정보
-   * ----------------------------- */
   const hitNumberSet = nextRound ? new Set<number>(nextRound.numbers) : null;
-
   const bonusNumber = nextRound?.bonus;
 
-  /* -----------------------------
-   * 결과 렌더링
-   * ----------------------------- */
   const renderResult = () => {
     if (loading) return <div>점수 분석 중...</div>;
     if (!result) return <div>분석 결과가 없습니다.</div>;
 
     return (
       <div className="mt-2 p-4 border rounded bg-green-50">
-        {/* 점수계산 번호 */}
         <h3 className="font-bold mb-2">분석 점수 TOP6 번호</h3>
         <div className="flex flex-wrap gap-2 mb-4">
           {result.combination.map((n) => (
@@ -100,7 +128,6 @@ export default function AiAdvancedRecommend() {
           ))}
         </div>
 
-        {/* 점수 바 */}
         {result.scores && (
           <ScoreBarList
             scores={result.scores}
@@ -114,9 +141,6 @@ export default function AiAdvancedRecommend() {
     );
   };
 
-  /* -----------------------------
-   * Render
-   * ----------------------------- */
   return (
     <div className={`${componentBodyDivStyle()} from-pink-50 to-indigo-100`}>
       <ComponentHeader
@@ -129,7 +153,6 @@ export default function AiAdvancedRecommend() {
         Preset & 가중치 설정
       </h2>
 
-      {/* Preset */}
       <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center gap-2">
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <label className="font-semibold">Preset:</label>
@@ -161,7 +184,6 @@ export default function AiAdvancedRecommend() {
 
       <WeightSliderGroup weights={weights} setWeights={setWeights} />
 
-      {/* 회차 선택 */}
       <div className="mb-4 flex items-center gap-2">
         <label className="font-medium text-gray-700">회차 선택:</label>
 
@@ -202,14 +224,22 @@ export default function AiAdvancedRecommend() {
         </span>
       </div>
 
-      {/* 실행 */}
       <div className="flex gap-2 mb-2">
         <button
-          onClick={fetchAnalysis}
+          onClick={() => fetchAnalysis(false)}
           className="bg-green-500 text-white px-4 py-2 sm:px-6 sm:py-3 rounded mb-4 w-full sm:w-auto font-medium shadow-md hover:bg-green-600 active:scale-95"
         >
           점수 분석 실행
         </button>
+
+        {/* ✅ 같은 params라도 “강제 재실행” */}
+        {/* <button
+          onClick={() => fetchAnalysis(true)}
+          className="bg-gray-200 px-4 py-2 sm:px-6 sm:py-3 rounded mb-4 w-full sm:w-auto font-medium shadow-md hover:bg-gray-300"
+        >
+          강제 새로고침
+        </button> */}
+
         <button
           onClick={() => setScoreMode("normalized")}
           className={`px-4 py-2 sm:px-6 sm:py-3 rounded mb-4 w-full sm:w-auto font-medium shadow-md ${
