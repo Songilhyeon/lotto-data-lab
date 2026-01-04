@@ -30,6 +30,16 @@ export default function LottoCard({
     data.drwtNo6,
   ];
 
+  const hasSecond =
+    data.secondPrzwnerCo !== null ||
+    data.secondWinamnt !== null ||
+    data.secondAccumamnt !== null;
+
+  const firstTotal =
+    data.firstAccumamnt !== "0"
+      ? Number(data.firstAccumamnt)
+      : Number(data.firstPrzwnerCo) * Number(data.firstWinamnt);
+
   return (
     <div
       className={`${cardWidth} mx-auto rounded-2xl shadow-lg 
@@ -44,85 +54,152 @@ export default function LottoCard({
         </p>
       </div>
 
-      <div className="flex flex-wrap gap-2 sm:gap-3 justify-center mb-3 sm:mb-4">
-        {numbers.map((num, idx) => (
-          <LottoBall key={idx} number={num} size="lg" />
-        ))}
+      {/* ✅ 번호는 모바일에서 한 줄 유지(가로 스크롤 허용) */}
+      <div className="mb-3 sm:mb-4">
+        <div className="flex items-center justify-start sm:justify-center gap-2 sm:gap-3 flex-nowrap overflow-x-auto no-scrollbar py-1">
+          {numbers.map((num, idx) => (
+            <div key={idx} className="shrink-0">
+              <LottoBall number={num} size="lg" />
+            </div>
+          ))}
+
+          {includeBonus && (
+            <>
+              <span className="shrink-0 text-gray-500 font-bold text-lg sm:text-xl mx-1">
+                +
+              </span>
+              <div className="shrink-0">
+                <LottoBall number={data.bnusNo} size="md" />
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* 모바일에서 스크롤 힌트(너무 길어지면 안내) */}
+        <p className="mt-1 text-[10px] text-gray-400 sm:hidden text-center">
+          좌우로 스크롤해서 확인할 수 있어요
+        </p>
       </div>
 
-      {includeBonus && (
-        <div className="flex items-center justify-center gap-2 sm:gap-3 py-2 border-t border-gray-200">
-          <span className="text-[10px] sm:text-sm text-gray-600">보너스</span>
-          <LottoBall number={data.bnusNo} size="md" />
-        </div>
-      )}
+      {/* ✅ 1등/2등 요약: 모바일=1열, sm+=2열 */}
+      <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200 space-y-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+          {/* 1등 */}
+          <div className="bg-white/70 rounded-xl border border-gray-200 p-3">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-semibold text-gray-600">1등</span>
+              <span className="text-[11px] text-gray-500 tabular-nums">
+                {data.firstPrzwnerCo}명
+              </span>
+            </div>
 
-      <div
-        className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200 
-    space-y-1 sm:space-y-2 text-xs sm:text-base"
-      >
-        <div className="flex justify-between">
-          <span className="text-gray-600">1등 당첨금</span>
-          <span className="font-bold text-yellow-600">
-            {formatNumber(Number(data.firstWinamnt))}원
-          </span>
+            <div className="mt-2 space-y-2">
+              {/* 당첨금 */}
+              <div>
+                <p className="text-[10px] sm:text-xs text-gray-600 leading-none">
+                  당첨금
+                </p>
+                <p className="mt-1 font-bold text-yellow-600 tabular-nums text-[13px] sm:text-base leading-tight">
+                  {formatNumber(Number(data.firstWinamnt))}원
+                </p>
+              </div>
+
+              {/* 총액 */}
+              <div>
+                <p className="text-[10px] sm:text-xs text-gray-600 leading-none">
+                  총액
+                </p>
+                <p className="mt-1 font-semibold text-gray-800 tabular-nums text-[13px] sm:text-base leading-tight">
+                  {firstTotal.toLocaleString()}원
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* 2등 */}
+          <div className="bg-white/70 rounded-xl border border-gray-200 p-3">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-semibold text-gray-600">2등</span>
+              <span className="text-[11px] text-gray-500 tabular-nums">
+                {data.secondPrzwnerCo !== null
+                  ? `${data.secondPrzwnerCo}명`
+                  : "-"}
+              </span>
+            </div>
+
+            {hasSecond ? (
+              <>
+                <div className="mt-2 space-y-2">
+                  {/* 당첨금 */}
+                  <div>
+                    <p className="text-[10px] sm:text-xs text-gray-600 leading-none">
+                      당첨금
+                    </p>
+                    <p className="mt-1 font-bold text-indigo-600 tabular-nums text-[13px] sm:text-base leading-tight">
+                      {data.secondWinamnt !== null
+                        ? `${formatNumber(Number(data.secondWinamnt))}원`
+                        : "-"}
+                    </p>
+                  </div>
+
+                  {/* 총액 */}
+                  <div>
+                    <p className="text-[10px] sm:text-xs text-gray-600 leading-none">
+                      총액
+                    </p>
+                    <p className="mt-1 font-semibold text-gray-800 tabular-nums text-[13px] sm:text-base leading-tight">
+                      {data.secondAccumamnt !== null
+                        ? `${Number(data.secondAccumamnt).toLocaleString()}원`
+                        : "-"}
+                    </p>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <p className="text-[11px] sm:text-sm text-gray-400 mt-1">
+                데이터 없음
+              </p>
+            )}
+          </div>
         </div>
 
-        <div className="flex justify-between">
-          <span className="text-gray-600">1등 당첨자 수</span>
-          <span className="font-bold text-gray-800">
-            {data.firstPrzwnerCo}명
-          </span>
-        </div>
-
-        <div className="flex justify-between">
-          <span className="text-gray-600">1등 총 당첨금</span>
-          <span className="font-bold text-gray-800">
-            {data.firstAccumamnt !== "0"
-              ? Number(data.firstAccumamnt).toLocaleString()
-              : (
-                  Number(data.firstPrzwnerCo) * Number(data.firstWinamnt)
-                ).toLocaleString()}
-            원
-          </span>
-        </div>
-
-        <div className="flex justify-between">
-          <span className="text-gray-600">총 판매액</span>
-          <span className="font-bold text-gray-800">
+        {/* 총 판매액 */}
+        <div className="flex justify-between gap-3 text-[11px] sm:text-sm pt-1">
+          <span className="text-gray-600 shrink-0">총 판매액</span>
+          <span className="font-bold text-gray-800 tabular-nums truncate max-w-[65%] text-right">
             {Number(data.totSellamnt).toLocaleString()}원
           </span>
         </div>
       </div>
 
-      {/* 📌 자동 / 반자동 / 수동 당첨자 */}
-      <div className="mt-4 pt-3 border-t border-gray-200">
+      {/* 📌 1등 당첨 방식 */}
+      <div className="mt-3 pt-3 border-t border-gray-200">
         <h3 className="text-xs sm:text-sm text-gray-500 mb-2">1등 당첨 방식</h3>
 
+        {/* 모바일에서 너무 넓지 않게 gap 줄임 */}
         <div className="grid grid-cols-3 gap-2">
           <div className="bg-white shadow-sm rounded-xl p-2 text-center border">
             <p className="text-[10px] sm:text-xs text-gray-500">자동</p>
-            <p className="font-bold text-gray-800 text-sm sm:text-base">
+            <p className="font-bold text-gray-800 text-sm sm:text-base tabular-nums">
               {data.autoWin ?? 0}명
             </p>
           </div>
 
           <div className="bg-white shadow-sm rounded-xl p-2 text-center border">
             <p className="text-[10px] sm:text-xs text-gray-500">반자동</p>
-            <p className="font-bold text-gray-800 text-sm sm:text-base">
+            <p className="font-bold text-gray-800 text-sm sm:text-base tabular-nums">
               {data.semiAutoWin ?? 0}명
             </p>
           </div>
 
           <div className="bg-white shadow-sm rounded-xl p-2 text-center border">
             <p className="text-[10px] sm:text-xs text-gray-500">수동</p>
-            <p className="font-bold text-gray-800 text-sm sm:text-base">
+            <p className="font-bold text-gray-800 text-sm sm:text-base tabular-nums">
               {data.manualWin ?? 0}명
             </p>
           </div>
         </div>
       </div>
-      {/* 📌 끝 */}
     </div>
   );
 }

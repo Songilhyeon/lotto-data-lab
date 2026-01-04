@@ -19,6 +19,15 @@ export default function ResultCard({ record }: ResultCardProps) {
 
   const sum = numbers.reduce((acc, num) => acc + num, 0);
 
+  const firstTotal =
+    Number(record.firstAccumamnt) === 0
+      ? Number(record.firstWinamnt) * Number(record.firstPrzwnerCo)
+      : Number(record.firstAccumamnt);
+
+  const secondWin = Number(record.secondWinamnt ?? 0);
+  const secondCo = Number(record.secondPrzwnerCo ?? 0);
+  const secondTotal = secondWin > 0 && secondCo > 0 ? secondWin * secondCo : 0;
+
   return (
     <div className="p-4 max-w-full border rounded-lg bg-white shadow flex flex-col gap-3">
       {/* 상단 회차 + 날짜 */}
@@ -31,30 +40,48 @@ export default function ResultCard({ record }: ResultCardProps) {
 
       {/* 당첨 정보 */}
       <div className="flex flex-col gap-1 mb-2 text-xs sm:text-sm">
+        {/* 1등 */}
         <div>
           💰 1등 총 당첨금:{" "}
-          <span className="font-semibold">
-            {Number(record.firstAccumamnt) === 0
-              ? (
-                  Number(record.firstWinamnt) * Number(record.firstPrzwnerCo)
-                ).toLocaleString()
-              : Number(record.firstAccumamnt).toLocaleString()}
-            원
-          </span>
+          <span className="font-semibold">{firstTotal.toLocaleString()}원</span>
         </div>
         <div>
-          💰 1등 당첨금:{" "}
+          💰 1등 1인당:{" "}
           <span className="font-semibold">
             {Number(record.firstWinamnt).toLocaleString()}원
           </span>
         </div>
         <div>
-          👥 1등:{" "}
+          👥 1등 당첨자:{" "}
           <span className="font-semibold">
             {Number(record.firstPrzwnerCo).toLocaleString()}명
           </span>
         </div>
-        <div>🏷 총 판매액: {Number(record.totSellamnt).toLocaleString()}원</div>
+
+        {/* 2등 */}
+        <div className="pt-1 border-t border-dashed border-gray-200">
+          💰 2등 1인당:{" "}
+          <span className="font-semibold text-indigo-600">
+            {secondWin > 0 ? `${secondWin.toLocaleString()}원` : "-"}
+          </span>
+        </div>
+        <div>
+          👥 2등 당첨자:{" "}
+          <span className="font-semibold">
+            {secondCo > 0 ? `${secondCo.toLocaleString()}명` : "-"}
+          </span>
+        </div>
+        <div>
+          🧾 2등 총액:{" "}
+          <span className="font-semibold">
+            {secondTotal > 0 ? `${secondTotal.toLocaleString()}원` : "-"}
+          </span>
+        </div>
+
+        {/* 판매액 */}
+        <div className="pt-1 text-gray-600">
+          🏷 총 판매액: {Number(record.totSellamnt).toLocaleString()}원
+        </div>
       </div>
 
       {/* 번호 */}

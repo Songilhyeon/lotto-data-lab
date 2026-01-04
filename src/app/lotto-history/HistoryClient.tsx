@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import type { LottoNumber } from "@/app/types/lottoNumbers";
 import ResultCard from "@/app/components/lotto-history/ResultCard";
 import { queryOptions } from "@/app/utils/queryOptions";
@@ -12,17 +12,25 @@ import {
 } from "@/app/utils/getDivStyle";
 
 export default function HistoryClient() {
-  const [start, setStart] = useState<number>(getLatestRound() - 9);
-  const [end, setEnd] = useState<number>(getLatestRound());
+  const latestRound = getLatestRound();
+
+  const [start, setStart] = useState<number>(1);
+  const [end, setEnd] = useState<number>(latestRound);
   const [results, setResults] = useState<LottoNumber[]>([]);
   const [query, setQuery] = useState<string>(queryOptions[0].value);
   const [limit, setLimit] = useState<number>(5);
   const [loading, setLoading] = useState<boolean>(false);
-  const [selectedRecent, setSelectedRecent] = useState<number | null>(10);
+  const [selectedRecent, setSelectedRecent] = useState<number | null>(
+    latestRound
+  );
 
-  const latestRound = getLatestRound();
   const [debouncedStart, setDebouncedStart] = useState(start);
   const [debouncedEnd, setDebouncedEnd] = useState(end);
+
+  // ✅ 현재 쿼리 라벨(배지용)
+  const currentQueryLabel = useMemo(() => {
+    return queryOptions.find((q) => q.value === query)?.label ?? "정렬 기준";
+  }, [query]);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -94,6 +102,19 @@ export default function HistoryClient() {
           clearRecentSelect={clearRecentSelect}
           showCheckBox={false}
         />
+      </div>
+
+      {/* ✅ 현재 정렬 기준 배지 */}
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <span className="text-xs sm:text-sm text-gray-600">현재 정렬 기준</span>
+        <span className="inline-flex items-center rounded-full border border-indigo-200 bg-white/70 px-3 py-1 text-xs sm:text-sm font-semibold text-indigo-700 shadow-sm">
+          {currentQueryLabel}
+        </span>
+        {query === "rollover1" && (
+          <span className="text-xs sm:text-sm text-gray-500">
+            (1등 당첨자 0명인 회차만)
+          </span>
+        )}
       </div>
 
       {/* 검색 + limit */}

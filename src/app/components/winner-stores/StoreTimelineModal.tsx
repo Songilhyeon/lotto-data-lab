@@ -11,9 +11,9 @@ interface TimelineItem {
   drwNo: number;
   rank: number; // 1 | 2
   drwNoDate: string;
-  autoWin?: number;
-  semiAutoWin?: number;
-  manualWin?: number;
+  autoWin?: number | null;
+  semiAutoWin?: number | null;
+  manualWin?: number | null;
 }
 
 interface TimelineYear {
@@ -70,6 +70,25 @@ export default function StoreTimelineModal({
   });
 
   /* =========================
+    ✅ 2등에서도 method 필드가 null이 아니면(0 포함) 3개 뱃지 표시
+    - 레거시: semi/manual = null
+    - 최신: semi/manual = 0 (또는 1+)
+  ========================= */
+  function shouldShowMethodBadges(item: TimelineItem) {
+    if (item.rank === 1) return true;
+    if (item.rank !== 2) return false;
+
+    const semi = item.semiAutoWin;
+    const manual = item.manualWin;
+
+    // null이 아니면 신규 포맷으로 간주(0 포함)
+    return (
+      (semi !== null && semi !== undefined) ||
+      (manual !== null && manual !== undefined)
+    );
+  }
+
+  /* =========================
     🔥 연속 계산: 최신 회차에만 표시
   ========================= */
   function calculateStreaks(items: TimelineItem[]) {
@@ -87,7 +106,6 @@ export default function StoreTimelineModal({
         streak += gap;
       } else {
         if (streak >= 2) {
-          // 🔥 최신 회차(끝 회차)에만 표시
           streakMap.set(latesRound, streak);
         }
         streak = 1;
@@ -195,10 +213,25 @@ export default function StoreTimelineModal({
 
                       {/* Items */}
                       <div className="mt-2 space-y-2">
-                        {markStreaks(yearBlock.items).map((item, idx) => (
-                          <div
-                            key={idx}
-                            className={`
+                        {markStreaks(yearBlock.items).map((item, idx) => {
+                          const showMethods = shouldShowMethodBadges(item);
+
+                          const auto = item.autoWin ?? 0;
+                          const semi =
+                            item.semiAutoWin === null ||
+                            item.semiAutoWin === undefined
+                              ? 0
+                              : item.semiAutoWin;
+                          const manual =
+                            item.manualWin === null ||
+                            item.manualWin === undefined
+                              ? 0
+                              : item.manualWin;
+
+                          return (
+                            <div
+                              key={idx}
+                              className={`
                                 relative flex justify-between items-center px-3 py-2 text-sm
                                 ${
                                   item.rank === 1
@@ -210,63 +243,65 @@ export default function StoreTimelineModal({
                                 ${item.isStreakStart ? "rounded-t-md mt-2" : ""}
                                 ${item.isStreakEnd ? "rounded-b-md mb-2" : ""}
                               `}
-                          >
-                            {/* Left */}
-                            <div className="flex items-center gap-2 flex-wrap">
-                              {item.isStreak && (
-                                <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-400 rounded-l-md" />
-                              )}
-                              <span className="font-medium">
-                                {item.drwNo}회
-                              </span>
-
-                              {/* 🔥 최신 회차에만 표시 (회차당 1회만) */}
-                              {streakMap.has(item.drwNo) &&
-                                !renderedStreaks.has(item.drwNo) &&
-                                (() => {
-                                  renderedStreaks.add(item.drwNo);
-                                  return (
-                                    <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-semibold">
-                                      🔥 {streakMap.get(item.drwNo)}회 연속
-                                    </span>
-                                  );
-                                })()}
-                              <span className="text-xs text-gray-500">
-                                {item.drwNoDate.slice(0, 10)}
-                              </span>
-
-                              <span
-                                className={`px-2 py-0.5 rounded text-xs font-medium
-                                  ${
-                                    item.rank === 1
-                                      ? "bg-blue-100 text-blue-700"
-                                      : "bg-yellow-100 text-yellow-700"
-                                  }`}
-                              >
-                                {item.rank}등
-                              </span>
-                            </div>
-
-                            {/* Right */}
-                            {item.rank === 1 ? (
-                              <div className="flex gap-2 text-xs">
-                                <span className="px-2 py-0.5 bg-blue-100 rounded">
-                                  자동 {item.autoWin ?? 0}
+                            >
+                              {/* Left */}
+                              <div className="flex items-center gap-2 flex-wrap">
+                                {item.isStreak && (
+                                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-orange-400 rounded-l-md" />
+                                )}
+                                <span className="font-medium">
+                                  {item.drwNo}회
                                 </span>
-                                <span className="px-2 py-0.5 bg-green-100 rounded">
-                                  반자동 {item.semiAutoWin ?? 0}
+
+                                {/* 🔥 최신 회차에만 표시 (회차당 1회만) */}
+                                {streakMap.has(item.drwNo) &&
+                                  !renderedStreaks.has(item.drwNo) &&
+                                  (() => {
+                                    renderedStreaks.add(item.drwNo);
+                                    return (
+                                      <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-semibold">
+                                        🔥 {streakMap.get(item.drwNo)}회 연속
+                                      </span>
+                                    );
+                                  })()}
+
+                                <span className="text-xs text-gray-500">
+                                  {item.drwNoDate.slice(0, 10)}
                                 </span>
-                                <span className="px-2 py-0.5 bg-purple-100 rounded">
-                                  수동 {item.manualWin ?? 0}
+
+                                <span
+                                  className={`px-2 py-0.5 rounded text-xs font-medium
+                                    ${
+                                      item.rank === 1
+                                        ? "bg-blue-100 text-blue-700"
+                                        : "bg-yellow-100 text-yellow-700"
+                                    }`}
+                                >
+                                  {item.rank}등
                                 </span>
                               </div>
-                            ) : (
-                              <span className="px-2 py-0.5 bg-yellow-100 rounded text-xs">
-                                {item.autoWin ?? 0}
-                              </span>
-                            )}
-                          </div>
-                        ))}
+
+                              {/* Right */}
+                              {showMethods ? (
+                                <div className="flex gap-2 text-xs">
+                                  <span className="px-2 py-0.5 bg-blue-100 rounded">
+                                    자동 {auto}
+                                  </span>
+                                  <span className="px-2 py-0.5 bg-green-100 rounded">
+                                    반자동 {semi}
+                                  </span>
+                                  <span className="px-2 py-0.5 bg-purple-100 rounded">
+                                    수동 {manual}
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="px-2 py-0.5 bg-yellow-100 rounded text-xs">
+                                  {auto}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     </section>
                   );

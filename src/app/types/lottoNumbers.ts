@@ -13,6 +13,11 @@ export interface LottoNumber {
   totSellamnt: string;
   firstAccumamnt: string;
 
+  // ✅ 2등은 string | null 로 맞추기
+  secondPrzwnerCo: string | null;
+  secondWinamnt: string | null;
+  secondAccumamnt: string | null;
+
   autoWin: number | null;
   semiAutoWin: number | null;
   manualWin: number | null;
