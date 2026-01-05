@@ -54,31 +54,34 @@ export default function LottoCard({
         </p>
       </div>
 
-      {/* ✅ 번호는 모바일에서 한 줄 유지(가로 스크롤 허용) */}
+      {/* ✅ 번호: 스크롤 없음 / 한 줄 고정 / 모바일에서 크기+간격 축소 */}
       <div className="mb-3 sm:mb-4">
-        <div className="flex items-center justify-start sm:justify-center gap-2 sm:gap-3 flex-nowrap overflow-x-auto no-scrollbar py-1">
-          {numbers.map((num, idx) => (
-            <div key={idx} className="shrink-0">
-              <LottoBall number={num} size="lg" />
-            </div>
-          ))}
+        <div className="flex items-center justify-center flex-nowrap">
+          {/* ✅ 번호 6개 */}
+          <div className="flex items-center flex-nowrap gap-1 sm:gap-3">
+            {numbers.map((num, idx) => (
+              <div key={idx} className="shrink-0">
+                {/* 모바일: sm / sm 이상: md */}
+                <LottoBall number={num} size="sm" className="sm:hidden" />
+                <LottoBall number={num} size="md" className="hidden sm:flex" />
+              </div>
+            ))}
+          </div>
 
+          {/* ✅ 보너스 */}
           {includeBonus && (
-            <>
-              <span className="shrink-0 text-gray-500 font-bold text-lg sm:text-xl mx-1">
+            <div className="flex items-center flex-nowrap ml-1 sm:ml-3 gap-1 sm:gap-2">
+              <span className="text-gray-500 font-bold text-base sm:text-xl leading-none">
                 +
               </span>
+
               <div className="shrink-0">
-                <LottoBall number={data.bnusNo} size="md" />
+                {/* 보너스는 모바일에서 더 작게 */}
+                <LottoBall number={data.bnusNo} size="sm" />
               </div>
-            </>
+            </div>
           )}
         </div>
-
-        {/* 모바일에서 스크롤 힌트(너무 길어지면 안내) */}
-        <p className="mt-1 text-[10px] text-gray-400 sm:hidden text-center">
-          좌우로 스크롤해서 확인할 수 있어요
-        </p>
       </div>
 
       {/* ✅ 1등/2등 요약: 모바일=1열, sm+=2열 */}
