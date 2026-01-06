@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
 import { componentBodyDivStyle } from "@/app/utils/getDivStyle";
 import ComponentHeader from "@/app/components/ComponentHeader";
@@ -67,20 +67,37 @@ export default function AiVariantRecommend() {
     "normalized"
   );
 
-  const isChaos = variant === "chaos" || variant === "cluster";
+  // ✅ dedup 제외 대상: chaos, cluster
+  const isChaosLike = variant === "chaos" || variant === "cluster";
 
   const { begin, commit, rollback } = useRequestDedup<VariantDedupParams>();
 
+  // ✅ "직전 실행이 chaos/cluster였음" 플래그
+  // - chaos/cluster 실행하면 true로 올림
+  // - 다음에 dedup 대상(strict/pattern/decay) 요청을 시작할 때 1회 force로 뚫고 false로 내림
+  const chaosTouchedRef = useRef(false);
+
   const fetchAnalysis = async (force = false) => {
-    // ✅ chaos는 dedup 적용 금지 (항상 실행)
-    // ✅ 그 외는 성공한 동일 params면 스킵
     let attemptKey: string | null = null;
 
-    if (!isChaos) {
+    // ✅ dedup 대상(strict/pattern/decay)일 때만 dedup 적용
+    if (!isChaosLike) {
       const params: VariantDedupParams = { round, variant };
-      const attempt = begin(params, force);
+
+      // ✅ chaos/cluster를 한번이라도 실행한 직후,
+      //    다음 dedup 대상 요청은 1회 강제 실행 허용
+      const effectiveForce = force || chaosTouchedRef.current;
+
+      const attempt = begin(params, effectiveForce);
       if (!attempt.ok) return;
+
       attemptKey = attempt.key;
+
+      // ✅ 이번에 dedup 요청을 "실제로" 시작했으니 플래그 해제
+      chaosTouchedRef.current = false;
+    } else {
+      // ✅ chaos/cluster를 실행했음을 표시
+      chaosTouchedRef.current = true;
     }
 
     setLoading(true);
@@ -88,12 +105,12 @@ export default function AiVariantRecommend() {
     try {
       const res = await fetch(`${apiUrl}/lotto/premium/recommend-variant`, {
         method: "POST",
-        credentials: "include", // ✅ auth 걸어둔 상태면 필수
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           round,
           variant,
-          ...(isChaos ? { seed: Date.now() } : {}),
+          ...(isChaosLike ? { seed: Date.now() } : {}),
         }),
       });
 
@@ -103,12 +120,12 @@ export default function AiVariantRecommend() {
       setResult(data);
       setNextRound(data.nextRound ?? null);
 
-      // ✅ chaos가 아닐 때만 commit (dedup 확정)
-      if (!isChaos && attemptKey) commit(attemptKey);
+      // ✅ dedup 대상일 때만 commit
+      if (!isChaosLike && attemptKey) commit(attemptKey);
     } catch (err) {
       console.error(err);
-      // ✅ chaos가 아닐 때만 rollback (재시도 허용)
-      if (!isChaos) rollback();
+      // ✅ dedup 대상일 때만 rollback
+      if (!isChaosLike) rollback();
     } finally {
       setLoading(false);
     }
@@ -224,14 +241,6 @@ export default function AiVariantRecommend() {
           점수 분석 실행
         </button>
 
-        {/* ✅ chaos가 아닐 때만 의미 있음: 같은 params라도 강제 재실행 */}
-        {/* <button
-          onClick={() => fetchAnalysis(true)}
-          className="bg-gray-200 px-4 py-2 sm:px-6 sm:py-3 rounded mb-4 w-full sm:w-auto font-medium shadow-md hover:bg-gray-300"
-        >
-          강제 새로고침
-        </button> */}
-
         <button
           onClick={() => setScoreMode("normalized")}
           className={`px-4 py-2 sm:px-6 sm:py-3 rounded mb-4 w-full sm:w-auto font-medium shadow-md ${
@@ -258,6 +267,7 @@ export default function AiVariantRecommend() {
           <DraggableNextRound nextRound={nextRound} most={[]} least={[]} />
         </div>
       )}
+
       <div className="overflow-y-auto max-h-[80vh]">{renderResult()}</div>
     </div>
   );
