@@ -93,7 +93,7 @@ export function calcHotNumbers(
  */
 export function detectConsecutiveDrop(
   rounds: LottoNumber[],
-  threshold = 2
+  threshold = 1
 ): boolean {
   if (rounds.length < 2) return false;
 

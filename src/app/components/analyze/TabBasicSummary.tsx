@@ -21,6 +21,8 @@ import {
   componentBodyDivStyle,
   rangeFilterDivStyle,
 } from "@/app/utils/getDivStyle";
+import DraggableNextRound from "../DraggableNextRound";
+import { LottoDraw } from "@/app/types/lottoNumbers";
 
 export default function BasicSummary() {
   const latestRound = getLatestRound();
@@ -30,6 +32,7 @@ export default function BasicSummary() {
   const [data, setData] = useState<LottoNumber[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedRecent, setSelectedRecent] = useState<number | null>(10);
+  const [nextRound, setNextRound] = useState<LottoDraw | null>(null);
 
   const prevParamsRef = useRef({
     start: -1,
@@ -53,9 +56,11 @@ export default function BasicSummary() {
       );
       const json = await res.json();
       setData(json.success ? json.data : []);
+      setNextRound(json.success ? json.nextRound : null);
     } catch (err) {
       console.error(err);
       setData([]);
+      setNextRound(null);
     } finally {
       setLoading(false);
       prevParamsRef.current = { start, end, includeBonus };
@@ -64,7 +69,7 @@ export default function BasicSummary() {
 
   useEffect(() => {
     fetchData();
-  }, [includeBonus]);
+  }, []);
 
   const handleEndChange = (value: number) => {
     if (value < start) setStart(value);
@@ -229,6 +234,14 @@ export default function BasicSummary() {
         title="📊 번호 패턴 요약"
         content="선택된 회차 범위 동안의 기본 통계를 확인할 수 있습니다."
       />
+
+      {nextRound && (
+        <div className="min-w-0">
+          {/* DraggableNextRound는 내부에서 고정 포지셔닝을 처리함 */}
+          <DraggableNextRound nextRound={nextRound} />
+        </div>
+      )}
+
       <div className={rangeFilterDivStyle + " mt-4 sm:mt-6"}>
         <RangeFilterBar
           start={start}

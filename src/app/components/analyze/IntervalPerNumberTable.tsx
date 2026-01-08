@@ -91,7 +91,7 @@ export default function PerNumberTable({ data }: { data: PerNumberRow[] }) {
             <th className="px-3 py-2 text-left">
               <div>직전 간격</div>
               <div className="text-xs font-normal text-gray-500">
-                (이전 출현 간)
+                (마지막 출현 간격)
               </div>
             </th>
           </tr>

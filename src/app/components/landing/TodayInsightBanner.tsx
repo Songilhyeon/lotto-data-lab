@@ -59,7 +59,7 @@ export default function TodayInsightBanner({ insight }: Props) {
       </div>
 
       {/* Hot 번호가 있는 경우 시각적 표시 (선택사항) */}
-      {insight.hotNumbers && insight.hotNumbers.length > 0 && (
+      {/* {insight.hotNumbers && insight.hotNumbers.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-1.5">
           {insight.hotNumbers.map((num) => (
             <span
@@ -70,7 +70,7 @@ export default function TodayInsightBanner({ insight }: Props) {
             </span>
           ))}
         </div>
-      )}
+      )} */}
     </div>
   );
 }

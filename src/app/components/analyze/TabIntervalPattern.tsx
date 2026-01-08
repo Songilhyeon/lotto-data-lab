@@ -76,6 +76,7 @@ export default function IntervalPatternTab() {
   const handleRecent = (count: number) => {
     setSelectedRecent(count);
     setStart(Math.max(1, end - count + 1));
+    if (count === latestRound) setEnd(count);
   };
 
   const clearRecentSelect = () => setSelectedRecent(null);

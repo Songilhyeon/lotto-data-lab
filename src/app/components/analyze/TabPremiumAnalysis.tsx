@@ -9,6 +9,7 @@ import PatternNextFreqSection from "@/app/components/analyze/PatternNextFreqSect
 import Accordion from "@/app/components/analyze/SingleOpenAccordion";
 import { PremiumAnalysisData } from "@/app/types/lottoNumbers";
 import { componentBodyDivStyle } from "@/app/utils/getDivStyle";
+import ComponentHeader from "@/app/components/ComponentHeader";
 
 export default function PremiumAnalysis() {
   const latest = getLatestRound();
@@ -201,9 +202,10 @@ export default function PremiumAnalysis() {
 
   return (
     <div className={`${componentBodyDivStyle()} from-pink-50 to-indigo-100`}>
-      <span className="text-sm text-yellow-600 font-bold block">
-        프리미엄 분석
-      </span>
+      <ComponentHeader
+        title="📊 통합 분석"
+        content="과거 회차 데이터를 기반으로 번호 구간, 출현 빈도, 패턴 일치도를 종합해 이번 흐름을 한눈에 분석합니다."
+      />
 
       {/* 컨트롤 바 */}
       <div className="flex flex-wrap items-center gap-2 sm:gap-4 justify-center w-full sm:w-auto">

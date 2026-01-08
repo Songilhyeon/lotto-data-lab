@@ -40,7 +40,7 @@ const EMPTY_RANGES: Record<RangeKey, number> = {
 
 export async function getTodayInsightContext(): Promise<TodayInsightContext> {
   try {
-    const latestRound = await getLatestRound();
+    const latestRound = getLatestRound();
 
     const res = await fetch(
       `${apiUrl}/lotto/rounds?start=${
@@ -75,7 +75,6 @@ export async function getTodayInsightContext(): Promise<TodayInsightContext> {
 
     // 데이터 정렬 확인 (최신순 정렬 필요)
     const sorted = [...recent].sort((a, b) => a.drwNo - b.drwNo);
-
     return {
       recentRanges: calcRangeStats(sorted),
       recentHotNumbers: calcHotNumbers(sorted),
