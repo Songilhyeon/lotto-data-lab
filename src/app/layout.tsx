@@ -6,7 +6,9 @@ import { AuthProvider } from "@/app/context/authContext";
 import Script from "next/script";
 import { PageViewProvider } from "@/app/PageViewProvider";
 import { PickNumberProvider } from "@/app/context/pickNumberContext";
-import FloatingPickButton from "@/app/components/FloatingPickButton";
+import FloatingPickButton from "@/app/components/help/FloatingPickButton";
+import FloatingHelpButton from "@/app/components/help/FloatingHelpButton";
+import OnboardingModal from "@/app/components/help/OnboardingModal";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -100,7 +102,9 @@ export default function RootLayout({
             <Header />
             <PickNumberProvider>
               <main>{children}</main>
+              <OnboardingModal />
               <FloatingPickButton />
+              <FloatingHelpButton />
             </PickNumberProvider>
             <Footer />
           </PageViewProvider>

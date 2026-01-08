@@ -58,8 +58,9 @@ export default function Header() {
     { name: "분석", href: "/analyze" },
     { name: "AI 점수 분석", href: "/ai-recommend" },
     { name: "1,2등 판매점", href: "/winner-stores" },
-    { name: "로또기록", href: "/lotto-history" },
+    { name: "역대 기록", href: "/lotto-history" },
     { name: "게시판", href: "/board" },
+    { name: "자주 묻는 질문", href: "/faq" },
   ];
 
   const copyLink = useCallback(async () => {
