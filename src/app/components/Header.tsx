@@ -43,10 +43,13 @@ export default function Header() {
   const { user, openLoginModal, closeLoginModal, isLoginModalOpen, logout } =
     useAuth();
 
-  const oauthUrls = {
-    google: process.env.NEXT_PUBLIC_GOOGLE_API_URI,
-    naver: process.env.NEXT_PUBLIC_NAVER_API_URI,
-  };
+  const oauthUrls = useMemo(
+    () => ({
+      google: process.env.NEXT_PUBLIC_GOOGLE_API_URI,
+      naver: process.env.NEXT_PUBLIC_NAVER_API_URI,
+    }),
+    []
+  );
 
   const currentUrl = useMemo(() => {
     if (typeof window === "undefined") return "";
