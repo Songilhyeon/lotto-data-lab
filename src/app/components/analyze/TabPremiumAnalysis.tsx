@@ -98,9 +98,11 @@ export default function PremiumAnalysis() {
         const maxValue = Math.max(...values);
         const minValue = Math.min(...values);
 
-        entries
-          .filter(([, v]) => v === maxValue)
-          .forEach(([k]) => maxSet.add(Number(k)));
+        if (maxValue >= 1) {
+          entries
+            .filter(([, v]) => v === maxValue)
+            .forEach(([k]) => maxSet.add(Number(k)));
+        }
         entries
           .filter(([, v]) => v === minValue)
           .forEach(([k]) => minSet.add(Number(k)));
@@ -113,10 +115,11 @@ export default function PremiumAnalysis() {
         const values = Object.values(record);
         const maxValue = Math.max(...values);
         const minValue = Math.min(...values);
-
-        Object.entries(record)
-          .filter(([_, v]) => v === maxValue)
-          .forEach(([n]) => maxSet.add(Number(n)));
+        if (maxValue >= 1) {
+          Object.entries(record)
+            .filter(([_, v]) => v === maxValue)
+            .forEach(([n]) => maxSet.add(Number(n)));
+        }
         Object.entries(record)
           .filter(([_, v]) => v === minValue)
           .forEach(([n]) => minSet.add(Number(n)));
@@ -131,10 +134,11 @@ export default function PremiumAnalysis() {
       const values = entries.map(([, v]) => v);
       const maxValue = Math.max(...values);
       const minValue = Math.min(...values);
-
-      entries
-        .filter(([, v]) => v === maxValue)
-        .forEach(([k]) => maxSet.add(Number(k)));
+      if (maxValue >= 1) {
+        entries
+          .filter(([, v]) => v === maxValue)
+          .forEach(([k]) => maxSet.add(Number(k)));
+      }
       entries
         .filter(([, v]) => v === minValue)
         .forEach(([k]) => minSet.add(Number(k)));
@@ -149,9 +153,11 @@ export default function PremiumAnalysis() {
       const maxValue = Math.max(...values);
       const minValue = Math.min(...values);
 
-      entries
-        .filter(([, v]) => v === maxValue)
-        .forEach(([k]) => maxSet.add(Number(k)));
+      if (maxValue >= 1) {
+        entries
+          .filter(([, v]) => v === maxValue)
+          .forEach(([k]) => maxSet.add(Number(k)));
+      }
       entries
         .filter(([, v]) => v === minValue)
         .forEach(([k]) => minSet.add(Number(k)));
@@ -165,9 +171,11 @@ export default function PremiumAnalysis() {
       const maxValue = Math.max(...values);
       const minValue = Math.min(...values);
 
-      entries
-        .filter(([, v]) => v === maxValue)
-        .forEach(([k]) => maxSet.add(Number(k)));
+      if (maxValue >= 1) {
+        entries
+          .filter(([, v]) => v === maxValue)
+          .forEach(([k]) => maxSet.add(Number(k)));
+      }
       entries
         .filter(([, v]) => v === minValue)
         .forEach(([k]) => minSet.add(Number(k)));
@@ -182,9 +190,12 @@ export default function PremiumAnalysis() {
       const maxValue = Math.max(...values);
       const minValue = Math.min(...values);
 
-      entries
-        .filter(([, v]) => v === maxValue)
-        .forEach(([k]) => maxSet.add(Number(k)));
+      if (maxValue >= 1) {
+        entries
+          .filter(([, v]) => v === maxValue)
+          .forEach(([k]) => maxSet.add(Number(k)));
+      }
+
       entries
         .filter(([, v]) => v === minValue)
         .forEach(([k]) => minSet.add(Number(k)));
