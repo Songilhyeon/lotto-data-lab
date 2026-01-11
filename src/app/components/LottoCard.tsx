@@ -40,6 +40,11 @@ export default function LottoCard({
       ? Number(data.firstAccumamnt)
       : Number(data.firstPrzwnerCo) * Number(data.firstWinamnt);
 
+  const secondTotal =
+    data.secondAccumamnt !== "0"
+      ? Number(data.secondAccumamnt)
+      : Number(data.secondPrzwnerCo) * Number(data.secondWinamnt);
+
   return (
     <div
       className={`${cardWidth} mx-auto rounded-2xl shadow-lg 
@@ -152,7 +157,7 @@ export default function LottoCard({
                     </p>
                     <p className="mt-1 font-semibold text-gray-800 tabular-nums text-[13px] sm:text-base leading-tight">
                       {data.secondAccumamnt !== null
-                        ? `${Number(data.secondAccumamnt).toLocaleString()}원`
+                        ? `${formatNumber(secondTotal)}원`
                         : "-"}
                     </p>
                   </div>

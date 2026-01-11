@@ -66,7 +66,6 @@ export default function OneRoundInfo() {
     });
   };
 
-  console.log(lottoData);
   return (
     <div className={`${componentBodyDivStyle()} from-indigo-50 to-purple-100`}>
       {/* Header */}
