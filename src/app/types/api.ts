@@ -142,7 +142,9 @@ export interface AiScoreBase {
 export type PerNumberRow = {
   num: number;
   latestPattern: string | null;
+  latestBuckets?: string[];
   patternSampleCount: number;
+  patternSampleCountByLen?: Record<number, number>;
   appearCount: number;
   currentGap: number | null;
   lastGap: number | null;

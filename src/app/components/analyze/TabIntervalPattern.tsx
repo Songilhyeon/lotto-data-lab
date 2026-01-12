@@ -44,6 +44,7 @@ export default function IntervalPatternTab() {
   const [end, setEnd] = useState(latestRound);
   const [selectedRecent, setSelectedRecent] = useState<number | null>(10);
   const [intervalSize, setIntervalSize] = useState<5 | 7 | 10>(7);
+  const [patternLen, setPatternLen] = useState<number>(5);
   const [query, setQuery] = useState<{ start: number; end: number }>({
     start: latestRound - 9,
     end: latestRound,
@@ -175,7 +176,28 @@ export default function IntervalPatternTab() {
 
             <IntervalBucketLegend />
 
-            <IntervalPatternTable data={data.perNumber} />
+            <div className="mt-4 mb-4 flex flex-wrap items-center gap-3">
+              <label className="text-sm text-gray-700 font-medium">
+                간격 패턴 횟수
+              </label>
+              <select
+                value={patternLen}
+                onChange={(e) => setPatternLen(Number(e.target.value))}
+                className="border rounded-md px-2 py-1 text-sm"
+              >
+          {[3, 4, 5, 6, 7].map((len) => (
+            <option key={len} value={len}>
+              최근 {len}회
+            </option>
+          ))}
+              </select>
+            </div>
+
+            <IntervalPatternTable
+              data={data.perNumber}
+              patternLen={patternLen}
+              patternLabel={`최근 ${patternLen}회`}
+            />
           </section>
 
           <section className="text-xs text-gray-400 border-t pt-4">

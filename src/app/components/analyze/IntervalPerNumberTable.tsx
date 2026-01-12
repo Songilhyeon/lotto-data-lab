@@ -1,8 +1,13 @@
-import React from "react";
 import LottoBall from "../LottoBall";
 import { PerNumberRow } from "@/app/types/api";
 
-export default function PerNumberTable({ data }: { data: PerNumberRow[] }) {
+export default function PerNumberTable({
+  data,
+  patternLabel = "최근 3회",
+}: {
+  data: PerNumberRow[];
+  patternLabel?: string;
+}) {
   const formatPattern = (pattern: string | null) => {
     if (!pattern || pattern.trim() === "") {
       return <span className="text-gray-400 text-xs">데이터 부족</span>;
@@ -71,7 +76,7 @@ export default function PerNumberTable({ data }: { data: PerNumberRow[] }) {
             <th className="px-3 py-2 text-left">
               <div>간격 패턴</div>
               <div className="text-xs font-normal text-gray-500">
-                (최근 3회)
+                ({patternLabel})
               </div>
             </th>
             <th className="px-3 py-2 text-left">

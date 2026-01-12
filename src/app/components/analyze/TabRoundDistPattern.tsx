@@ -51,7 +51,8 @@ const fetcher = async (url: string): Promise<RoundPatternResponse> => {
 };
 
 export default function RoundDistPatternTab() {
-  const [targetRound, setTargetRound] = useState(getLatestRound());
+  const latestRound = getLatestRound();
+  const [targetRound, setTargetRound] = useState(latestRound);
   const [minSimilarity, setMinSimilarity] = useState(0.7);
   const [topN, setTopN] = useState(10);
   const [method, setMethod] = useState<"bucket" | "exact" | "hybrid">("hybrid");
@@ -116,6 +117,7 @@ export default function RoundDistPatternTab() {
               value={targetRound}
               onChange={(e) => setTargetRound(Number(e.target.value))}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              max={latestRound}
               min={1}
             />
           </div>
