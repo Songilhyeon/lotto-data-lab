@@ -1,10 +1,19 @@
-// /app/lib/gtag.ts
+// app/lib/gtag.ts
+export const GA_ID = process.env.NEXT_PUBLIC_GA_ID ?? "";
 
-export const GA_ID = process.env.NEXT_PUBLIC_GA_ID || "G-JYYJBFHWY2";
+// prod에서만 허용
+function canTrack() {
+  return (
+    process.env.NODE_ENV === "production" &&
+    typeof window !== "undefined" &&
+    !!GA_ID &&
+    typeof window.gtag === "function"
+  );
+}
 
 // 페이지뷰 기록
 export const pageview = (url: string) => {
-  if (typeof window === "undefined" || !window.gtag) return;
+  if (!canTrack()) return;
 
   window.gtag("config", GA_ID, {
     page_path: url,
@@ -16,7 +25,7 @@ export const gaEvent = (
   action: string,
   params: Record<string, unknown> = {}
 ) => {
-  if (typeof window === "undefined" || !window.gtag) return;
+  if (!canTrack()) return;
 
   window.gtag("event", action, params);
 };

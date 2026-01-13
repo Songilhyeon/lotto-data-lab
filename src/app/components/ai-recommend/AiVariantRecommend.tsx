@@ -9,6 +9,7 @@ import DraggableNextRound from "@/app/components/DraggableNextRound";
 import ScoreBarList from "@/app/components/ai-recommend/ScoreBarList";
 import { AiScoreBase } from "@/app/types/api";
 import useRequestDedup from "@/app/hooks/useRequestDedup";
+import BacktestSummaryCard from "@/app/components/ai-recommend/BacktestSummaryCard";
 
 const AI_VARIANTS = [
   {
@@ -66,6 +67,11 @@ export default function AiVariantRecommend() {
   const [scoreMode, setScoreMode] = useState<"raw" | "normalized">(
     "normalized"
   );
+
+  const selectedVariant = AI_VARIANTS.find((v) => v.key === variant);
+  const backtestTitle = selectedVariant
+    ? `전략형 모델 · ${selectedVariant.label} · 과거 흐름 점검`
+    : "전략형 모델 · 과거 흐름 점검";
 
   // ✅ dedup 제외 대상: chaos, cluster
   const isChaosLike = variant === "chaos" || variant === "cluster";
@@ -174,6 +180,14 @@ export default function AiVariantRecommend() {
         content={`같은 통계 데이터를 극단적으로 다른 관점에서 해석하여, 각 전략의 특징을 명확히 구분하는 실험형 AI 모델. 
                   회차를 선택하여 과거 회차에 어떤 번호가 당첨 되었는지 분석할 수 있습니다.`}
       />
+
+      <div className="mb-4">
+        <BacktestSummaryCard
+          modelKey="ai_variant"
+          variantKey={variant}
+          title={backtestTitle}
+        />
+      </div>
 
       {/* 회차 선택 */}
       <div className="mb-4 flex items-center gap-2">

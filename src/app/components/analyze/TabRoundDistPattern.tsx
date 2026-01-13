@@ -139,7 +139,7 @@ export default function RoundDistPatternTab() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              매칭 개수
+              패턴 매칭 개수
             </label>
             <input
               type="number"
@@ -376,7 +376,7 @@ export default function RoundDistPatternTab() {
             ) : (
               <div className="text-center text-gray-500 py-10 bg-gray-50 rounded-xl border border-dashed">
                 <p className="font-medium">
-                  유사도 {minSimilarity}% 이상인 패턴이 없습니다
+                  유사도 {minSimilarity * 100}% 이상인 패턴이 없습니다
                 </p>
                 <p className="text-sm mt-1 text-gray-400">
                   최소 유사도를 낮춰보세요

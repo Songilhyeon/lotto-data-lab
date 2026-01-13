@@ -12,7 +12,7 @@ import RequireAuth from "@/app/components/RequireAuth";
 const allTabs = [
   { id: "AiRecommend", label: "기본 점수 분석", premiumOnly: false },
   { id: "AiNextRecommend", label: "다음 회차 분석", premiumOnly: false },
-  { id: "AiVariantRecommend", label: "전략 시뮬레이션", premiumOnly: true },
+  { id: "AiVariantRecommend", label: "전략 시뮬레이션", premiumOnly: false },
   { id: "AiAdvancedRecommend", label: "심층 점수 모델", premiumOnly: true },
 ];
 

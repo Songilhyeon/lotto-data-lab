@@ -11,6 +11,7 @@ import DraggableNextRound from "@/app/components/DraggableNextRound";
 import LottoBall from "../LottoBall";
 import ScoreBarList from "@/app/components/ai-recommend/ScoreBarList";
 import useRequestDedup from "@/app/hooks/useRequestDedup";
+import BacktestSummaryCard from "@/app/components/ai-recommend/BacktestSummaryCard";
 
 type NextRecommendParams = {
   clusterUnit: number;
@@ -149,6 +150,12 @@ export default function AiNextRecommend() {
       <ClusterUnitSelector
         clusterUnit={clusterUnit}
         setClusterUnit={setClusterUnit}
+      />
+
+      <BacktestSummaryCard
+        modelKey="ai_next"
+        clusterUnit={clusterUnit}
+        weights={weights}
       />
 
       {/* 회차 선택 UI */}

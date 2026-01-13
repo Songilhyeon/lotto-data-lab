@@ -11,6 +11,7 @@ import DraggableNextRound from "@/app/components/DraggableNextRound";
 import LottoBall from "../LottoBall";
 import ScoreBarList from "@/app/components/ai-recommend/ScoreBarList";
 import useRequestDedup from "@/app/hooks/useRequestDedup";
+import BacktestSummaryCard from "@/app/components/ai-recommend/BacktestSummaryCard";
 
 type RecommendParams = {
   round: number;
@@ -45,8 +46,6 @@ export default function AiRecommend() {
       const res = await fetch(
         `${apiUrl}/lotto/premium/recommend?round=${selectedRound}&clusterUnit=${clusterUnit}`,
         {
-          // ✅ 공개 엔드포인트면 필요 없음
-          // ✅ auth 걸어둔 엔드포인트면 아래 주석 해제
           // credentials: "include",
         }
       );
@@ -57,10 +56,10 @@ export default function AiRecommend() {
       setResult(json.result);
       setNextRound(json.result?.nextRound ?? null);
 
-      commit(attempt.key); // ✅ 성공 확정 (이때만 dedup 저장)
+      commit(attempt.key);
     } catch (e) {
       console.error(e);
-      rollback(); // ✅ 실패면 dedup 저장 안 함 → 재시도 가능
+      rollback();
     } finally {
       setLoading(false);
     }
@@ -99,13 +98,23 @@ export default function AiRecommend() {
       <ComponentHeader
         title="🛡️ 기본 모델"
         content={`과거 당첨 패턴, 번호 간 상관관계, 최근 출현 경향, 홀짝 균형, 번호 구간 분포 등 다차원 통계 분석 기반 AI 모델.
-                  회차를 선택하여 과거 회차에 어떤 번호가 당첨 되었는지 분석할 수 있습니다.`}
+회차를 선택하여 과거 회차에 어떤 번호가 당첨 되었는지 분석할 수 있습니다.`}
       />
 
       <ClusterUnitSelector
         clusterUnit={clusterUnit}
         setClusterUnit={setClusterUnit}
       />
+
+      {/* ✅ Backtest 요약을 상단에 배치 + clusterUnit 반영 */}
+      <div className="mb-4">
+        <BacktestSummaryCard
+          modelKey="ai_basic"
+          clusterUnit={clusterUnit}
+          // 필요하면 span도 조절 가능 (서버 기본 300)
+          // span={300}
+        />
+      </div>
 
       {/* 회차 선택 */}
       <div className="mb-4 flex items-center gap-2">
@@ -114,11 +123,7 @@ export default function AiRecommend() {
         <div className="flex items-center gap-1">
           <button
             onClick={() => setSelectedRound((prev) => Math.max(prev - 1, 1))}
-            className="
-              px-2 py-1 bg-gray-200 rounded
-              hover:bg-gray-300 active:bg-gray-400
-              transition disabled:opacity-40
-            "
+            className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300 active:bg-gray-400 transition disabled:opacity-40"
             disabled={selectedRound <= 1}
           >
             -
@@ -141,26 +146,14 @@ export default function AiRecommend() {
             onKeyDown={(e) => {
               if (e.key === "Enter") e.currentTarget.blur();
             }}
-            className="
-              min-w-[4.5rem]
-              px-2 py-1
-              text-center
-              border rounded
-              bg-white
-              tabular-nums
-              focus:outline-none focus:ring-2 focus:ring-blue-300
-            "
+            className="min-w-[4.5rem] px-2 py-1 text-center border rounded bg-white tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-300"
           />
 
           <button
             onClick={() =>
               setSelectedRound((prev) => Math.min(prev + 1, latestRound))
             }
-            className="
-              px-2 py-1 bg-gray-200 rounded
-              hover:bg-gray-300 active:bg-gray-400
-              transition disabled:opacity-40
-            "
+            className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300 active:bg-gray-400 transition disabled:opacity-40"
             disabled={selectedRound >= latestRound}
           >
             +
@@ -183,14 +176,6 @@ export default function AiRecommend() {
         >
           점수 분석 실행
         </button>
-
-        {/* ✅ 같은 params라도 “강제 재실행” */}
-        {/* <button
-          onClick={() => fetchAnalysis(true)}
-          className="bg-gray-200 px-4 py-2 sm:px-6 sm:py-3 rounded mb-4 w-full sm:w-auto font-medium shadow-md hover:bg-gray-300"
-        >
-          강제 새로고침
-        </button> */}
 
         <button
           onClick={() => setScoreMode("normalized")}

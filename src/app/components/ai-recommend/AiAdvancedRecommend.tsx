@@ -19,6 +19,7 @@ import LottoBall from "../LottoBall";
 import ScoreBarList from "@/app/components/ai-recommend/ScoreBarList";
 import AiScoreExplainCard from "@/app/components/ai-recommend/AiScoreExplainCard";
 import useRequestDedup from "@/app/hooks/useRequestDedup";
+import BacktestSummaryCard from "@/app/components/ai-recommend/BacktestSummaryCard";
 
 type AdvancedDedupParams = {
   round: number;
@@ -183,6 +184,17 @@ export default function AiAdvancedRecommend() {
       />
 
       <WeightSliderGroup weights={weights} setWeights={setWeights} />
+
+      <div className="mb-4">
+        <BacktestSummaryCard
+          modelKey="ai_advanced"
+          clusterUnit={clusterUnit}
+          weights={weights}
+          presetName={preset.name}
+          manualRefresh
+          showRefreshButton
+        />
+      </div>
 
       <div className="mb-4 flex items-center gap-2">
         <label className="font-medium text-gray-700">회차 선택:</label>
