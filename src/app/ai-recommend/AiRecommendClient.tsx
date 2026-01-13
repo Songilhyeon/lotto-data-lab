@@ -88,16 +88,15 @@ export default function AiRecommendClient() {
           <AiNextRecommend />
         </div>
 
+        <div
+          style={{
+            display: activeTab === "AiVariantRecommend" ? "block" : "none",
+          }}
+        >
+          <AiVariantRecommend />
+        </div>
         {/* 🔹 현재는 제한 없이 노출 (추후 유료화 시 여기만 조정) */}
         <RequireAuth>
-          <div
-            style={{
-              display: activeTab === "AiVariantRecommend" ? "block" : "none",
-            }}
-          >
-            <AiVariantRecommend />
-          </div>
-
           <div
             style={{
               display: activeTab === "AiAdvancedRecommend" ? "block" : "none",
