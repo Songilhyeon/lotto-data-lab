@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import Hero from "./components/landing/Hero";
 import HomeDashboardSummary from "./components/landing/HomeDashboardSummary";
 import NextRoundPreviewWrapper from "./components/landing/NextRoundPreviewWrapper";
