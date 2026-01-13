@@ -48,6 +48,7 @@ export async function getTodayInsightContext(): Promise<TodayInsightContext> {
       }&end=${latestRound}&includeBonus=false`,
       {
         next: { revalidate: 60 * 60 }, // 1시간 캐시
+        cache: "no-store",
       }
     );
 
