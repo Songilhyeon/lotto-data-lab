@@ -21,8 +21,8 @@ export default function RegionChartCard({ data, title }: RegionChartCardProps) {
         <h2 className="text-lg sm:text-xl font-semibold mb-6 text-gray-800">
           {title}
         </h2>
-        <div className="w-full h-64 sm:h-80">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="w-full">
+          <ResponsiveContainer width="100%" height={320} minHeight={256} minWidth={0}>
             <BarChart data={data}>
               <XAxis dataKey="region" fontSize={12} tickLine={false} />
               <YAxis fontSize={12} tickLine={false} />

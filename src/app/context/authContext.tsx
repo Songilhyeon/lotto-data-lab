@@ -15,6 +15,7 @@ export interface User {
   email?: string;
   role?: "FREE" | "PREMIUM";
   subscriptionExpiresAt?: string | Date;
+  trialUsed?: boolean;
 }
 
 interface AuthContextType {

@@ -6,42 +6,55 @@ interface LottoNumberResponse {
   data: LottoNumber;
 }
 
-async function fetchLatestRound(): Promise<LottoNumberResponse> {
-  const res = await fetch(`${apiUrl}/lotto/round/${getLatestRound()}`, {
-    // 홈은 자주 바뀌어야 하므로 캐시 짧게
-    next: { revalidate: 60 * 60 }, // 1시간
-  });
+async function fetchLatestRoundSafe(): Promise<LottoNumberResponse | null> {
+  if (!apiUrl) return null;
 
-  if (!res.ok) {
-    throw new Error("Failed to fetch latest round");
+  try {
+    const res = await fetch(`${apiUrl}/lotto/round/${getLatestRound()}`, {
+      next: { revalidate: 60 * 60 }, // 1시간
+    });
+
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
   }
-
-  return res.json();
 }
 
 export default async function HomeDashboardSummary() {
-  const latest = await fetchLatestRound();
+  const latest = await fetchLatestRoundSafe();
 
   return (
     <section className="bg-gray-50 border-y">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
-        {/* 섹션 타이틀 (SEO 중요) */}
         <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6">
           로또 데이터 한눈에 보기
         </h2>
 
-        {/* 대시보드 카드 */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {/* 최신 회차 */}
           <div className="bg-white rounded-xl border p-5 shadow-sm">
             <p className="text-sm text-gray-500 mb-1">최신 회차</p>
-            <p className="text-2xl font-bold text-gray-900">
-              {latest.data.drwNo}회
-            </p>
-            <p className="text-xs text-gray-500 mt-1">
-              추첨일{" "}
-              {new Date(latest.data.drwNoDate).toLocaleDateString("ko-KR")}
-            </p>
+
+            {latest ? (
+              <>
+                <p className="text-2xl font-bold text-gray-900">
+                  {latest.data.drwNo}회
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  추첨일{" "}
+                  {new Date(latest.data.drwNoDate).toLocaleDateString("ko-KR")}
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-2xl font-bold text-gray-900">-</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  최신 회차 데이터를 불러오는 중입니다.
+                </p>
+              </>
+            )}
+
             <Link
               href="/analyze"
               className="inline-block mt-3 text-sm text-blue-600 font-medium hover:underline"

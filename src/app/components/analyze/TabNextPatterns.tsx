@@ -166,7 +166,7 @@ export default function NextPatterns() {
     <div className={`${componentBodyDivStyle()} from-blue-50 to-pink-100`}>
       {/* Header */}
       <ComponentHeader
-        title="🔮 일치 개수 별 출현 패턴 분석"
+        title="🧩 일치 개수별 출현 패턴 분석"
         content={`특정 회차 당첨 번호가 과거 회차에 등장한 경우, 그 다음 회차에서 나온 번호들의 출현 횟수를 보여줍니다.
                   End 회차를 선택하여 과거 회차에 어떤 번호가 당첨 되었는지 분석할 수 있습니다.`}
       />
@@ -315,11 +315,8 @@ export default function NextPatterns() {
           </h2>
 
           {/* Chart wrapper: min-w-0 + overflow-x-auto ensures ResponsiveContainer reads width correctly */}
-          <div
-            className="w-full min-w-0 max-w-full overflow-x-auto"
-            style={{ height: 220 }}
-          >
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="w-full min-w-0 max-w-full overflow-x-auto">
+            <ResponsiveContainer width="100%" height={220} minHeight={220} minWidth={0}>
               <BarChart data={chartData}>
                 <XAxis dataKey="number" tick={{ fontSize: 10 }} />
                 <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />

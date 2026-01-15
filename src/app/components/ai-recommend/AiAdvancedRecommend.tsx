@@ -50,6 +50,7 @@ export default function AiAdvancedRecommend() {
     "normalized"
   );
   const [selectedScore, setSelectedScore] = useState<AiScoreBase | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string>("");
 
   const { begin, commit, rollback } = useRequestDedup<AdvancedDedupParams>();
 
@@ -85,6 +86,7 @@ export default function AiAdvancedRecommend() {
 
     setLoading(true);
     try {
+      setErrorMsg("");
       const res = await fetch(`${apiUrl}/lotto/premium/recommend-advanced`, {
         method: "POST",
         credentials: "include", // ✅ auth 걸어둔 상태면 필수
@@ -98,15 +100,29 @@ export default function AiAdvancedRecommend() {
         }),
       });
 
-      if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+      if (!res.ok) {
+        let msg = "요청에 실패했습니다.";
+        try {
+          const json = await res.json();
+          msg = json?.message || json?.error || msg;
+        } catch {}
+        throw new Error(msg);
+      }
 
       const data: IfAiRecommendation = await res.json();
       setResult(data);
       setNextRound(data.nextRound || null);
 
       commit(attempt.key); // ✅ 성공 확정
-    } catch (err) {
+    } catch (err: unknown) {
       console.error(err);
+
+      let msg = "요청 중 오류가 발생했습니다.";
+      if (err instanceof Error) {
+        msg = err.message;
+      }
+
+      setErrorMsg(msg);
       rollback(); // ✅ 실패면 재시도 가능
     } finally {
       setLoading(false);
@@ -145,8 +161,8 @@ export default function AiAdvancedRecommend() {
   return (
     <div className={`${componentBodyDivStyle()} from-pink-50 to-indigo-100`}>
       <ComponentHeader
-        title="🤖 심층 모델"
-        content={`7가지 분석 가중치를 직접 조절하는 맞춤형 AI 모델.
+        title="🧪 심층 모델"
+        content={`Hot/Cold, 연속 출현, 패턴, 클러스터, 랜덤, 다음회차 빈도까지 7가지 피처 가중치를 직접 조절하는 맞춤형 AI 모델.
 회차를 선택하여 과거 회차에 어떤 번호가 당첨 되었는지 분석할 수 있습니다.`}
       />
 
@@ -237,6 +253,14 @@ export default function AiAdvancedRecommend() {
       </div>
 
       <div className="flex gap-2 mb-2">
+        {errorMsg && (
+          <div className="mb-3 rounded-md bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
+            {errorMsg}
+          </div>
+        )}
+      </div>
+
+      <div className="flex gap-2 mb-2">
         <button
           onClick={() => fetchAnalysis(false)}
           className="bg-green-500 text-white px-4 py-2 sm:px-6 sm:py-3 rounded mb-4 w-full sm:w-auto font-medium shadow-md hover:bg-green-600 active:scale-95"
@@ -280,7 +304,7 @@ export default function AiAdvancedRecommend() {
       )}
 
       {selectedScore && <AiScoreExplainCard score={selectedScore} />}
-      <div className="overflow-y-auto max-h-[80vh]">{renderResult()}</div>
+      <div className="overflow-visible">{renderResult()}</div>
     </div>
   );
 }

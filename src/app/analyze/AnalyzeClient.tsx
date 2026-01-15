@@ -26,9 +26,9 @@ const allTabs = [
   { id: "numberRange", label: "번호 구간", premiumOnly: false },
   { id: "next", label: "일치 개수", premiumOnly: false },
   { id: "numberLab", label: "번호 실험실", premiumOnly: false },
+  { id: "premiumAnalysis", label: "통합 분석", premiumOnly: true },
   { id: "intervalPattern", label: "출현 간격", premiumOnly: true },
   { id: "roundDistPattern", label: "번호 간격", premiumOnly: true },
-  { id: "premiumAnalysis", label: "통합 분석", premiumOnly: true },
   { id: "premiumNextFreq", label: "조건 기반 분석", premiumOnly: true },
 ];
 
@@ -260,7 +260,7 @@ export default function AnalyzeClient() {
         </div>
       </div>
 
-      {/* 콘텐츠 */}
+      {/* 콘텐츠 (비활성 탭 언마운트) */}
       <div className="mt-2">{renderContent()}</div>
     </>
   );

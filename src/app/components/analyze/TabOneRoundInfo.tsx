@@ -70,7 +70,7 @@ export default function OneRoundInfo() {
     <div className={`${componentBodyDivStyle()} from-indigo-50 to-purple-100`}>
       {/* Header */}
       <ComponentHeader
-        title="🎱 회차별 당첨 정보"
+        title="🧾 회차별 당첨 정보"
         content="특정 회차의 당첨 번호와 패턴을 간략히 분석합니다."
       />
 

@@ -12,7 +12,10 @@ import {
   componentBodyDivStyle,
   rangeFilterDivStyle,
 } from "@/app/utils/getDivStyle";
-import { buildIntervalEnsemble } from "@/app/utils/intervalUtils";
+import {
+  buildIntervalEnsemble,
+  getIntervalKey,
+} from "@/app/utils/intervalUtils";
 import ClusterUnitSelector from "../ai-recommend/ClusterUnitSelector";
 import LookUpButton from "./LookUpButton";
 import { IntervalUnitHelp, IntervalBucketLegend } from "./IntervalHelp";
@@ -34,7 +37,14 @@ type IntervalPatternResponse = {
 
 const fetcher = async (url: string): Promise<IntervalPatternResponse> => {
   const res = await fetch(url, { credentials: "include" }); // ✅ 여기!
-  if (!res.ok) throw new Error("API Error");
+  if (!res.ok) {
+    let msg = "API Error";
+    try {
+      const data = await res.json();
+      msg = data?.message || data?.error || msg;
+    } catch {}
+    throw new Error(msg);
+  }
   return res.json();
 };
 
@@ -51,13 +61,16 @@ export default function IntervalPatternTab() {
   });
 
   const swrKey = `${apiUrl}/lotto/premium/analysis/interval?start=${query.start}&end=${query.end}`;
-  const { data, error, isLoading } = useSWR<IntervalPatternResponse>(
+  const { data, error, isLoading, mutate } = useSWR<IntervalPatternResponse>(
     swrKey,
     fetcher,
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
       refreshInterval: 0,
+      dedupingInterval: 0,
+      shouldRetryOnError: false,
+      errorRetryCount: 0,
       keepPreviousData: true,
     }
   );
@@ -81,18 +94,30 @@ export default function IntervalPatternTab() {
   };
 
   const clearRecentSelect = () => setSelectedRecent(null);
-  const fetchData = () => setQuery({ start, end });
+  const fetchData = () => {
+    if (query.start === start && query.end === end) {
+      mutate();
+      return;
+    }
+    setQuery({ start, end });
+  };
 
   const intervalData = data?.ensemble
     ? buildIntervalEnsemble(data.ensemble, intervalSize, true)
     : [];
+  const nextRoundNumbers = data?.nextRound?.numbers ?? [];
+  const highlightIntervals = new Set(
+    nextRoundNumbers.map((num) => getIntervalKey(num, intervalSize))
+  );
+  const highlightNumbers = new Set(nextRoundNumbers);
 
-  if (error) return <div className="text-red-600">Interval 분석 오류</div>;
+  const errorMessage =
+    error instanceof Error ? error.message : "Interval 분석 오류";
 
   return (
     <div className={`${componentBodyDivStyle()} from-indigo-50 to-purple-100`}>
       <ComponentHeader
-        title="📐 Interval 패턴 분석"
+        title="📐 간격 패턴 분석"
         content="번호 출현 간격(Interval)의 분포 경향을 구간 단위로 분석합니다."
       />
 
@@ -118,6 +143,12 @@ export default function IntervalPatternTab() {
           showCheckBox={false}
         />
       </div>
+
+      {error && (
+        <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          Interval 분석 오류: {errorMessage}
+        </div>
+      )}
 
       <div className="flex justify-start mt-3 mb-6">
         <LookUpButton onClick={fetchData} loading={isLoading} />
@@ -150,20 +181,26 @@ export default function IntervalPatternTab() {
           </section>
 
           <section>
-            <h4 className="font-semibold mb-1">Interval 분포 요약 (앙상블)</h4>
+            <h4 className="font-semibold mb-1">Interval 분포 요약</h4>
             <p className="text-sm text-gray-500 mb-2">
               번호를 {intervalSize}단위 구간으로 묶어, 상대적으로 강했던 번호대
               흐름을 요약합니다.
             </p>
-            <IntervalEnsembleBar data={intervalData} />
+            <IntervalEnsembleBar
+              data={intervalData}
+              highlightIntervals={highlightIntervals}
+            />
           </section>
 
           <section>
-            <h4 className="font-semibold mb-1">다음 회차 번호 분포 (앙상블)</h4>
+            <h4 className="font-semibold mb-1">다음 회차 번호 분포</h4>
             <p className="text-sm text-gray-500 mb-2">
               Interval 분석 결과를 번호 단위 점수로 환산한 분포입니다.
             </p>
-            <NumberEnsembleBar data={data.ensemble} />
+            <NumberEnsembleBar
+              data={data.ensemble}
+              highlightNumbers={highlightNumbers}
+            />
           </section>
 
           <section>
@@ -185,11 +222,11 @@ export default function IntervalPatternTab() {
                 onChange={(e) => setPatternLen(Number(e.target.value))}
                 className="border rounded-md px-2 py-1 text-sm"
               >
-          {[3, 4, 5, 6, 7].map((len) => (
-            <option key={len} value={len}>
-              최근 {len}회
-            </option>
-          ))}
+                {[3, 4, 5, 6, 7].map((len) => (
+                  <option key={len} value={len}>
+                    최근 {len}회
+                  </option>
+                ))}
               </select>
             </div>
 

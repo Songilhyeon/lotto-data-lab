@@ -7,6 +7,7 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
+  Cell,
 } from "recharts";
 
 type IntervalEnsembleItem = {
@@ -16,8 +17,10 @@ type IntervalEnsembleItem = {
 
 export default function IntervalEnsembleBar({
   data,
+  highlightIntervals,
 }: {
   data: IntervalEnsembleItem[];
+  highlightIntervals?: Set<string>;
 }) {
   if (!data || data.length === 0)
     return (
@@ -27,9 +30,10 @@ export default function IntervalEnsembleBar({
     );
 
   const color = "#3b82f6";
+  const highlightColor = "#f59e0b";
   return (
     <div className="w-full h-[260px]">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height={260} minHeight={260} minWidth={0}>
         <BarChart data={data}>
           <XAxis dataKey="interval" tick={{ fontSize: 12 }} />
           <YAxis
@@ -38,7 +42,17 @@ export default function IntervalEnsembleBar({
             allowDecimals={true}
           />
           <Tooltip />
-          <Bar dataKey="score" radius={[6, 6, 0, 0]} fill={color} />
+          <Bar dataKey="score" radius={[6, 6, 0, 0]}>
+            {data.map((entry) => {
+              const isHighlighted = highlightIntervals?.has(entry.interval);
+              return (
+                <Cell
+                  key={entry.interval}
+                  fill={isHighlighted ? highlightColor : color}
+                />
+              );
+            })}
+          </Bar>
         </BarChart>
       </ResponsiveContainer>
     </div>

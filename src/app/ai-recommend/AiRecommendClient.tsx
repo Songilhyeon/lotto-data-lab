@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useMemo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { gaEvent } from "@/app/lib/gtag";
 
 import AiRecommend from "@/app/components/ai-recommend/AiRecommend";
@@ -19,7 +20,13 @@ const allTabs = [
 type TabId = (typeof allTabs)[number]["id"];
 
 export default function AiRecommendClient() {
-  const [activeTab, setActiveTab] = useState<TabId>("AiRecommend");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const tabFromUrl = useMemo(() => searchParams.get("tab"), [searchParams]);
+  const activeTab: TabId = allTabs.some((tab) => tab.id === tabFromUrl)
+    ? (tabFromUrl as TabId)
+    : "AiRecommend";
 
   useEffect(() => {
     gaEvent("tab_change", { tab_id: activeTab });
@@ -32,6 +39,9 @@ export default function AiRecommendClient() {
 
   // ✅ 프리미엄 탭도 전부 노출
   const availableTabs = allTabs;
+  const handleTabChange = (tabId: TabId) => {
+    router.replace(`/ai-recommend?tab=${tabId}`, { scroll: false });
+  };
 
   return (
     <div className="px-4 sm:px-6 pt-4 pb-10">
@@ -44,7 +54,7 @@ export default function AiRecommendClient() {
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => handleTabChange(tab.id)}
                 className={`px-3 py-2 text-sm sm:text-base rounded-t-lg whitespace-nowrap transition-all flex items-center gap-2
                   ${
                     activeTab === tab.id
@@ -72,39 +82,17 @@ export default function AiRecommendClient() {
         </div>
       </div>
 
-      {/* 콘텐츠 */}
+      {/* 콘텐츠 (비활성 탭 언마운트) */}
       <div className="mt-2">
-        <div
-          style={{ display: activeTab === "AiRecommend" ? "block" : "none" }}
-        >
-          <AiRecommend />
-        </div>
-
-        <div
-          style={{
-            display: activeTab === "AiNextRecommend" ? "block" : "none",
-          }}
-        >
-          <AiNextRecommend />
-        </div>
-
-        <div
-          style={{
-            display: activeTab === "AiVariantRecommend" ? "block" : "none",
-          }}
-        >
-          <AiVariantRecommend />
-        </div>
+        {activeTab === "AiRecommend" && <AiRecommend />}
+        {activeTab === "AiNextRecommend" && <AiNextRecommend />}
+        {activeTab === "AiVariantRecommend" && <AiVariantRecommend />}
         {/* 🔹 현재는 제한 없이 노출 (추후 유료화 시 여기만 조정) */}
-        <RequireAuth>
-          <div
-            style={{
-              display: activeTab === "AiAdvancedRecommend" ? "block" : "none",
-            }}
-          >
+        {activeTab === "AiAdvancedRecommend" && (
+          <RequireAuth>
             <AiAdvancedRecommend />
-          </div>
-        </RequireAuth>
+          </RequireAuth>
+        )}
       </div>
     </div>
   );

@@ -28,6 +28,7 @@ export default function AiRecommend() {
   const [scoreMode, setScoreMode] = useState<"raw" | "normalized">(
     "normalized"
   );
+  const [errorMsg, setErrorMsg] = useState<string>("");
 
   // ✅ 성공한 요청만 dedup 대상으로 삼고, 실패하면 재시도 가능
   const { begin, commit, rollback } = useRequestDedup<RecommendParams>();
@@ -43,6 +44,8 @@ export default function AiRecommend() {
 
     setLoading(true);
     try {
+      setErrorMsg("");
+
       const res = await fetch(
         `${apiUrl}/lotto/premium/recommend?round=${selectedRound}&clusterUnit=${clusterUnit}`,
         {
@@ -50,16 +53,30 @@ export default function AiRecommend() {
         }
       );
 
-      if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+      if (!res.ok) {
+        let msg = "요청에 실패했습니다.";
+        try {
+          const json = await res.json();
+          msg = json?.message || json?.error || msg;
+        } catch {}
+        throw new Error(msg);
+      }
 
       const json = await res.json();
       setResult(json.result);
       setNextRound(json.result?.nextRound ?? null);
 
       commit(attempt.key);
-    } catch (e) {
-      console.error(e);
-      rollback();
+    } catch (err: unknown) {
+      console.error(err);
+
+      let msg = "요청 중 오류가 발생했습니다.";
+      if (err instanceof Error) {
+        msg = err.message;
+      }
+
+      setErrorMsg(msg);
+      rollback(); // ✅ 실패면 재시도 가능
     } finally {
       setLoading(false);
     }
@@ -96,7 +113,7 @@ export default function AiRecommend() {
   return (
     <div className={`${componentBodyDivStyle()} from-pink-50 to-indigo-100`}>
       <ComponentHeader
-        title="🛡️ 기본 모델"
+        title="🧮 기본 모델"
         content={`과거 당첨 패턴, 번호 간 상관관계, 최근 출현 경향, 홀짝 균형, 번호 구간 분포 등 다차원 통계 분석 기반 AI 모델.
 회차를 선택하여 과거 회차에 어떤 번호가 당첨 되었는지 분석할 수 있습니다.`}
       />
@@ -168,6 +185,14 @@ export default function AiRecommend() {
         </span>
       </div>
 
+      <div className="flex gap-2 mb-2">
+        {errorMsg && (
+          <div className="mb-3 rounded-md bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
+            {errorMsg}
+          </div>
+        )}
+      </div>
+
       {/* 실행 */}
       <div className="flex gap-2 mb-2">
         <button
@@ -204,7 +229,7 @@ export default function AiRecommend() {
         </div>
       )}
 
-      <div className="overflow-y-auto max-h-[80vh]">{renderResult()}</div>
+      <div className="overflow-visible">{renderResult()}</div>
     </div>
   );
 }

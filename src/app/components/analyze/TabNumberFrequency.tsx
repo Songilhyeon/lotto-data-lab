@@ -316,8 +316,8 @@ export default function NumberFrequency() {
             📊 출현 빈도 그래프
           </h2>
 
-          <div style={{ width: "100%", height: 220 }}>
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="w-full">
+            <ResponsiveContainer width="100%" height={220} minHeight={220} minWidth={0}>
               <BarChart data={chartData}>
                 <XAxis dataKey="number" tick={{ fontSize: 9 }} />
                 <YAxis tick={{ fontSize: 10 }} allowDecimals={false} />

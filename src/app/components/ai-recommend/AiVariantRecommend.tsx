@@ -67,6 +67,7 @@ export default function AiVariantRecommend() {
   const [scoreMode, setScoreMode] = useState<"raw" | "normalized">(
     "normalized"
   );
+  const [errorMsg, setErrorMsg] = useState<string>("");
 
   const selectedVariant = AI_VARIANTS.find((v) => v.key === variant);
   const backtestTitle = selectedVariant
@@ -109,6 +110,7 @@ export default function AiVariantRecommend() {
     setLoading(true);
 
     try {
+      setErrorMsg("");
       const res = await fetch(`${apiUrl}/lotto/premium/recommend-variant`, {
         method: "POST",
         credentials: "include",
@@ -120,7 +122,14 @@ export default function AiVariantRecommend() {
         }),
       });
 
-      if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+      if (!res.ok) {
+        let msg = "요청에 실패했습니다.";
+        try {
+          const json = await res.json();
+          msg = json?.message || json?.error || msg;
+        } catch {}
+        throw new Error(msg);
+      }
 
       const data: AiVariantResult = await res.json();
       setResult(data);
@@ -128,8 +137,13 @@ export default function AiVariantRecommend() {
 
       // ✅ dedup 대상일 때만 commit
       if (!isChaosLike && attemptKey) commit(attemptKey);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error(err);
+      let msg = "요청 중 오류가 발생했습니다.";
+      if (err instanceof Error) {
+        msg = err.message;
+      }
+      setErrorMsg(msg);
       // ✅ dedup 대상일 때만 rollback
       if (!isChaosLike) rollback();
     } finally {
@@ -176,8 +190,8 @@ export default function AiVariantRecommend() {
   return (
     <div className={`${componentBodyDivStyle()} from-indigo-50 to-purple-100`}>
       <ComponentHeader
-        title="🧠 전략형 모델"
-        content={`같은 통계 데이터를 극단적으로 다른 관점에서 해석하여, 각 전략의 특징을 명확히 구분하는 실험형 AI 모델. 
+        title="🎯 전략형 모델"
+        content={`동일한 통계 피처를 사용하여, 전략별 가중치 조합을 다르게해 결과를 비교하는 실험형 AI 모델.
                   회차를 선택하여 과거 회차에 어떤 번호가 당첨 되었는지 분석할 수 있습니다.`}
       />
 
@@ -246,6 +260,14 @@ export default function AiVariantRecommend() {
         ))}
       </div>
 
+      <div className="flex gap-2 mb-2">
+        {errorMsg && (
+          <div className="mb-3 rounded-md bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
+            {errorMsg}
+          </div>
+        )}
+      </div>
+
       {/* 실행 */}
       <div className="flex gap-2 mb-2">
         <button
@@ -282,7 +304,7 @@ export default function AiVariantRecommend() {
         </div>
       )}
 
-      <div className="overflow-y-auto max-h-[80vh]">{renderResult()}</div>
+      <div className="overflow-visible">{renderResult()}</div>
     </div>
   );
 }

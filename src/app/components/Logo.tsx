@@ -1,26 +1,38 @@
-// components/Logo.tsx
-import Image from "next/image";
+export default function Logo({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
+  const sizeMap: Record<string, string> = {
+    sm: "w-8 h-8",
+    md: "w-10 h-10 sm:w-12 sm:h-12",
+    lg: "w-14 h-14 sm:w-16 sm:h-16",
+  };
 
-export default function Logo() {
   return (
-    <div className="flex items-center">
-      <Image
-        src="/logo.png" // public 폴더에 있는 로고 이미지
-        alt="Lotto Data Lab"
-        width={80} // 기본 너비
-        height={80} // 기본 높이
-        priority // LCP 최적화
-        className="
-          object-contain
-          w-12 h-12           // 모바일 기본
-          md:w-16 md:h-16     // md 이상 화면
-          lg:w-24 lg:h-24     // lg 이상 화면
-          rounded-full
-        "
-      />
-      <span className="ml-3 text-sm md:text-md font-bold text-yellow-500">
-        Lotto Data Lab
-      </span>
+    <div className="flex items-center space-x-1">
+      <svg
+        className={sizeMap[size]}
+        viewBox="0 0 64 64"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <circle cx="32" cy="32" r="32" fill="#FCD34D" />
+        <circle cx="32" cy="32" r="20" fill="#3B82F6" />
+        <text
+          x="32"
+          y="38"
+          textAnchor="middle"
+          fontSize="18"
+          fontWeight="bold"
+          fill="white"
+          fontFamily="sans-serif"
+        >
+          LDL
+        </text>
+      </svg>
+
+      {/* {size !== "sm" && (
+        <span className="text-sm md:text-lg font-bold text-gray-900 select-none">
+          Lotto Data Lab
+        </span>
+      )} */}
     </div>
   );
 }

@@ -39,6 +39,7 @@ export default function AiNextRecommend() {
   const [scoreMode, setScoreMode] = useState<"raw" | "normalized">(
     "normalized"
   );
+  const [errorMsg, setErrorMsg] = useState<string>("");
 
   // ✅ 성공한 요청만 dedup 대상으로 저장, 실패 시 재시도 가능
   const { begin, commit, rollback } = useRequestDedup<NextRecommendParams>();
@@ -74,6 +75,8 @@ export default function AiNextRecommend() {
 
     setLoading(true);
     try {
+      setErrorMsg("");
+
       const query = new URLSearchParams({
         clusterUnit: clusterUnit.toString(),
         start: selectedRound.toString(),
@@ -96,16 +99,30 @@ export default function AiNextRecommend() {
         }
       );
 
-      if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+      if (!res.ok) {
+        let msg = "요청에 실패했습니다.";
+        try {
+          const json = await res.json();
+          msg = json?.message || json?.error || msg;
+        } catch {}
+        throw new Error(msg);
+      }
 
       const json = await res.json();
       setResult(json.result);
       setNextRound(json.result?.nextRound ?? null);
 
       commit(attempt.key); // ✅ 성공 확정
-    } catch (e) {
-      console.error(e);
-      rollback(); // ✅ 실패하면 재시도 허용
+    } catch (err: unknown) {
+      console.error(err);
+
+      let msg = "요청 중 오류가 발생했습니다.";
+      if (err instanceof Error) {
+        msg = err.message;
+      }
+
+      setErrorMsg(msg);
+      rollback(); // ✅ 실패면 재시도 가능
     } finally {
       setLoading(false);
     }
@@ -142,8 +159,8 @@ export default function AiNextRecommend() {
   return (
     <div className={`${componentBodyDivStyle()} from-green-50 to-purple-100`}>
       <ComponentHeader
-        title="📊 다음 회차 기반 모델"
-        content={`번호 간 '이어짐 패턴'을 분석하여, 이전 회차에서 다음 회차로 이어질 가능성이 높은 번호를 점수화한 AI 모델. 
+        title="🔗 다음 회차 이어짐 모델"
+        content={`이전 회차 번호와 다음 회차 출현의 연관 빈도(nextFreq)를 중심으로, hot/cold·연속·패턴·클러스터·랜덤 점수를 함께 합산해 추천하는 혼합형 모델.
                   회차를 선택하여 과거 회차에 어떤 번호가 당첨 되었는지 분석할 수 있습니다.`}
       />
 
@@ -226,6 +243,14 @@ export default function AiNextRecommend() {
         </span>
       </div>
 
+      <div className="flex gap-2 mb-2">
+        {errorMsg && (
+          <div className="mb-3 rounded-md bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
+            {errorMsg}
+          </div>
+        )}
+      </div>
+
       {/* 실행 */}
       <div className="flex gap-2 mb-2">
         <button
@@ -270,7 +295,7 @@ export default function AiNextRecommend() {
         </div>
       )}
 
-      <div className="overflow-y-auto max-h-[80vh]">{renderResult()}</div>
+      <div className="overflow-visible">{renderResult()}</div>
     </div>
   );
 }

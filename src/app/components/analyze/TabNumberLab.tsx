@@ -149,7 +149,7 @@ export default function NumberLab() {
   return (
     <div className={`${componentBodyDivStyle()} from-blue-50 to-indigo-100`}>
       <ComponentHeader
-        title="🔮 로또 번호 실험실"
+        title="🧪 로또 번호 실험실"
         content="원하는 6개 이하의 숫자를 선택하고 일치번호 / 조합 패턴을 분석해보세요."
       />
 
@@ -296,11 +296,8 @@ export default function NumberLab() {
           </div>
 
           {/* Bar Chart */}
-          <div
-            className="w-full min-w-0 overflow-x-auto"
-            style={{ height: 220 }}
-          >
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="w-full min-w-0 overflow-x-auto">
+            <ResponsiveContainer width="100%" height={220} minHeight={220} minWidth={0}>
               <BarChart data={getChartData()}>
                 <XAxis dataKey="number" tick={{ fontSize: 10 }} />
                 <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />

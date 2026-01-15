@@ -9,6 +9,7 @@ import { PickNumberProvider } from "@/app/context/pickNumberContext";
 import FloatingPickButton from "@/app/components/help/FloatingPickButton";
 import FloatingHelpButton from "@/app/components/help/FloatingHelpButton";
 import OnboardingModal from "@/app/components/help/OnboardingModal";
+import FloatingMemoButton from "@/app/components/help/FloatingMemoButton";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -111,6 +112,7 @@ export default function RootLayout({
               <main>{children}</main>
               <OnboardingModal />
               <FloatingPickButton />
+              <FloatingMemoButton />
               <FloatingHelpButton />
             </PickNumberProvider>
             <Footer />

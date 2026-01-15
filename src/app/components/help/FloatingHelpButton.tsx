@@ -71,12 +71,26 @@ export default function FloatingHelpButton() {
                 로또 회차 데이터를 기반으로 <b>패턴과 흐름</b>을 분석해, 수동
                 번호 선택에 참고하시도록 돕는 서비스입니다.
               </p>
+              <div className="rounded-xl border border-gray-200 p-3 space-y-2">
+                <div className="font-black text-gray-900">
+                  🧷 화면 고정 기능
+                </div>
+                <p>
+                  <b>🎯 번호 메모</b> : 우측 하단 버튼 → 번호 선택/해제 → 필요
+                  시 초기화
+                </p>
+                <p>
+                  <b>📝 빠른 메모</b> : 우측 상단 버튼 → 메모 작성 → 저장/삭제
+                  선택
+                </p>
+              </div>
 
               <div className="rounded-xl bg-gray-50 border border-gray-200 p-3">
                 <div className="font-black text-gray-900">🎯 수동 초보자</div>
                 <p className="mt-2">
                   <b>분석</b>의 기본 분석에서 회차 패턴 요약을 확인하신 뒤,
                   <b> AI 점수 분석</b>으로 점수 상위 흐름을 가볍게 참고해보세요.
+                  각 메뉴 하단의 가이드를 열어 요약 정보를 확인해 보세요.
                 </p>
               </div>
 

@@ -54,30 +54,47 @@ export async function generateMetadata(
   const params = await props.params; // ✅ unwrap
   const id = params.id;
 
-  if (!id)
+  const canonical = `https://app.nexlab.ai.kr/board/${id || ""}`.replace(
+    /\/$/,
+    ""
+  );
+
+  if (!id) {
     return {
       title: "게시글 상세",
       description: "로또 커뮤니티 게시글 상세 페이지",
+      alternates: { canonical: "https://app.nexlab.ai.kr/board" },
     };
+  }
 
   try {
-    const res = await fetch(`${apiUrl}/posts/${id}`, {
-      cache: "no-store",
-    });
+    const res = await fetch(`${apiUrl}/posts/${id}`, { cache: "no-store" });
     if (!res.ok) throw new Error("API 호출 실패");
     const data = await res.json();
     const post = data.post ?? data;
 
+    const title = post.title ?? "게시글 상세";
+    const description =
+      post.content?.slice(0, 150) ?? "로또 커뮤니티 게시글 상세 페이지";
+
     return {
-      title: post.title ?? "게시글 상세",
-      description:
-        post.content?.slice(0, 150) ?? "로또 커뮤니티 게시글 상세 페이지",
+      title,
+      description,
+      alternates: { canonical },
+      openGraph: {
+        title,
+        description,
+        url: canonical,
+        siteName: "Lotto Data Lab",
+        type: "article",
+      },
     };
   } catch (err) {
     console.error(err);
     return {
       title: "게시글 상세",
       description: "로또 커뮤니티 게시글 상세 페이지",
+      alternates: { canonical },
     };
   }
 }

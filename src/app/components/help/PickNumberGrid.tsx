@@ -38,8 +38,8 @@ export default function PickNumberGrid({
       )}
 
       {/* 번호 그리드 */}
-      <div className="overflow-x-auto">
-        <div className="grid grid-cols-7 gap-2 min-w-[300px]">
+      <div className="overflow-x-hidden">
+        <div className="grid grid-cols-7 gap-1">
           {Array.from({ length: 45 }, (_, i) => i + 1).map((num) => {
             const isSelected = selectedNumbers.includes(num);
             const isDisabled = !isSelected && selectedNumbers.length >= max;
@@ -51,7 +51,7 @@ export default function PickNumberGrid({
                 disabled={isDisabled}
                 onClick={() => onToggle(num)}
                 className={clsx(
-                  "h-8 w-8 rounded-full flex items-center justify-center text-xs font-semibold transition",
+                  "h-7 w-7 sm:h-8 sm:w-8 rounded-full flex items-center justify-center text-[11px] sm:text-xs font-semibold transition",
                   isSelected
                     ? `${getBallColor(num)} text-white scale-110`
                     : "bg-white text-gray-700 border border-gray-200",

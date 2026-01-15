@@ -93,7 +93,7 @@ export default function RoundDistPatternTab() {
     <div className={`${componentBodyDivStyle()} from-indigo-50 to-purple-100`}>
       {/* Header */}
       <ComponentHeader
-        title=" 📊 회차별 번호 분포 패턴 분석"
+        title="📊 회차별 번호 분포 패턴 분석"
         content="선택 회차의 번호 간 간격 패턴을 분석하고, 과거 유사 패턴의 다음 회차를
           참고합니다."
       />
@@ -389,7 +389,7 @@ export default function RoundDistPatternTab() {
           {data.prediction.numbers.length > 0 && (
             <section className="bg-white/90 backdrop-blur-sm rounded-xl shadow-md p-6">
               <h3 className="font-bold text-lg mb-2 text-gray-800">
-                🎲 번호 점수 (앙상블)
+                🎲 번호 점수
               </h3>
               <p className="text-xs text-gray-500 mb-4">
                 유사 패턴의 다음 회차 번호를 유사도 가중치로 집계한 결과입니다.

@@ -218,6 +218,13 @@ export default function BacktestSummaryCard({
             <b className="text-gray-800">어떤 성향이었는지</b> 참고용으로만 보는
             카드입니다.
           </div>
+
+          {showRefreshButton && (
+            <div className="mt-2 text-xs text-gray-600 leading-relaxed">
+              가중치를 수정 했을 경우 <b className="text-gray-800">요약 갱신</b>{" "}
+              을 클릭하면 현재 적용된 가중치의 과거 흐름을 확인 할 수 있습니다.
+            </div>
+          )}
         </div>
 
         <div className="shrink-0 text-right">

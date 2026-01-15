@@ -4,7 +4,7 @@ import { useState, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/app/context/authContext";
-import { Logo } from "./Footer";
+import Logo from "./Logo";
 import { FcGoogle } from "react-icons/fc";
 import { SiNaver } from "react-icons/si";
 import { Menu, X } from "lucide-react";
@@ -63,7 +63,7 @@ export default function Header() {
     { name: "1,2등 판매점", href: "/winner-stores" },
     { name: "역대 기록", href: "/lotto-history" },
     { name: "게시판", href: "/board" },
-    { name: "자주 묻는 질문", href: "/faq" },
+    // { name: "프리미엄 안내", href: "/premium" },
   ];
 
   const copyLink = useCallback(async () => {
@@ -111,7 +111,7 @@ export default function Header() {
     <>
       {/* HEADER */}
       <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
-        <div className="h-14 md:h-16 max-w-6xl mx-auto px-4 md:px-6 flex items-center justify-between">
+        <div className="h-14 md:h-16 w-full px-3 sm:px-4 md:px-6 lg:px-8 flex items-center gap-4 justify-between">
           {/* Logo */}
           <div className="flex items-center gap-2">
             <Link href="/" className="cursor-pointer">
@@ -120,14 +120,14 @@ export default function Header() {
           </div>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
+          <nav className="hidden md:flex items-center gap-3 lg:gap-4 text-xs sm:text-sm lg:text-base font-medium flex-1 justify-center whitespace-nowrap">
             {navLinks.map((link) => {
               const isActive = pathname === link.href;
               return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`relative px-2 py-1 transition ${
+                  className={`relative px-2 py-1 transition whitespace-nowrap ${
                     isActive
                       ? "text-blue-600 font-semibold"
                       : "text-gray-700 hover:text-blue-600"
@@ -142,12 +142,14 @@ export default function Header() {
                 </Link>
               );
             })}
+          </nav>
 
-            {/* Auth */}
+          {/* Auth (Desktop) */}
+          <div className="hidden md:flex items-center gap-2 lg:gap-3 text-xs sm:text-sm lg:text-base">
             {user ? (
-              <div className="flex items-center gap-3 ml-4">
+              <>
                 <span
-                  className={`px-2 py-1 text-xs rounded-full font-bold ${
+                  className={`px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs rounded-full font-bold ${
                     user.role === "PREMIUM"
                       ? "bg-amber-500 text-white"
                       : "bg-gray-300 text-gray-700"
@@ -155,30 +157,30 @@ export default function Header() {
                 >
                   {user.role}
                 </span>
-                <span className="text-gray-700 max-w-[100px] truncate">
+                <span className="text-gray-700 max-w-[80px] sm:max-w-[100px] truncate">
                   {user.name}
                 </span>
                 <button
                   onClick={logout}
-                  className="px-3 py-1.5 rounded-md bg-red-500 text-white hover:bg-red-600 transition"
+                  className="px-2 sm:px-3 py-1 sm:py-1.5 rounded-md bg-red-500 text-white hover:bg-red-600 transition"
                 >
                   로그아웃
                 </button>
-              </div>
+              </>
             ) : (
               <button
                 onClick={openLoginModal}
-                className="ml-4 px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition"
+                className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition"
               >
                 로그인
               </button>
             )}
-          </nav>
+          </div>
 
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsOpen(true)}
-            className="md:hidden p-2 rounded-md hover:bg-gray-100 active:bg-gray-200"
+            className="md:hidden p-2 rounded-md hover:bg-gray-100 active:bg-gray-200 ml-auto"
           >
             <Menu className="w-6 h-6" />
           </button>

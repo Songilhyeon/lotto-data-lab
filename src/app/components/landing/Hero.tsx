@@ -15,7 +15,7 @@ export default function Hero() {
           transition={{ duration: 0.6 }}
         >
           <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-600" />
-          진짜 수동 로또 유저를 위한 데이터 기반 분석 서비스
+          수동 로또 유저를 위한 데이터 기반 분석 서비스
         </motion.span>
 
         {/* 메인 타이틀 */}
@@ -42,7 +42,7 @@ export default function Hero() {
           <br className="hidden sm:block" />
           장기·단기 통계를 균형 있게 분석해
           <br className="hidden sm:block" />
-          의미 있는 정보만 정제해 제공합니다.
+          의미 있는 정보만 정제해 패턴 분석을 할 수 있습니다.
         </motion.p>
 
         {/* 신뢰 배지 */}

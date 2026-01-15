@@ -60,9 +60,9 @@ export default function WinnerStoresClient() {
         </div>
       </div>
 
-      {/* 콘텐츠 (언마운트 방지) */}
+      {/* 콘텐츠 (비활성 탭 언마운트) */}
       <div>
-        <div style={{ display: activeTab === "round" ? "block" : "none" }}>
+        {activeTab === "round" && (
           <RoundStoresTab
             selectedRank={selectedRank}
             setSelectedRank={setSelectedRank}
@@ -72,9 +72,9 @@ export default function WinnerStoresClient() {
             roundStores={roundStores}
             setRoundStores={setRoundStores}
           />
-        </div>
+        )}
 
-        <div style={{ display: activeTab === "accumulate" ? "block" : "none" }}>
+        {activeTab === "accumulate" && (
           <AccumulateTab
             selectedRank={selectedRank}
             setSelectedRank={setSelectedRank}
@@ -85,14 +85,14 @@ export default function WinnerStoresClient() {
             data={data}
             setData={setData}
           />
-        </div>
+        )}
 
-        <div style={{ display: activeTab === "all" ? "block" : "none" }}>
+        {activeTab === "all" && (
           <AllStoresTab
             selectedRank={selectedRank}
             setSelectedRank={setSelectedRank}
           />
-        </div>
+        )}
       </div>
     </div>
   );
