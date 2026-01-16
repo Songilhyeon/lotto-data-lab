@@ -11,7 +11,7 @@ export const getLatestRound = (): number => {
   thisSaturday.setDate(now.getDate() + diff);
   thisSaturday.setHours(21, 15, 0, 0); // 21:15:00.000, 서버보다 5분 늦게 회차 갱신
 
-  // 4. 만약 현재 시간이 토요일 21:00 이후라면 이번 주 회차 포함
+  // 4. 만약 현재 시간이 토요일 21:15 이후라면 이번 주 회차 포함
   const referenceDate =
     now >= thisSaturday
       ? thisSaturday

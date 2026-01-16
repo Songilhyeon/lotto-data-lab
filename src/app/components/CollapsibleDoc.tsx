@@ -69,7 +69,7 @@ export default function CollapsibleDoc({
         </summary>
 
         <div className="mt-3 border-t border-gray-200 pt-3">
-          <div className="space-y-4 text-sm leading-6 text-gray-700">
+          <div className="space-y-4 text-sm leading-6 text-gray-700 [&_a]:rounded-md [&_a]:bg-gray-100 [&_a]:px-3 [&_a]:py-1 [&_a]:font-semibold [&_a]:text-gray-800 [&_a]:shadow-[inset_0_0_0_1px_rgba(17,24,39,0.12)] [&_a]:transition [&_a]:hover:bg-gray-200 [&_a]:hover:text-gray-900 [&_a]:hover:shadow-[inset_0_0_0_1px_rgba(17,24,39,0.22)] [&_a]:focus-visible:outline-none [&_a]:focus-visible:shadow-[inset_0_0_0_2px_rgba(17,24,39,0.28)]">
             {children}
           </div>
           <div className="mt-3 text-xs text-gray-500">
