@@ -38,12 +38,10 @@ export default function NextPatterns() {
   const [loading, setLoading] = useState(false);
 
   const [minMatch, setMinMatch] = useState(2);
-  const [start, setStart] = useState(1);
+  const [start, setStart] = useState(latestRound - 99);
   const [end, setEnd] = useState(latestRound);
   const [includeBonus, setIncludeBonus] = useState(false);
-  const [selectedRecent, setSelectedRecent] = useState<number | null>(
-    latestRound
-  );
+  const [selectedRecent, setSelectedRecent] = useState<number | null>(100);
 
   const prevParamsRef = useRef({
     start: -1,
@@ -70,7 +68,7 @@ export default function NextPatterns() {
 
     try {
       const res = await fetch(
-        `${apiUrl}/lotto/next?start=${start}&end=${end}&includeBonus=${includeBonus}&minMatch=${minMatch}`
+        `${apiUrl}/lotto/next?start=${start}&end=${end}&includeBonus=${includeBonus}&minMatch=${minMatch}`,
       );
       const json = await res.json();
 
@@ -316,7 +314,12 @@ export default function NextPatterns() {
 
           {/* Chart wrapper: min-w-0 + overflow-x-auto ensures ResponsiveContainer reads width correctly */}
           <div className="w-full min-w-0 max-w-full overflow-x-auto">
-            <ResponsiveContainer width="100%" height={220} minHeight={220} minWidth={0}>
+            <ResponsiveContainer
+              width="100%"
+              height={220}
+              minHeight={220}
+              minWidth={0}
+            >
               <BarChart data={chartData}>
                 <XAxis dataKey="number" tick={{ fontSize: 10 }} />
                 <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />

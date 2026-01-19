@@ -11,6 +11,8 @@ import { PremiumAnalysisData } from "@/app/types/lottoNumbers";
 import { componentBodyDivStyle } from "@/app/utils/getDivStyle";
 import ComponentHeader from "@/app/components/ComponentHeader";
 
+const MIN_ROUND = 500;
+
 export default function PremiumAnalysis() {
   const latest = getLatestRound();
   const [round, setRound] = useState(latest);
@@ -19,7 +21,7 @@ export default function PremiumAnalysis() {
   const [result, setResult] = useState<PremiumAnalysisData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [openKey, setOpenKey] = useState<string | null>("recent");
+  const [openKey, setOpenKey] = useState<string | null>("summary");
 
   const prevParamsRef = useRef({
     round: -1,
@@ -36,8 +38,8 @@ export default function PremiumAnalysis() {
     )
       return;
 
-    if (round < 1000) {
-      setError("회차는 최소 1000회 이상이어야 합니다.");
+    if (round < MIN_ROUND) {
+      setError(`회차는 최소 ${MIN_ROUND}회 이상이어야 합니다.`);
       return;
     }
 
@@ -47,7 +49,7 @@ export default function PremiumAnalysis() {
     try {
       const res = await fetch(
         `${apiUrl}/lotto/premium/analysis?round=${round}&bonusIncluded=${bonusIncluded}&recent=${recentCount}`,
-        { credentials: "include" }
+        { credentials: "include" },
       );
 
       if (!res.ok) throw new Error(`Error ${res.status}`);
@@ -207,9 +209,106 @@ export default function PremiumAnalysis() {
     };
   };
 
+  const getSectionHighlights = (data: PremiumAnalysisData) => {
+    const getRecent = () => {
+      const values = Object.values(data.recentFreq);
+      const max = Math.max(...values);
+      const min = Math.min(...values);
+      const maxNumbers =
+        max >= 1
+          ? Object.entries(data.recentFreq)
+              .filter(([_, v]) => v === max)
+              .map(([n]) => Number(n))
+          : [];
+      const minNumbers =
+        min >= 0
+          ? Object.entries(data.recentFreq)
+              .filter(([_, v]) => v === min)
+              .map(([n]) => Number(n))
+          : [];
+      return { maxNumbers, minNumbers };
+    };
+
+    const getPerNumber = () => {
+      const maxSet = new Set<number>();
+      const minSet = new Set<number>();
+      Object.values(data.perNumberNextFreq).forEach((freqObj) => {
+        const entries = Object.entries(freqObj);
+        if (!entries.length) return;
+        const values = entries.map(([, v]) => v);
+        const maxValue = Math.max(...values);
+        const minValue = Math.min(...values);
+        if (maxValue >= 1) {
+          entries
+            .filter(([, v]) => v === maxValue)
+            .forEach(([k]) => maxSet.add(Number(k)));
+        }
+        entries
+          .filter(([, v]) => v === minValue)
+          .forEach(([k]) => minSet.add(Number(k)));
+      });
+      return {
+        maxNumbers: Array.from(maxSet).sort((a, b) => a - b),
+        minNumbers: Array.from(minSet).sort((a, b) => a - b),
+      };
+    };
+
+    const getKMatch = () => {
+      const maxSet = new Set<number>();
+      const minSet = new Set<number>();
+      Object.values(data.kMatchNextFreq).forEach((record) => {
+        const values = Object.values(record);
+        const maxValue = Math.max(...values);
+        const minValue = Math.min(...values);
+        if (maxValue > 1) {
+          Object.entries(record)
+            .filter(([_, v]) => v === maxValue)
+            .forEach(([n]) => maxSet.add(Number(n)));
+        }
+        if (minValue > 0) {
+          Object.entries(record)
+            .filter(([_, v]) => v === minValue)
+            .forEach(([n]) => minSet.add(Number(n)));
+        }
+      });
+      return {
+        maxNumbers: Array.from(maxSet).sort((a, b) => a - b),
+        minNumbers: Array.from(minSet).sort((a, b) => a - b),
+      };
+    };
+
+    const getPattern = (freq: Record<number, number>) => {
+      const entries = Object.entries(freq);
+      if (!entries.length) return { maxNumbers: [], minNumbers: [] };
+      const values = entries.map(([, v]) => v);
+      const maxValue = Math.max(...values);
+      const minValue = Math.min(...values);
+      const maxNumbers =
+        maxValue > 1
+          ? entries.filter(([, v]) => v === maxValue).map(([k]) => Number(k))
+          : [];
+      const minNumbers =
+        minValue > 0
+          ? entries.filter(([, v]) => v === minValue).map(([k]) => Number(k))
+          : [];
+      return { maxNumbers, minNumbers };
+    };
+
+    return {
+      recent: getRecent(),
+      perNumber: getPerNumber(),
+      kmatch: getKMatch(),
+      pattern15: getPattern(data.pattern15NextFreq),
+      pattern10: getPattern(data.pattern10NextFreq),
+      pattern7: getPattern(data.pattern7NextFreq),
+      pattern5: getPattern(data.pattern5NextFreq),
+    };
+  };
+
   const highlights = result
     ? getHighlightNumbers(result)
     : { maxNumbers: [], minNumbers: [] };
+  const summarySections = result ? getSectionHighlights(result) : null;
 
   return (
     <div className={`${componentBodyDivStyle()} from-pink-50 to-indigo-100`}>
@@ -226,7 +325,7 @@ export default function PremiumAnalysis() {
             type="number"
             value={round}
             onChange={(e) => setRound(Number(e.target.value))}
-            min={1000}
+            min={MIN_ROUND}
             max={latest}
             className="w-20 sm:w-28 text-center border-2 border-gray-300 rounded-xl px-2 py-1 sm:px-3 sm:py-2 text-sm sm:text-base font-bold shadow-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
@@ -289,6 +388,90 @@ export default function PremiumAnalysis() {
               />
             </div>
           )}
+
+          {/* 요약 정보*/}
+          <Accordion
+            title={`요약 정보`}
+            chartKey="summary"
+            openKey={openKey}
+            setOpenKey={setOpenKey}
+          >
+            <div className="space-y-3">
+              {summarySections &&
+                (
+                  [
+                    {
+                      key: "recent",
+                      label: `최근 ${recentCount}회`,
+                      data: summarySections.recent,
+                    },
+                    {
+                      key: "perNumber",
+                      label: "번호별 다음 회차",
+                      data: summarySections.perNumber,
+                    },
+                    {
+                      key: "kmatch",
+                      label: "일치 개수별 다음 회차",
+                      data: summarySections.kmatch,
+                    },
+                    {
+                      key: "pattern15",
+                      label: "15패턴 → 다음 회차",
+                      data: summarySections.pattern15,
+                    },
+                    {
+                      key: "pattern10",
+                      label: "10패턴 → 다음 회차",
+                      data: summarySections.pattern10,
+                    },
+                    {
+                      key: "pattern7",
+                      label: "7패턴 → 다음 회차",
+                      data: summarySections.pattern7,
+                    },
+                    {
+                      key: "pattern5",
+                      label: "5패턴 → 다음 회차",
+                      data: summarySections.pattern5,
+                    },
+                  ] as const
+                ).map((section) => (
+                  <div
+                    key={section.key}
+                    className="flex flex-wrap items-center gap-2"
+                  >
+                    <span className="text-sm font-medium text-gray-700">
+                      {section.label}
+                    </span>
+                    {section.data.maxNumbers.length > 0 && (
+                      <div className="flex items-center gap-1 flex-wrap">
+                        <span className="text-xs text-gray-500">최다:</span>
+                        {section.data.maxNumbers.map((n) => (
+                          <LottoBall
+                            key={`${section.key}-max-${n}`}
+                            number={n}
+                            size="sm"
+                          />
+                        ))}
+                      </div>
+                    )}
+                    {section.data.minNumbers.length > 0 && (
+                      <div className="flex items-center gap-1 flex-wrap">
+                        <span className="text-xs text-gray-500">최소:</span>
+                        {section.data.minNumbers.map((n) => (
+                          <LottoBall
+                            key={`${section.key}-min-${n}`}
+                            number={n}
+                            size="sm"
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+            </div>
+          </Accordion>
 
           {/* 최근 빈도 */}
           <Accordion
@@ -389,7 +572,7 @@ export default function PremiumAnalysis() {
                         />
                       </div>
                     );
-                  }
+                  },
                 )}
               </div>
             </Accordion>
@@ -459,7 +642,7 @@ export default function PremiumAnalysis() {
 
             {/* Pattern sections */}
             <Accordion
-              title="15패턴 → 다음 회차"
+              title="15패턴 → 다음 회차 빈도"
               chartKey="pattern15"
               openKey={openKey}
               setOpenKey={setOpenKey}
@@ -471,7 +654,7 @@ export default function PremiumAnalysis() {
             </Accordion>
 
             <Accordion
-              title="10패턴 → 다음 회차"
+              title="10패턴 → 다음 회차 빈도"
               chartKey="pattern10"
               openKey={openKey}
               setOpenKey={setOpenKey}
@@ -483,7 +666,7 @@ export default function PremiumAnalysis() {
             </Accordion>
 
             <Accordion
-              title="7패턴 → 다음 회차"
+              title="7패턴 → 다음 회차 빈도"
               chartKey="pattern7"
               openKey={openKey}
               setOpenKey={setOpenKey}
@@ -495,7 +678,7 @@ export default function PremiumAnalysis() {
             </Accordion>
 
             <Accordion
-              title="5패턴 → 다음 회차"
+              title="5패턴 → 다음 회차 빈도"
               chartKey="pattern5"
               openKey={openKey}
               setOpenKey={setOpenKey}

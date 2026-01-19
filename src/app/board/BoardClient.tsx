@@ -38,7 +38,7 @@ export default function BoardClient() {
 
       try {
         const res = await fetch(
-          `${apiUrl}/posts?page=${page}&limit=${PAGE_SIZE}`
+          `${apiUrl}/posts?page=${page}&limit=${PAGE_SIZE}`,
         );
 
         if (!res.ok) throw new Error("게시글을 불러오는 데 실패했습니다.");
@@ -49,7 +49,9 @@ export default function BoardClient() {
       } catch (err: unknown) {
         console.error(err);
         setError(
-          err instanceof Error ? err.message : "알 수 없는 오류가 발생했습니다."
+          err instanceof Error
+            ? err.message
+            : "알 수 없는 오류가 발생했습니다.",
         );
       } finally {
         setLoading(false);

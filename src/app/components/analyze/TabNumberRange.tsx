@@ -42,7 +42,7 @@ export default function NumberRangeMatch() {
   const [includeBonus, setIncludeBonus] = useState(false);
   const [tolerance, setTolerance] = useState(0); // 🔹 추가
   const [selectedRecent, setSelectedRecent] = useState<number | null>(
-    latestRound
+    latestRound,
   );
   const [data, setData] = useState<ApiData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -69,7 +69,7 @@ export default function NumberRangeMatch() {
     let success = false;
     try {
       const res = await fetch(
-        `${apiUrl}/lotto/range?start=${start}&end=${end}&includeBonus=${includeBonus}&tolerance=${tolerance}`
+        `${apiUrl}/lotto/range?start=${start}&end=${end}&includeBonus=${includeBonus}&tolerance=${tolerance}`,
       );
 
       const json = await res.json();
@@ -241,7 +241,7 @@ export default function NumberRangeMatch() {
               ([label, count]) => ({
                 label,
                 count,
-              })
+              }),
             )}
           />
           <div className="text-sm text-gray-700 mb-2">
@@ -263,7 +263,7 @@ export default function NumberRangeMatch() {
               ([label, count]) => ({
                 label,
                 count,
-              })
+              }),
             )}
           />
           <div className="text-sm text-gray-700 mb-2">
@@ -285,7 +285,7 @@ export default function NumberRangeMatch() {
               ([label, count]) => ({
                 label,
                 count,
-              })
+              }),
             )}
           />
           <div className="text-sm text-gray-700 mb-2">

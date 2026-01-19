@@ -7,8 +7,9 @@ export default function useAuthGuard() {
 
   return {
     user,
-    isAuthed: !!user,
-    // isAuthed: true,
+    // isAuthed: !!user,
+    // sih 20260117 임시 수정-
+    isAuthed: true,
     openLoginModal,
   };
 }

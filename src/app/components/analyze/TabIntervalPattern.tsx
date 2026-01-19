@@ -50,13 +50,13 @@ const fetcher = async (url: string): Promise<IntervalPatternResponse> => {
 
 export default function IntervalPatternTab() {
   const latestRound = getLatestRound();
-  const [start, setStart] = useState(latestRound - 9);
+  const [start, setStart] = useState(latestRound - 99);
   const [end, setEnd] = useState(latestRound);
-  const [selectedRecent, setSelectedRecent] = useState<number | null>(10);
+  const [selectedRecent, setSelectedRecent] = useState<number | null>(100);
   const [intervalSize, setIntervalSize] = useState<5 | 7 | 10>(7);
   const [patternLen, setPatternLen] = useState<number>(5);
   const [query, setQuery] = useState<{ start: number; end: number }>({
-    start: latestRound - 9,
+    start: latestRound - 99,
     end: latestRound,
   });
 
@@ -72,7 +72,7 @@ export default function IntervalPatternTab() {
       shouldRetryOnError: false,
       errorRetryCount: 0,
       keepPreviousData: true,
-    }
+    },
   );
 
   const handleEndChange = (value: number) => {
@@ -107,7 +107,7 @@ export default function IntervalPatternTab() {
     : [];
   const nextRoundNumbers = data?.nextRound?.numbers ?? [];
   const highlightIntervals = new Set(
-    nextRoundNumbers.map((num) => getIntervalKey(num, intervalSize))
+    nextRoundNumbers.map((num) => getIntervalKey(num, intervalSize)),
   );
   const highlightNumbers = new Set(nextRoundNumbers);
 

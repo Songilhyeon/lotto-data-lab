@@ -29,7 +29,7 @@ export default function Accordion({
     <div className="border border-gray-200 rounded-xl mb-3 overflow-hidden shadow-sm">
       <button
         onClick={handleToggle}
-        className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 text-left sm:p-4"
+        className="w-full flex items-center justify-between gap-3 p-3 bg-gray-50 hover:bg-gray-100 text-left sm:p-4"
       >
         <span className="font-semibold text-gray-800 text-sm sm:text-base">
           {title}
