@@ -1,4 +1,5 @@
 import { Geist, Geist_Mono } from "next/font/google";
+import { Suspense } from "react";
 import "./globals.css";
 import Header from "@/app/components/Header";
 import Footer from "@/app/components/Footer";
@@ -108,17 +109,19 @@ export default function RootLayout({
       >
         <AuthProvider>
           <ProfileProvider>
-            <PageViewProvider>
-              <Header />
-              <PickNumberProvider>
-                <main>{children}</main>
-                <OnboardingModal />
-                <FloatingPickButton />
-                <FloatingMemoButton />
-                <FloatingHelpButton />
-              </PickNumberProvider>
-              <Footer />
-            </PageViewProvider>
+            <Suspense fallback={null}>
+              <PageViewProvider>
+                <Header />
+                <PickNumberProvider>
+                  <main>{children}</main>
+                  <OnboardingModal />
+                  <FloatingPickButton />
+                  <FloatingMemoButton />
+                  <FloatingHelpButton />
+                </PickNumberProvider>
+                <Footer />
+              </PageViewProvider>
+            </Suspense>
           </ProfileProvider>
         </AuthProvider>
       </body>
