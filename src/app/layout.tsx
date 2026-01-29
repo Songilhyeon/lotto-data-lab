@@ -3,6 +3,7 @@ import "./globals.css";
 import Header from "@/app/components/Header";
 import Footer from "@/app/components/Footer";
 import { AuthProvider } from "@/app/context/authContext";
+import { ProfileProvider } from "@/app/context/profileContext";
 import Script from "next/script";
 import { PageViewProvider } from "@/app/PageViewProvider";
 import { PickNumberProvider } from "@/app/context/pickNumberContext";
@@ -106,17 +107,19 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AuthProvider>
-          <PageViewProvider>
-            <Header />
-            <PickNumberProvider>
-              <main>{children}</main>
-              <OnboardingModal />
-              <FloatingPickButton />
-              <FloatingMemoButton />
-              <FloatingHelpButton />
-            </PickNumberProvider>
-            <Footer />
-          </PageViewProvider>
+          <ProfileProvider>
+            <PageViewProvider>
+              <Header />
+              <PickNumberProvider>
+                <main>{children}</main>
+                <OnboardingModal />
+                <FloatingPickButton />
+                <FloatingMemoButton />
+                <FloatingHelpButton />
+              </PickNumberProvider>
+              <Footer />
+            </PageViewProvider>
+          </ProfileProvider>
         </AuthProvider>
       </body>
     </html>

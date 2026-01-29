@@ -10,14 +10,20 @@ import Accordion from "@/app/components/analyze/SingleOpenAccordion";
 import { PremiumAnalysisData } from "@/app/types/lottoNumbers";
 import { componentBodyDivStyle } from "@/app/utils/getDivStyle";
 import ComponentHeader from "@/app/components/ComponentHeader";
+import { PremiumLock } from "@/app/components/PremiumLock";
+import { isPremiumRole, useAuth } from "@/app/context/authContext";
 
 const MIN_ROUND = 500;
+const DEFAULT_RECENT_COUNT = 10;
+const DEFAULT_BONUS_INCLUDED = false;
 
 export default function PremiumAnalysis() {
+  const { user } = useAuth();
+  const isPremium = isPremiumRole(user?.role);
   const latest = getLatestRound();
   const [round, setRound] = useState(latest);
-  const [recentCount, setRecentCount] = useState(10);
-  const [bonusIncluded, setBonusIncluded] = useState(false);
+  const [recentCount, setRecentCount] = useState(DEFAULT_RECENT_COUNT);
+  const [bonusIncluded, setBonusIncluded] = useState(DEFAULT_BONUS_INCLUDED);
   const [result, setResult] = useState<PremiumAnalysisData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -309,12 +315,38 @@ export default function PremiumAnalysis() {
     ? getHighlightNumbers(result)
     : { maxNumbers: [], minNumbers: [] };
   const summarySections = result ? getSectionHighlights(result) : null;
+  const nextRoundHitSet = result?.nextRound
+    ? new Set([
+        ...result.nextRound.numbers,
+        ...(result.nextRound.bonus ? [result.nextRound.bonus] : []),
+      ])
+    : null;
+  const summaryHighlights = summarySections
+    ? {
+        maxNumbers: Array.from(
+          new Set(
+            Object.values(summarySections).flatMap((section) =>
+              section.maxNumbers.map((n) => n),
+            ),
+          ),
+        ).sort((a, b) => a - b),
+        minNumbers: Array.from(
+          new Set(
+            Object.values(summarySections).flatMap((section) =>
+              section.minNumbers.map((n) => n),
+            ),
+          ),
+        ).sort((a, b) => a - b),
+      }
+    : { maxNumbers: [], minNumbers: [] };
+  const activeHighlights =
+    openKey === "summary" ? summaryHighlights : highlights;
 
   return (
     <div className={`${componentBodyDivStyle()} from-pink-50 to-indigo-100`}>
       <ComponentHeader
         title="📊 통합 분석"
-        content="과거 회차 데이터를 기반으로 번호 구간, 출현 빈도, 패턴 일치도를 종합해 이번 흐름을 한눈에 분석합니다."
+        content="패턴·빈도·구간을 한 번에 묶어 이번 회차 후보를 빠르게 압축합니다."
       />
 
       {/* 컨트롤 바 */}
@@ -383,8 +415,8 @@ export default function PremiumAnalysis() {
             <div className="overflow-x-auto">
               <DraggableNextRound
                 nextRound={result.nextRound}
-                most={highlights?.maxNumbers}
-                least={highlights?.minNumbers}
+                most={activeHighlights?.maxNumbers}
+                least={activeHighlights?.minNumbers}
               />
             </div>
           )}
@@ -452,6 +484,7 @@ export default function PremiumAnalysis() {
                             key={`${section.key}-max-${n}`}
                             number={n}
                             size="sm"
+                            pulse={nextRoundHitSet?.has(n) ?? false}
                           />
                         ))}
                       </div>
@@ -464,6 +497,7 @@ export default function PremiumAnalysis() {
                             key={`${section.key}-min-${n}`}
                             number={n}
                             size="sm"
+                            pulse={nextRoundHitSet?.has(n) ?? false}
                           />
                         ))}
                       </div>
@@ -506,189 +540,201 @@ export default function PremiumAnalysis() {
             />
           </Accordion>
 
-          {/* perNumberNextFreq, kMatchNextFreq, Pattern sections */}
-          <div className="space-y-4">
-            <Accordion
-              title="번호별 다음 회차 빈도"
-              chartKey="perNumber"
-              openKey={openKey}
-              setOpenKey={setOpenKey}
-            >
-              <div className="space-y-4 overflow-x-auto">
-                {Object.entries(result.perNumberNextFreq).map(
-                  ([num, freqObj]) => {
-                    const freq =
-                      typeof freqObj === "object" && freqObj !== null
-                        ? (freqObj as Record<number, number>)
-                        : {};
-                    if (!Object.keys(freq).length) return null;
+          {!isPremium && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">
+              프리미엄 구독 시 상세 아코디언에서 전체 데이터를 확인할 수 있어요.
+            </div>
+          )}
 
-                    const values = Object.values(freq);
+          {/* perNumberNextFreq, kMatchNextFreq, Pattern sections */}
+          <PremiumLock isPremium={isPremium} height={360}>
+            <div className="space-y-4">
+              <Accordion
+                title="번호별 다음 회차 빈도"
+                chartKey="perNumber"
+                openKey={openKey}
+                setOpenKey={setOpenKey}
+              >
+                <div className="space-y-4 overflow-x-auto">
+                  {Object.entries(result.perNumberNextFreq).map(
+                    ([num, freqObj]) => {
+                      const freq =
+                        typeof freqObj === "object" && freqObj !== null
+                          ? (freqObj as Record<number, number>)
+                          : {};
+                      if (!Object.keys(freq).length) return null;
+
+                      const values = Object.values(freq);
+                      const maxValue = Math.max(...values);
+                      const minValue = Math.min(...values);
+                      const maxNumbers = Object.entries(freq)
+                        .filter(([_, v]) => v === maxValue)
+                        .map(([k]) => Number(k));
+                      const minNumbers = Object.entries(freq)
+                        .filter(([_, v]) => v === minValue)
+                        .map(([k]) => Number(k));
+
+                      return (
+                        <div key={num} className="mb-4 min-w-[280px]">
+                          <FreqChart
+                            record={freq}
+                            title={
+                              <div className="flex flex-wrap items-center gap-2">
+                                <LottoBall number={Number(num)} />
+                                <span className="text-gray-600">→</span>
+                                {maxNumbers.length > 0 && (
+                                  <div className="flex items-center gap-1 flex-wrap">
+                                    <span className="text-xs text-gray-500">
+                                      최다:
+                                    </span>
+                                    {maxNumbers.map((n) => (
+                                      <LottoBall
+                                        key={`max-${num}-${n}`}
+                                        number={n}
+                                      />
+                                    ))}
+                                  </div>
+                                )}
+                                {minNumbers.length > 0 && (
+                                  <div className="flex items-center gap-1 flex-wrap">
+                                    <span className="text-xs text-gray-500">
+                                      최소:
+                                    </span>
+                                    {minNumbers.map((n) => (
+                                      <LottoBall
+                                        key={`min-${num}-${n}`}
+                                        number={n}
+                                      />
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            }
+                          />
+                        </div>
+                      );
+                    },
+                  )}
+                </div>
+              </Accordion>
+
+              {/* kMatchNextFreq */}
+              <Accordion
+                title="일치 개수별 다음 회차 빈도"
+                chartKey="kmatch"
+                openKey={openKey}
+                setOpenKey={setOpenKey}
+              >
+                <div className="space-y-4 overflow-x-auto">
+                  {(["1", "2", "3", "4+"] as const).map((k) => {
+                    const record = result.kMatchNextFreq[k];
+                    const values = Object.values(record);
                     const maxValue = Math.max(...values);
                     const minValue = Math.min(...values);
-                    const maxNumbers = Object.entries(freq)
-                      .filter(([_, v]) => v === maxValue)
-                      .map(([k]) => Number(k));
-                    const minNumbers = Object.entries(freq)
-                      .filter(([_, v]) => v === minValue)
-                      .map(([k]) => Number(k));
+
+                    const maxNumbers =
+                      maxValue > 1
+                        ? Object.entries(record)
+                            .filter(([_, cnt]) => cnt === maxValue)
+                            .map(([num]) => Number(num))
+                        : [];
+                    const minNumbers =
+                      minValue > 0
+                        ? Object.entries(record)
+                            .filter(([_, cnt]) => cnt === minValue)
+                            .map(([num]) => Number(num))
+                        : [];
 
                     return (
-                      <div key={num} className="mb-4 min-w-[280px]">
-                        <FreqChart
-                          record={freq}
-                          title={
-                            <div className="flex flex-wrap items-center gap-2">
-                              <LottoBall number={Number(num)} />
-                              <span className="text-gray-600">→</span>
-                              {maxNumbers.length > 0 && (
-                                <div className="flex items-center gap-1 flex-wrap">
-                                  <span className="text-xs text-gray-500">
-                                    최다:
-                                  </span>
-                                  {maxNumbers.map((n) => (
-                                    <LottoBall
-                                      key={`max-${num}-${n}`}
-                                      number={n}
-                                    />
-                                  ))}
-                                </div>
-                              )}
-                              {minNumbers.length > 0 && (
-                                <div className="flex items-center gap-1 flex-wrap">
-                                  <span className="text-xs text-gray-500">
-                                    최소:
-                                  </span>
-                                  {minNumbers.map((n) => (
-                                    <LottoBall
-                                      key={`min-${num}-${n}`}
-                                      number={n}
-                                    />
-                                  ))}
-                                </div>
-                              )}
+                      <div key={k} className="mb-4 min-w-[280px]">
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                          <span className="font-semibold">{k}개 일치 →</span>
+                          {maxNumbers.length > 0 && (
+                            <div className="flex items-center gap-1 flex-wrap">
+                              <span className="text-xs text-gray-500">
+                                최다
+                              </span>
+                              {maxNumbers.map((n) => (
+                                <LottoBall
+                                  key={`max-${k}-${n}`}
+                                  number={n}
+                                  size="sm"
+                                />
+                              ))}
                             </div>
-                          }
-                        />
+                          )}
+                          {minNumbers.length > 0 && (
+                            <div className="flex items-center gap-1 flex-wrap">
+                              <span className="text-xs text-gray-500">
+                                최소
+                              </span>
+                              {minNumbers.map((n) => (
+                                <LottoBall
+                                  key={`min-${k}-${n}`}
+                                  number={n}
+                                  size="sm"
+                                />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <FreqChart record={record} />
                       </div>
                     );
-                  },
-                )}
-              </div>
-            </Accordion>
+                  })}
+                </div>
+              </Accordion>
 
-            {/* kMatchNextFreq */}
-            <Accordion
-              title="일치 개수별 다음 회차 빈도"
-              chartKey="kmatch"
-              openKey={openKey}
-              setOpenKey={setOpenKey}
-            >
-              <div className="space-y-4 overflow-x-auto">
-                {(["1", "2", "3", "4+"] as const).map((k) => {
-                  const record = result.kMatchNextFreq[k];
-                  const values = Object.values(record);
-                  const maxValue = Math.max(...values);
-                  const minValue = Math.min(...values);
+              {/* Pattern sections */}
+              <Accordion
+                title="15패턴 → 다음 회차 빈도"
+                chartKey="pattern15"
+                openKey={openKey}
+                setOpenKey={setOpenKey}
+              >
+                <PatternNextFreqSection
+                  title="15패턴 다음 회차 빈도수"
+                  data={result.pattern15NextFreq}
+                />
+              </Accordion>
 
-                  const maxNumbers =
-                    maxValue > 1
-                      ? Object.entries(record)
-                          .filter(([_, cnt]) => cnt === maxValue)
-                          .map(([num]) => Number(num))
-                      : [];
-                  const minNumbers =
-                    minValue > 0
-                      ? Object.entries(record)
-                          .filter(([_, cnt]) => cnt === minValue)
-                          .map(([num]) => Number(num))
-                      : [];
+              <Accordion
+                title="10패턴 → 다음 회차 빈도"
+                chartKey="pattern10"
+                openKey={openKey}
+                setOpenKey={setOpenKey}
+              >
+                <PatternNextFreqSection
+                  title="10패턴 다음 회차 빈도수"
+                  data={result.pattern10NextFreq}
+                />
+              </Accordion>
 
-                  return (
-                    <div key={k} className="mb-4 min-w-[280px]">
-                      <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <span className="font-semibold">{k}개 일치 →</span>
-                        {maxNumbers.length > 0 && (
-                          <div className="flex items-center gap-1 flex-wrap">
-                            <span className="text-xs text-gray-500">최다</span>
-                            {maxNumbers.map((n) => (
-                              <LottoBall
-                                key={`max-${k}-${n}`}
-                                number={n}
-                                size="sm"
-                              />
-                            ))}
-                          </div>
-                        )}
-                        {minNumbers.length > 0 && (
-                          <div className="flex items-center gap-1 flex-wrap">
-                            <span className="text-xs text-gray-500">최소</span>
-                            {minNumbers.map((n) => (
-                              <LottoBall
-                                key={`min-${k}-${n}`}
-                                number={n}
-                                size="sm"
-                              />
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      <FreqChart record={record} />
-                    </div>
-                  );
-                })}
-              </div>
-            </Accordion>
+              <Accordion
+                title="7패턴 → 다음 회차 빈도"
+                chartKey="pattern7"
+                openKey={openKey}
+                setOpenKey={setOpenKey}
+              >
+                <PatternNextFreqSection
+                  title="7패턴 다음 회차 빈도수"
+                  data={result.pattern7NextFreq}
+                />
+              </Accordion>
 
-            {/* Pattern sections */}
-            <Accordion
-              title="15패턴 → 다음 회차 빈도"
-              chartKey="pattern15"
-              openKey={openKey}
-              setOpenKey={setOpenKey}
-            >
-              <PatternNextFreqSection
-                title="15패턴 다음 회차 빈도수"
-                data={result.pattern15NextFreq}
-              />
-            </Accordion>
-
-            <Accordion
-              title="10패턴 → 다음 회차 빈도"
-              chartKey="pattern10"
-              openKey={openKey}
-              setOpenKey={setOpenKey}
-            >
-              <PatternNextFreqSection
-                title="10패턴 다음 회차 빈도수"
-                data={result.pattern10NextFreq}
-              />
-            </Accordion>
-
-            <Accordion
-              title="7패턴 → 다음 회차 빈도"
-              chartKey="pattern7"
-              openKey={openKey}
-              setOpenKey={setOpenKey}
-            >
-              <PatternNextFreqSection
-                title="7패턴 다음 회차 빈도수"
-                data={result.pattern7NextFreq}
-              />
-            </Accordion>
-
-            <Accordion
-              title="5패턴 → 다음 회차 빈도"
-              chartKey="pattern5"
-              openKey={openKey}
-              setOpenKey={setOpenKey}
-            >
-              <PatternNextFreqSection
-                title="5패턴 다음 회차 빈도수"
-                data={result.pattern5NextFreq}
-              />
-            </Accordion>
-          </div>
+              <Accordion
+                title="5패턴 → 다음 회차 빈도"
+                chartKey="pattern5"
+                openKey={openKey}
+                setOpenKey={setOpenKey}
+              >
+                <PatternNextFreqSection
+                  title="5패턴 다음 회차 빈도수"
+                  data={result.pattern5NextFreq}
+                />
+              </Accordion>
+            </div>
+          </PremiumLock>
         </div>
       )}
     </div>

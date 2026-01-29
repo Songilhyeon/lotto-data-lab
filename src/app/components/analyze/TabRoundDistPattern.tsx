@@ -77,7 +77,7 @@ export default function RoundDistPatternTab() {
       revalidateOnReconnect: false,
       refreshInterval: 0,
       keepPreviousData: true,
-    }
+    },
   );
 
   const fetchData = () => {
@@ -139,7 +139,7 @@ export default function RoundDistPatternTab() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              패턴 매칭 개수
+              패턴 매칭 결과 개수
             </label>
             <input
               type="number"

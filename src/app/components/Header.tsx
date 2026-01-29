@@ -4,6 +4,8 @@ import { useState, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/app/context/authContext";
+import { useProfile } from "@/app/context/profileContext";
+import { getDisplayName } from "@/app/utils/displayName";
 import Logo from "./Logo";
 import { FcGoogle } from "react-icons/fc";
 import { SiNaver } from "react-icons/si";
@@ -42,13 +44,14 @@ export default function Header() {
   const pathname = usePathname();
   const { user, openLoginModal, closeLoginModal, isLoginModalOpen, logout } =
     useAuth();
+  const { profile } = useProfile();
 
   const oauthUrls = useMemo(
     () => ({
       google: process.env.NEXT_PUBLIC_GOOGLE_API_URI,
       naver: process.env.NEXT_PUBLIC_NAVER_API_URI,
     }),
-    []
+    [],
   );
 
   const currentUrl = useMemo(() => {
@@ -64,6 +67,7 @@ export default function Header() {
     { name: "역대 기록", href: "/lotto-history" },
     { name: "게시판", href: "/board" },
     // { name: "프리미엄 안내", href: "/premium" },
+    { name: "내 기록", href: "/me" },
   ];
 
   const copyLink = useCallback(async () => {
@@ -104,7 +108,7 @@ export default function Header() {
 
       window.location.href = url;
     },
-    [oauthUrls]
+    [oauthUrls],
   );
 
   return (
@@ -150,7 +154,7 @@ export default function Header() {
               <>
                 <span
                   className={`px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs rounded-full font-bold ${
-                    user.role === "PREMIUM"
+                    user.role === "PREMIUM" || user.role === "ADMIN"
                       ? "bg-amber-500 text-white"
                       : "bg-gray-300 text-gray-700"
                   }`}
@@ -158,7 +162,7 @@ export default function Header() {
                   {user.role}
                 </span>
                 <span className="text-gray-700 max-w-[80px] sm:max-w-[100px] truncate">
-                  {user.name}
+                  {getDisplayName(profile?.displayName, user.name)}
                 </span>
                 <button
                   onClick={logout}
@@ -248,7 +252,7 @@ export default function Header() {
                     <div className="flex items-center gap-2 mb-3">
                       <span
                         className={`text-xs px-2 py-1 rounded-full font-bold ${
-                          user.role === "PREMIUM"
+                          user.role === "PREMIUM" || user.role === "ADMIN"
                             ? "bg-amber-500 text-white"
                             : "bg-gray-300 text-gray-700"
                         }`}
@@ -256,7 +260,7 @@ export default function Header() {
                         {user.role}
                       </span>
                       <span className="text-gray-700 truncate">
-                        {user.name}
+                        {getDisplayName(profile?.displayName, user.name)}
                       </span>
                     </div>
 

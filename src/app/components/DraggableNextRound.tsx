@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import LottoBall from "./LottoBall";
 
 type NextRoundObj = {
@@ -148,7 +148,7 @@ export default function DraggableNextRound({
     ? nextRound.round
     : null;
   const bonusLabel: number | null = isNextRoundObj(nextRound)
-    ? nextRound.bonus ?? null
+    ? (nextRound.bonus ?? null)
     : null;
 
   return (
@@ -162,7 +162,7 @@ export default function DraggableNextRound({
         if (e.touches?.length)
           startDrag(e.touches[0].clientX, e.touches[0].clientY);
       }}
-      className="fixed bg-yellow-100 border border-yellow-400 rounded-xl px-3 py-2 shadow-md z-1000 flex items-center gap-2 cursor-move select-none text-sm sm:text-base"
+      className="fixed bg-gray-100 border border-yellow-400 rounded-xl px-3 py-2 shadow-md z-1000 flex items-center gap-2 cursor-move select-none text-sm sm:text-base"
       style={{
         left: position.x,
         top: position.y,

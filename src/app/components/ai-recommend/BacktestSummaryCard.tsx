@@ -28,6 +28,16 @@ type Weights = {
 };
 
 type VariantKey = "strict" | "pattern" | "cluster" | "decay" | "chaos";
+type TunedVariant =
+  | "basic"
+  | "next"
+  | "variant"
+  | "deep"
+  | "variant_strict"
+  | "variant_pattern"
+  | "variant_cluster"
+  | "variant_decay"
+  | "variant_chaos";
 
 type Props = {
   modelKey?: "ai_basic" | "ai_next" | "ai_variant" | "ai_advanced";
@@ -41,6 +51,8 @@ type Props = {
   title?: string;
   manualRefresh?: boolean;
   showRefreshButton?: boolean;
+  aiTuned?: boolean;
+  tunedVariant?: TunedVariant;
 };
 
 const AI_MODEL = {
@@ -82,6 +94,8 @@ export default function BacktestSummaryCard({
   title,
   manualRefresh = false,
   showRefreshButton = false,
+  aiTuned,
+  tunedVariant,
 }: Props) {
   const [data, setData] = useState<BacktestSummary | null>(null);
   const [err, setErr] = useState<string>("");
@@ -98,6 +112,8 @@ export default function BacktestSummaryCard({
       maxSpan: span, // 서버는 maxSpan 사용
       variantKey,
       presetName,
+      aiTuned: aiTuned ? 1 : undefined,
+      tunedVariant,
 
       hot: weights?.hot,
       cold: weights?.cold,
@@ -117,6 +133,8 @@ export default function BacktestSummaryCard({
     weights,
     variantKey,
     presetName,
+    aiTuned,
+    tunedVariant,
   ]);
 
   useEffect(() => {

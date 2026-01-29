@@ -12,14 +12,14 @@ import { getLatestRound } from "@/app/utils/getUtils";
 
 const tabs = [
   { id: "round", label: "회차별 당첨 판매점" },
-  { id: "accumulate", label: "판매점 누적 통계" },
-  { id: "all", label: "전체 판매점" },
+  { id: "accumulate", label: "당첨 판매점 누적 통계" },
+  { id: "all", label: "지역별 당첨 판매점" },
 ];
 
 export default function WinnerStoresClient() {
   const latestRound = getLatestRound();
   const [activeTab, setActiveTab] = useState<"round" | "accumulate" | "all">(
-    "round"
+    "round",
   );
 
   const [selectedRound, setSelectedRound] = useState(latestRound);

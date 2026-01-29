@@ -10,7 +10,8 @@ interface CommentType {
   id: string;
   content: string;
   createdAt: string;
-  user: { name: string; id: string };
+  authorDisplayName?: string;
+  user: { id: string } | null;
 }
 
 interface PostType {
@@ -18,7 +19,8 @@ interface PostType {
   title: string;
   content: string;
   createdAt: string;
-  user: { name: string; id: string };
+  authorDisplayName?: string;
+  user: { id: string } | null;
   comments: CommentType[];
 }
 

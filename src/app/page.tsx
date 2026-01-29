@@ -3,6 +3,7 @@ import { Playfair_Display, Space_Grotesk } from "next/font/google";
 import SeoJsonLd from "@/app/components/SeoJsonLd";
 import CollapsibleDoc from "@/app/components/CollapsibleDoc";
 import Link from "next/link";
+import HomeSelectionSummaryCard from "@/app/components/landing/HomeSelectionSummaryCard";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -177,11 +178,11 @@ export default function LandingPage() {
               <h2
                 className={`${playfair.className} text-4xl sm:text-5xl leading-tight text-slate-900`}
               >
-                당첨은 분석하는 자의 것
+                추천이 아니라, 선택을 돕습니다
               </h2>
               <p className="text-lg text-slate-700">
-                감이 아니라 데이터로 고르는 로또 당첨 번호. LDL은 로또를{" "}
-                <b>숫자</b>가 아닌 <b>의사결정 정보</b>로 바꿉니다.
+                LDL은 번호를 대신 고르지 않습니다. 수동으로 고르는 사람을 위해
+                <b> 근거를 정리</b>하고 <b>귀찮은 과정</b>을 줄여줍니다.
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link
@@ -209,10 +210,10 @@ export default function LandingPage() {
               <div className="mt-3 space-y-4">
                 <div>
                   <div className="text-sm font-bold text-slate-900" id="brand">
-                    로또를 연구하는 실험실
+                    수동 선택을 위한 분석 도구
                   </div>
                   <p className="mt-1 text-sm text-slate-600">
-                    LDL은 번호를 추천하지 않고, 번호를 설명합니다.
+                    번호를 추천하지 않고, 선택의 이유를 설명합니다.
                   </p>
                 </div>
                 <div className="rounded-2xl bg-slate-900 p-4 text-white">
@@ -222,35 +223,37 @@ export default function LandingPage() {
                   <div
                     className={`${playfair.className} mt-2 text-2xl leading-snug`}
                   >
-                    로또를 연구하는 사람들을 위한 데이터 실험실.
+                    고르는 사람을 위한 데이터 실험실.
                   </div>
                 </div>
                 <div className="grid gap-2 text-sm text-slate-600">
-                  <p>• 패턴/간격/연속성 기반 구조 분석</p>
-                  <p>• AI 점수로 다음 회차 연관성 점검</p>
-                  <p>• 당첨 판매점 데이터를 구조화</p>
+                  <p>• 패턴/간격/연속성 기반 선택 근거 정리</p>
+                  <p>• AI 점수로 후보군을 비교</p>
+                  <p>• 당첨 판매점 기록 정리</p>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
+        <HomeSelectionSummaryCard />
+
         <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-12" id="core">
           <div className="grid gap-6 lg:grid-cols-3">
             {[
               {
-                title: "개인 맞춤 분석",
-                desc: "구간 분포, 패턴, 간격, 연속성까지 회차 흐름을 입체적으로 해석합니다.",
+                title: "선택 근거 정리",
+                desc: "구간 분포, 패턴, 간격, 연속성을 파악하여 정리합니다.",
                 accent: "from-amber-100 to-white",
               },
               {
-                title: "AI 점수 분석",
-                desc: "다음 회차 연관성과 클러스터 흐름을 점수로 계산해 후보군을 정리합니다.",
+                title: "후보군 비교",
+                desc: "AI 점수로 후보 번호를 비교하고 우선순위를 잡습니다.",
                 accent: "from-emerald-100 to-white",
               },
               {
-                title: "명당 데이터",
-                desc: "당첨 판매점 데이터를 구조화해 지역/검색/누적 기준으로 탐색합니다.",
+                title: "참고 데이터",
+                desc: "당첨 판매점 기록을 지역/검색 기준으로 빠르게 확인합니다.",
                 accent: "from-slate-100 to-white",
               },
             ].map((item) => (
@@ -318,11 +321,11 @@ export default function LandingPage() {
                 Practical Value
               </div>
               <div className={`${playfair.className} mt-2 text-2xl`}>
-                “왜 이 번호인가”를 남겨두세요
+                “왜 이 번호인가”를 기록하세요
               </div>
               <p className="mt-3 text-sm text-slate-200">
-                기억보다 기록이 오래갑니다. 기준을 세우고 다음 회차에 비교하는
-                흐름을 만들면 선택이 더 단단해집니다.
+                기록은 다음 회차의 기준이 됩니다. 선택의 이유를 남기고 비교하면
+                수동 선택이 더 단단해집니다.
               </p>
             </div>
           </div>
@@ -337,13 +340,13 @@ export default function LandingPage() {
               <h3
                 className={`${playfair.className} mt-2 text-3xl text-slate-900`}
               >
-                왜 이 번호인가, 이유를 이해하는 선택
+                왜 이 번호인가를 이해하는 선택
               </h3>
               <ul className="mt-4 space-y-2 text-sm text-slate-700">
-                <li>• 무작위 선택 대신, 근거 있는 선택 경험 제공</li>
-                <li>• 반복 구매의 불확실성을 데이터로 정리</li>
-                <li>• 분석 흐름을 기록하고 비교할 수 있는 구조</li>
-                <li>• 수동 이용자가 가장 똑똑하게 고르는 방법</li>
+                <li>• 감이 아니라 근거로 고르는 경험</li>
+                <li>• 반복 구매의 피로를 데이터로 정리</li>
+                <li>• 분석 흐름을 기록하고 비교하는 구조</li>
+                <li>• 수동 선택을 더 합리적으로 만드는 방법</li>
               </ul>
               <div className="mt-6 flex flex-wrap gap-3 text-sm">
                 <Link
@@ -382,15 +385,15 @@ export default function LandingPage() {
                   Slogan
                 </div>
                 <div className={`${playfair.className} mt-2 text-2xl`}>
-                  당첨은 분석하는 자의 것
+                  선택은 근거를 가진 사람의 것
                 </div>
               </div>
               <div className="rounded-2xl border border-slate-200 bg-white/80 p-5">
                 <div className="font-bold text-slate-900">LDL의 차별점</div>
                 <ul className="mt-3 space-y-2 text-sm text-slate-600">
-                  <li>• 결과가 아니라 과정을 설명합니다.</li>
-                  <li>• 단기 예측보다 장기 구조를 봅니다.</li>
-                  <li>• 사용자가 흐름을 직접 판단하게 만듭니다.</li>
+                  <li>• 추천이 아니라 선택을 돕습니다.</li>
+                  <li>• 단기 예측보다 흐름을 봅니다.</li>
+                  <li>• 스스로 판단할 수 있게 구조를 제공합니다.</li>
                 </ul>
               </div>
               <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-sm text-emerald-900">
@@ -410,7 +413,7 @@ export default function LandingPage() {
               {[
                 {
                   title: "막막한 번호 선택",
-                  desc: "기준 회차 패턴과 AI 점수를 확인해 후보군을 좁힙니다.",
+                  desc: "기준 회차 패턴과 점수를 확인해 후보군을 좁힙니다.",
                 },
                 {
                   title: "반복 구매의 피로감",

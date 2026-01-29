@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
 import {
+  AiTunedBlock,
   IfAiRecommendation,
   WeightConfig,
   AiPreset,
@@ -20,6 +21,7 @@ import ScoreBarList from "@/app/components/ai-recommend/ScoreBarList";
 import AiScoreExplainCard from "@/app/components/ai-recommend/AiScoreExplainCard";
 import useRequestDedup from "@/app/hooks/useRequestDedup";
 import BacktestSummaryCard from "@/app/components/ai-recommend/BacktestSummaryCard";
+import { useAuth } from "@/app/context/authContext";
 
 type AdvancedDedupParams = {
   round: number;
@@ -38,6 +40,8 @@ type AdvancedDedupParams = {
 
 export default function AiAdvancedRecommend() {
   const latestRound = getLatestRound();
+  const { user } = useAuth();
+  const canUseTuned = user?.role === "ADMIN";
 
   const [selectedRound, setSelectedRound] = useState<number>(latestRound);
   const [preset, setPreset] = useState<AiPreset>(AiPresets[0]);
@@ -47,10 +51,19 @@ export default function AiAdvancedRecommend() {
   const [weights, setWeights] = useState<WeightConfig>({ ...preset.weight });
   const [nextRound, setNextRound] = useState<LottoDraw | null>(null);
   const [scoreMode, setScoreMode] = useState<"raw" | "normalized">(
-    "normalized"
+    "normalized",
   );
   const [selectedScore, setSelectedScore] = useState<AiScoreBase | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>("");
+  const [useTuned, setUseTuned] = useState(false);
+  const [tunedOverride, setTunedOverride] = useState<AiTunedBlock | null>(null);
+  const [loggedTunedResponse, setLoggedTunedResponse] = useState(false);
+
+  useEffect(() => {
+    if (!canUseTuned && useTuned) {
+      setUseTuned(false);
+    }
+  }, [canUseTuned, useTuned]);
 
   const { begin, commit, rollback } = useRequestDedup<AdvancedDedupParams>();
 
@@ -97,6 +110,8 @@ export default function AiAdvancedRecommend() {
           clusterUnit,
           seed: Date.now(), // ✅ 서버용 seed (dedup 비교엔 미포함)
           customWeights: weights,
+          aiTuned: canUseTuned,
+          tunedVariant: "deep",
         }),
       });
 
@@ -110,8 +125,37 @@ export default function AiAdvancedRecommend() {
       }
 
       const data: IfAiRecommendation = await res.json();
+
+      const isRecord = (value: unknown): value is Record<string, unknown> =>
+        typeof value === "object" && value !== null;
+
+      const readTuned = (value: unknown): AiTunedBlock | undefined => {
+        if (!isRecord(value)) return undefined;
+        const tuned = value.tuned;
+        if (
+          isRecord(tuned) &&
+          Array.isArray(tuned.recommended) &&
+          Array.isArray(tuned.scores)
+        ) {
+          return tuned as AiTunedBlock;
+        }
+        const nested = value.data;
+        if (isRecord(nested)) {
+          return readTuned(nested);
+        }
+        return undefined;
+      };
+
+      const tunedBlock = readTuned(data);
+
+      if (useTuned && canUseTuned && tunedBlock && !loggedTunedResponse) {
+        // console.log("tuned response snapshot:", data);
+        setLoggedTunedResponse(true);
+      }
+
       setResult(data);
       setNextRound(data.nextRound || null);
+      setTunedOverride(tunedBlock ?? null);
 
       commit(attempt.key); // ✅ 성공 확정
     } catch (err: unknown) {
@@ -131,6 +175,30 @@ export default function AiAdvancedRecommend() {
 
   const hitNumberSet = nextRound ? new Set<number>(nextRound.numbers) : null;
   const bonusNumber = nextRound?.bonus;
+  const tunedResult = tunedOverride ?? result?.tuned;
+  const isTunedActive = useTuned && canUseTuned;
+  const tunedFallbackMsg =
+    isTunedActive && !tunedResult
+      ? "AI 튜닝 결과가 없어 기본 추천을 표시합니다."
+      : "";
+
+  const renderTunedScores = (tuned: AiTunedBlock) => {
+    const tunedScoreBars: AiScoreBase[] = tuned.scores.map((row) => ({
+      num: row.num,
+      finalRaw: row.finalRawTuned,
+      final: row.finalTuned,
+    }));
+
+    return (
+      <ScoreBarList
+        scores={tunedScoreBars}
+        mode={scoreMode}
+        hitNumberSet={hitNumberSet}
+        bonusNumber={bonusNumber}
+        title="🎛 튜닝 점수 분포 (점수 높은 순)"
+      />
+    );
+  };
 
   const renderResult = () => {
     if (loading) return <div>점수 분석 중...</div>;
@@ -140,20 +208,31 @@ export default function AiAdvancedRecommend() {
       <div className="mt-2 p-4 border rounded bg-green-50">
         <h3 className="font-bold mb-2">분석 점수 TOP6 번호</h3>
         <div className="flex flex-wrap gap-2 mb-4">
-          {result.combination.map((n) => (
+          {(isTunedActive && tunedResult?.recommended?.length
+            ? tunedResult.recommended
+            : result.combination
+          ).map((n) => (
             <LottoBall key={n} number={n} size="lg" />
           ))}
         </div>
 
-        {result.scores && (
-          <ScoreBarList
-            scores={result.scores}
-            mode={scoreMode}
-            hitNumberSet={hitNumberSet}
-            bonusNumber={bonusNumber}
-            onSelect={setSelectedScore}
-          />
+        {isTunedActive && tunedFallbackMsg && (
+          <div className="mb-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-700">
+            {tunedFallbackMsg}
+          </div>
         )}
+
+        {isTunedActive && tunedResult
+          ? renderTunedScores(tunedResult)
+          : result.scores && (
+              <ScoreBarList
+                scores={result.scores}
+                mode={scoreMode}
+                hitNumberSet={hitNumberSet}
+                bonusNumber={bonusNumber}
+                onSelect={setSelectedScore}
+              />
+            )}
       </div>
     );
   };
@@ -209,6 +288,8 @@ export default function AiAdvancedRecommend() {
           presetName={preset.name}
           manualRefresh
           showRefreshButton
+          aiTuned={isTunedActive}
+          tunedVariant="deep"
         />
       </div>
 
@@ -260,7 +341,7 @@ export default function AiAdvancedRecommend() {
         )}
       </div>
 
-      <div className="flex gap-2 mb-2">
+      <div className="flex flex-wrap items-center gap-2 mb-2">
         <button
           onClick={() => fetchAnalysis(false)}
           className="bg-green-500 text-white px-4 py-2 sm:px-6 sm:py-3 rounded mb-4 w-full sm:w-auto font-medium shadow-md hover:bg-green-600 active:scale-95"
@@ -275,6 +356,20 @@ export default function AiAdvancedRecommend() {
         >
           강제 새로고침
         </button> */}
+
+        {canUseTuned && (
+          <button
+            type="button"
+            onClick={() => setUseTuned((prev) => !prev)}
+            className={`px-4 py-2 sm:px-6 sm:py-3 rounded mb-4 w-full sm:w-auto font-medium shadow-md ${
+              isTunedActive
+                ? "bg-slate-900 text-white"
+                : "bg-gray-200 text-gray-700"
+            }`}
+          >
+            AI 튜닝 분석 {isTunedActive ? "ON" : "OFF"}
+          </button>
+        )}
 
         <button
           onClick={() => setScoreMode("normalized")}
@@ -303,7 +398,9 @@ export default function AiAdvancedRecommend() {
         </div>
       )}
 
-      {selectedScore && <AiScoreExplainCard score={selectedScore} />}
+      {selectedScore && !useTuned && (
+        <AiScoreExplainCard score={selectedScore} />
+      )}
       <div className="overflow-visible">{renderResult()}</div>
     </div>
   );

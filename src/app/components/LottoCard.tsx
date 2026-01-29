@@ -48,7 +48,7 @@ export default function LottoCard({
   return (
     <div
       className={`${cardWidth} mx-auto rounded-2xl shadow-lg 
-      p-4 sm:p-6 border bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-500`}
+      p-4 sm:p-6 border bg-gradient-to-br from-blue-50 to-gray-50 border-yellow-500`}
     >
       <div className="mb-3 sm:mb-4">
         <h2 className="text-lg sm:text-2xl font-bold text-gray-800 mb-1">

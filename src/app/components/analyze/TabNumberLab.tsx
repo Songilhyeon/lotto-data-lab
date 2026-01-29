@@ -38,7 +38,7 @@ export default function NumberLab() {
     Record<string, Record<number, number>>
   >({});
   const [appearRounds, setAppearRounds] = useState<Record<number, number[]>>(
-    {}
+    {},
   );
   const [comboTop, setComboTop] = useState<
     Record<number, { key: string; count: number; rounds: number[] }[]>
@@ -59,7 +59,7 @@ export default function NumberLab() {
   const toggleNumber = (num: number) => {
     if (selectedNumbers.length >= 6 && !selectedNumbers.includes(num)) return;
     setSelectedNumbers((prev) =>
-      prev.includes(num) ? prev.filter((n) => n !== num) : [...prev, num]
+      prev.includes(num) ? prev.filter((n) => n !== num) : [...prev, num],
     );
   };
 
@@ -150,7 +150,7 @@ export default function NumberLab() {
     <div className={`${componentBodyDivStyle()} from-blue-50 to-indigo-100`}>
       <ComponentHeader
         title="🧪 로또 번호 실험실"
-        content="원하는 6개 이하의 숫자를 선택하고 일치번호 / 조합 패턴을 분석해보세요."
+        content="원하는 6개 이하의 숫자를 선택하고 과거 회차와 일치번호 / 조합 패턴을 분석해보세요."
       />
 
       {/* 번호 선택 */}
@@ -168,7 +168,7 @@ export default function NumberLab() {
                 <div
                   key={n}
                   className={`w-9 h-9 rounded-full ${getBallColor(
-                    n
+                    n,
                   )} text-white flex items-center justify-center font-bold`}
                 >
                   {n}
@@ -297,7 +297,12 @@ export default function NumberLab() {
 
           {/* Bar Chart */}
           <div className="w-full min-w-0 overflow-x-auto">
-            <ResponsiveContainer width="100%" height={220} minHeight={220} minWidth={0}>
+            <ResponsiveContainer
+              width="100%"
+              height={220}
+              minHeight={220}
+              minWidth={0}
+            >
               <BarChart data={getChartData()}>
                 <XAxis dataKey="number" tick={{ fontSize: 10 }} />
                 <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />

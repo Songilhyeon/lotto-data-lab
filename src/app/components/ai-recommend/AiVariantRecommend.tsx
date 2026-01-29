@@ -1,15 +1,16 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
 import { componentBodyDivStyle } from "@/app/utils/getDivStyle";
 import ComponentHeader from "@/app/components/ComponentHeader";
 import LottoBall from "@/app/components/LottoBall";
 import DraggableNextRound from "@/app/components/DraggableNextRound";
 import ScoreBarList from "@/app/components/ai-recommend/ScoreBarList";
-import { AiScoreBase } from "@/app/types/api";
+import { AiScoreBase, AiTunedBlock } from "@/app/types/api";
 import useRequestDedup from "@/app/hooks/useRequestDedup";
 import BacktestSummaryCard from "@/app/components/ai-recommend/BacktestSummaryCard";
+import { useAuth } from "@/app/context/authContext";
 
 const AI_VARIANTS = [
   {
@@ -36,6 +37,13 @@ const AI_VARIANTS = [
 ] as const;
 
 type VariantKey = (typeof AI_VARIANTS)[number]["key"];
+type TunedVariantKey =
+  | "variant"
+  | "variant_strict"
+  | "variant_pattern"
+  | "variant_cluster"
+  | "variant_decay"
+  | "variant_chaos";
 
 interface NextRoundInfo {
   round: number;
@@ -49,6 +57,7 @@ interface AiVariantResult {
   scores: AiScoreBase[];
   seed: number;
   nextRound?: NextRoundInfo | null;
+  tuned?: AiTunedBlock;
 }
 
 type VariantDedupParams = {
@@ -58,6 +67,8 @@ type VariantDedupParams = {
 
 export default function AiVariantRecommend() {
   const latestRound = getLatestRound();
+  const { user } = useAuth();
+  const canUseTuned = user?.role === "ADMIN";
 
   const [round, setRound] = useState(latestRound);
   const [variant, setVariant] = useState<VariantKey>("strict");
@@ -65,14 +76,36 @@ export default function AiVariantRecommend() {
   const [nextRound, setNextRound] = useState<NextRoundInfo | null>(null);
   const [loading, setLoading] = useState(false);
   const [scoreMode, setScoreMode] = useState<"raw" | "normalized">(
-    "normalized"
+    "normalized",
   );
   const [errorMsg, setErrorMsg] = useState<string>("");
+  const [useTuned, setUseTuned] = useState(false);
+  const [tunedOverride, setTunedOverride] = useState<AiTunedBlock | null>(null);
+  const [loggedTunedResponse, setLoggedTunedResponse] = useState(false);
+  const isTunedActive = useTuned && canUseTuned;
+
+  useEffect(() => {
+    if (!canUseTuned && useTuned) {
+      setUseTuned(false);
+    }
+  }, [canUseTuned, useTuned]);
 
   const selectedVariant = AI_VARIANTS.find((v) => v.key === variant);
   const backtestTitle = selectedVariant
     ? `전략형 모델 · ${selectedVariant.label} · 과거 흐름 점검`
     : "전략형 모델 · 과거 흐름 점검";
+  const tunedVariantKey: TunedVariantKey =
+    variant === "strict"
+      ? "variant_strict"
+      : variant === "pattern"
+        ? "variant_pattern"
+        : variant === "cluster"
+          ? "variant_cluster"
+          : variant === "decay"
+            ? "variant_decay"
+            : variant === "chaos"
+              ? "variant_chaos"
+              : "variant";
 
   // ✅ dedup 제외 대상: chaos, cluster
   const isChaosLike = variant === "chaos" || variant === "cluster";
@@ -118,6 +151,8 @@ export default function AiVariantRecommend() {
         body: JSON.stringify({
           round,
           variant,
+          aiTuned: canUseTuned,
+          tunedVariant: tunedVariantKey,
           ...(isChaosLike ? { seed: Date.now() } : {}),
         }),
       });
@@ -132,8 +167,37 @@ export default function AiVariantRecommend() {
       }
 
       const data: AiVariantResult = await res.json();
+
+      const isRecord = (value: unknown): value is Record<string, unknown> =>
+        typeof value === "object" && value !== null;
+
+      const readTuned = (value: unknown): AiTunedBlock | undefined => {
+        if (!isRecord(value)) return undefined;
+        const tuned = value.tuned;
+        if (
+          isRecord(tuned) &&
+          Array.isArray(tuned.recommended) &&
+          Array.isArray(tuned.scores)
+        ) {
+          return tuned as AiTunedBlock;
+        }
+        const nested = value.data;
+        if (isRecord(nested)) {
+          return readTuned(nested);
+        }
+        return undefined;
+      };
+
+      const tunedBlock = readTuned(data);
+
+      if (useTuned && canUseTuned && tunedBlock && !loggedTunedResponse) {
+        // console.log("tuned response snapshot:", data);
+        setLoggedTunedResponse(true);
+      }
+
       setResult(data);
       setNextRound(data.nextRound ?? null);
+      setTunedOverride(tunedBlock ?? null);
 
       // ✅ dedup 대상일 때만 commit
       if (!isChaosLike && attemptKey) commit(attemptKey);
@@ -167,22 +231,58 @@ export default function AiVariantRecommend() {
     }
 
     const hitNumberSet = nextRound ? new Set<number>(nextRound.numbers) : null;
+    const tunedResult = tunedOverride ?? result.tuned;
+    const tunedFallbackMsg =
+      isTunedActive && !tunedResult
+        ? "AI 튜닝 결과가 없어 기본 추천을 표시합니다."
+        : "";
+
+    const renderTunedScores = (tuned: AiTunedBlock) => {
+      const tunedScoreBars: AiScoreBase[] = tuned.scores.map((row) => ({
+        num: row.num,
+        finalRaw: row.finalRawTuned,
+        final: row.finalTuned,
+      }));
+
+      return (
+        <ScoreBarList
+          scores={tunedScoreBars}
+          mode={scoreMode}
+          hitNumberSet={hitNumberSet}
+          bonusNumber={nextRound?.bonus}
+          title="🎛 튜닝 점수 분포 (점수 높은 순)"
+        />
+      );
+    };
 
     return (
       <div className="bg-white rounded-xl shadow p-4">
         <h3 className="font-bold mb-2">분석 점수 TOP6 번호</h3>
         <div className="flex gap-2 flex-wrap mb-4">
-          {result.combination.map((n) => (
+          {(isTunedActive && tunedResult?.recommended?.length
+            ? tunedResult.recommended
+            : result.combination
+          ).map((n) => (
             <LottoBall key={n} number={n} size="lg" />
           ))}
         </div>
 
-        <ScoreBarList
-          scores={result.scores}
-          mode={scoreMode}
-          hitNumberSet={hitNumberSet}
-          bonusNumber={nextRound?.bonus}
-        />
+        {isTunedActive && tunedFallbackMsg && (
+          <div className="mb-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-700">
+            {tunedFallbackMsg}
+          </div>
+        )}
+
+        {isTunedActive && tunedResult ? (
+          renderTunedScores(tunedResult)
+        ) : (
+          <ScoreBarList
+            scores={result.scores}
+            mode={scoreMode}
+            hitNumberSet={hitNumberSet}
+            bonusNumber={nextRound?.bonus}
+          />
+        )}
       </div>
     );
   };
@@ -200,6 +300,8 @@ export default function AiVariantRecommend() {
           modelKey="ai_variant"
           variantKey={variant}
           title={backtestTitle}
+          aiTuned={isTunedActive}
+          tunedVariant={tunedVariantKey}
         />
       </div>
 
@@ -269,13 +371,27 @@ export default function AiVariantRecommend() {
       </div>
 
       {/* 실행 */}
-      <div className="flex gap-2 mb-2">
+      <div className="flex flex-wrap items-center gap-2 mb-2">
         <button
           onClick={() => fetchAnalysis(false)}
           className="bg-green-500 text-white px-4 py-2 sm:px-6 sm:py-3 rounded mb-4 w-full sm:w-auto font-medium shadow-md hover:bg-green-600 active:scale-95"
         >
           점수 분석 실행
         </button>
+
+        {canUseTuned && (
+          <button
+            type="button"
+            onClick={() => setUseTuned((prev) => !prev)}
+            className={`px-4 py-2 sm:px-6 sm:py-3 rounded mb-4 w-full sm:w-auto font-medium shadow-md ${
+              isTunedActive
+                ? "bg-slate-900 text-white"
+                : "bg-gray-200 text-gray-700"
+            }`}
+          >
+            AI 튜닝 분석 {isTunedActive ? "ON" : "OFF"}
+          </button>
+        )}
 
         <button
           onClick={() => setScoreMode("normalized")}

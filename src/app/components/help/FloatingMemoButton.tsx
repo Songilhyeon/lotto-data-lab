@@ -1,30 +1,105 @@
 "use client";
 
-import { useState } from "react";
-import { X } from "lucide-react";
-
-const storageKey = "lotto.quickMemo";
+import { useEffect, useState } from "react";
+import { Lock, X } from "lucide-react";
+import useAuthGuard from "@/app/hooks/useAuthGuard";
+import { apiUrl } from "@/app/utils/getUtils";
+import { useProfile } from "@/app/context/profileContext";
 
 export default function FloatingMemoButton() {
+  const { isAuthed } = useAuthGuard();
+  const { profile, refreshProfile } = useProfile();
   const [isOpen, setIsOpen] = useState(false);
-  const [memo, setMemo] = useState(() => {
-    if (typeof window === "undefined") return "";
-    return window.localStorage.getItem(storageKey) ?? "";
-  });
+  const [memo, setMemo] = useState("");
   const [savedAt, setSavedAt] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!isAuthed) {
+      if (typeof window !== "undefined") {
+        setMemo(window.localStorage.getItem("lotto.quickMemo") ?? "");
+      } else {
+        setMemo("");
+      }
+      setSavedAt(null);
+      return;
+    }
+    const localMemo =
+      typeof window !== "undefined"
+        ? (window.localStorage.getItem("lotto.quickMemo") ?? "")
+        : "";
+    const serverMemo = profile?.strategyMemo ?? "";
+
+    if (!serverMemo && localMemo) {
+      setMemo(localMemo);
+      setSavedAt(null);
+      return;
+    }
+
+    setMemo(serverMemo);
+  }, [isAuthed, profile?.strategyMemo]);
 
   const closePanel = () => setIsOpen(false);
-  const handleSave = () => {
-    if (typeof window === "undefined") return;
-    window.localStorage.setItem(storageKey, memo);
-    setSavedAt(new Date().toLocaleTimeString("ko-KR", { hour12: false }));
+  const handleSave = async () => {
+    if (!isAuthed) {
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("lotto.quickMemo", memo);
+      }
+      setSavedAt(new Date().toLocaleTimeString("ko-KR", { hour12: false }));
+      return;
+    }
+    if (saving) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`${apiUrl}/auth/profile`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ strategyMemo: memo }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.message || "저장에 실패했습니다.");
+      }
+      setSavedAt(new Date().toLocaleTimeString("ko-KR", { hour12: false }));
+      await refreshProfile();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleDelete = () => {
-    if (typeof window === "undefined") return;
-    window.localStorage.removeItem(storageKey);
-    setMemo("");
-    setSavedAt(null);
+  const handleDelete = async () => {
+    if (!isAuthed) {
+      if (typeof window !== "undefined") {
+        window.localStorage.removeItem("lotto.quickMemo");
+      }
+      setMemo("");
+      setSavedAt(null);
+      return;
+    }
+    if (saving) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`${apiUrl}/auth/profile`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ strategyMemo: "" }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.message || "삭제에 실패했습니다.");
+      }
+      setMemo("");
+      setSavedAt(null);
+      await refreshProfile();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -32,7 +107,7 @@ export default function FloatingMemoButton() {
       <button
         onClick={() => setIsOpen((prev) => !prev)}
         className="
-          fixed top-35 right-6 z-50
+          fixed top-25 right-6 z-50
           w-10 h-10 rounded-full
           bg-amber-500 text-white text-lg
           shadow-lg hover:scale-105 transition
@@ -44,11 +119,11 @@ export default function FloatingMemoButton() {
 
       {isOpen && (
         <>
-          <div className="fixed inset-0 z-40" onClick={closePanel} />
+          {/* <div className="fixed inset-0 z-40" onClick={closePanel} /> */}
 
           <div
             className="
-              fixed top-24 right-6 z-50
+              fixed top-35 right-6 z-50
               bg-white rounded-2xl shadow-xl p-4
               w-[320px]
               max-h-[70vh] overflow-y-auto
@@ -81,19 +156,30 @@ export default function FloatingMemoButton() {
                 <button
                   type="button"
                   onClick={handleDelete}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-gray-500 hover:text-gray-700 disabled:opacity-50"
+                  disabled={saving}
                 >
-                  삭제
+                  {saving ? "저장 중..." : "삭제"}
                 </button>
                 <button
                   type="button"
                   onClick={handleSave}
-                  className="text-amber-600 hover:text-amber-700"
+                  className="text-amber-600 hover:text-amber-700 disabled:opacity-50"
+                  disabled={saving}
                 >
-                  저장
+                  {saving ? "저장 중..." : "저장"}
                 </button>
               </div>
             </div>
+
+            {!isAuthed && (
+              <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                <div className="flex items-center gap-2 font-semibold">
+                  <Lock size={14} />
+                  로그인하지 않으면 현재 기기에만 저장됩니다.
+                </div>
+              </div>
+            )}
           </div>
         </>
       )}

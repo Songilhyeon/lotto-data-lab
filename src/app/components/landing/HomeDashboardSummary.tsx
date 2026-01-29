@@ -65,7 +65,7 @@ export default async function HomeDashboardSummary() {
 
           {/* AI 분석 */}
           <div className="bg-white rounded-xl border p-5 shadow-sm">
-            <p className="text-sm text-gray-500 mb-1">AI 번호 분석</p>
+            <p className="text-sm text-gray-500 mb-1">AI 점수 분석</p>
             <p className="text-lg font-semibold text-gray-900">
               패턴 · 빈도 · 연속 출현
             </p>

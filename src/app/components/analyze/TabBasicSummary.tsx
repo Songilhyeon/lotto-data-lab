@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { apiUrl, getLatestRound } from "@/app/utils/getUtils";
 import RangeFilterBar from "@/app/components/RangeFilterBar";
 import ComponentHeader from "@/app/components/ComponentHeader";
@@ -24,6 +24,16 @@ import {
 import DraggableNextRound from "../DraggableNextRound";
 import { LottoDraw } from "@/app/types/lottoNumbers";
 
+type RoundStats = {
+  round: number;
+  oddCount: number;
+  evenCount: number;
+  sum: number;
+  lastDigitCounts: number[];
+};
+
+const MAX_RENDERING = 100;
+
 export default function BasicSummary() {
   const latestRound = getLatestRound();
   const [start, setStart] = useState(latestRound - 9);
@@ -37,22 +47,16 @@ export default function BasicSummary() {
   const prevParamsRef = useRef({
     start: -1,
     end: -1,
-    includeBonus: !includeBonus,
   });
 
   const fetchData = async () => {
     const prev = prevParamsRef.current;
-    if (
-      prev.start === start &&
-      prev.end === end &&
-      prev.includeBonus === includeBonus
-    )
-      return;
+    if (prev.start === start && prev.end === end) return;
 
     setLoading(true);
     try {
       const res = await fetch(
-        `${apiUrl}/lotto/rounds?start=${start}&end=${end}&includeBonus=${includeBonus}`
+        `${apiUrl}/lotto/rounds?start=${start}&end=${end}`,
       );
       const json = await res.json();
       setData(json.success ? json.data : []);
@@ -63,7 +67,7 @@ export default function BasicSummary() {
       setNextRound(null);
     } finally {
       setLoading(false);
-      prevParamsRef.current = { start, end, includeBonus };
+      prevParamsRef.current = { start, end };
     }
   };
 
@@ -91,6 +95,42 @@ export default function BasicSummary() {
 
   const clearRecentSelect = () => setSelectedRecent(null);
 
+  const buildStatsByRound = (
+    records: LottoNumber[],
+    bonusIncluded: boolean,
+  ): RoundStats[] =>
+    records.map((item) => {
+      const numbers = [
+        item.drwtNo1,
+        item.drwtNo2,
+        item.drwtNo3,
+        item.drwtNo4,
+        item.drwtNo5,
+        item.drwtNo6,
+        ...(bonusIncluded ? [item.bnusNo] : []),
+      ];
+      const lastDigitCounts = Array(10).fill(0);
+      let oddCount = 0;
+      let sum = 0;
+      numbers.forEach((n) => {
+        sum += n;
+        if (n % 2 === 1) oddCount += 1;
+        lastDigitCounts[n % 10] += 1;
+      });
+      return {
+        round: item.drwNo,
+        oddCount,
+        evenCount: numbers.length - oddCount,
+        sum,
+        lastDigitCounts,
+      };
+    });
+
+  const statsByRound = useMemo(
+    () => buildStatsByRound(data, includeBonus),
+    [data, includeBonus],
+  );
+
   // -------------------
   // 통계 계산
   // -------------------
@@ -115,7 +155,7 @@ export default function BasicSummary() {
   const ranges10 = Array.from({ length: 5 }, (_, i) => ({
     range: `${i * 10 + 1}-${i === 4 ? 45 : (i + 1) * 10}`,
     count: allNumbers.filter(
-      (n) => n >= i * 10 + 1 && n <= (i === 4 ? 45 : (i + 1) * 10)
+      (n) => n >= i * 10 + 1 && n <= (i === 4 ? 45 : (i + 1) * 10),
     ).length,
   }));
 
@@ -136,6 +176,9 @@ export default function BasicSummary() {
       count: allNumbers.filter((n) => n >= start && n <= end).length,
     };
   });
+
+  const rangeSpan = end - start + 1;
+  const isLargeRange = rangeSpan > MAX_RENDERING;
 
   // -------------------
   // 연속 번호
@@ -227,6 +270,20 @@ export default function BasicSummary() {
     { label: "낮음(1~22)", count: lowCount },
     { label: "높음(23~45)", count: highCount },
   ];
+
+  // -------------------
+  // 추세 데이터
+  // -------------------
+  const oddEvenTrendData = statsByRound.map((item) => ({
+    round: item.round,
+    odd: item.oddCount,
+    even: item.evenCount,
+  }));
+
+  const sumTrendData = statsByRound.map((item) => ({
+    round: item.round,
+    sum: item.sum,
+  }));
 
   return (
     <div className={`${componentBodyDivStyle()} from-blue-50 to-cyan-100`}>
@@ -339,61 +396,114 @@ export default function BasicSummary() {
         </div>
       </div>
 
-      {/* 연속 번호 */}
-      {consecutiveNumbers.length > 0 && (
+      {isLargeRange ? (
         <div className="bg-white rounded-xl shadow p-4 mt-6">
-          <h3 className="text-sm font-semibold mb-2">연속된 번호 🔥</h3>
-          <div className="flex flex-wrap gap-2">
-            {consecutiveNumbers.map((item, idx) => (
-              <span
-                key={idx}
-                className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-semibold"
-              >
-                {item.sequence.join("-")} : {item.round}회
-              </span>
-            ))}
+          <h3 className="text-sm font-semibold mb-2">추세/연속 분석</h3>
+          <div className="text-xs text-gray-500">
+            조회 범위가 {MAX_RENDERING}회를 초과하면 렌더링 시간이 길어져 해당
+            섹션을 생략합니다.
           </div>
         </div>
-      )}
+      ) : (
+        <>
+          {/* 연속 번호 */}
+          {consecutiveNumbers.length > 0 && (
+            <div className="bg-white rounded-xl shadow p-4 mt-6">
+              <h3 className="text-sm font-semibold mb-2">연속된 번호 🔥</h3>
+              <div className="flex flex-wrap gap-2">
+                {consecutiveNumbers.map((item, idx) => (
+                  <span
+                    key={idx}
+                    className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-semibold"
+                  >
+                    {item.sequence.join("-")} : {item.round}회
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
 
-      {/* 연속 출현 번호 */}
-      {streakNumbers.length > 0 && (
-        <div className="bg-white rounded-xl shadow p-4 mt-6">
-          <h3 className="text-sm font-semibold mb-2">연속 출현 번호 🔥</h3>
-          <div className="flex flex-wrap gap-2">
-            {streakNumbers.map((item, idx) => (
-              <span
-                key={idx}
-                className="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-semibold"
-              >
-                {item.number} : {item.rounds.join(", ")}회
-              </span>
-            ))}
+          {/* 연속 출현 번호 */}
+          {streakNumbers.length > 0 && (
+            <div className="bg-white rounded-xl shadow p-4 mt-6">
+              <h3 className="text-sm font-semibold mb-2">연속 출현 번호 🔥</h3>
+              <div className="flex flex-wrap gap-2">
+                {streakNumbers.map((item, idx) => (
+                  <span
+                    key={idx}
+                    className="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-semibold"
+                  >
+                    {item.number} : {item.rounds.join(", ")}회
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 번호별 추세 */}
+          <div className="bg-white rounded-xl shadow p-4 mt-6">
+            <h3 className="text-sm font-semibold mb-2">번호별 추세</h3>
+            <ResponsiveContainer width="100%" height={250}>
+              <LineChart data={lineChartData}>
+                <XAxis dataKey="round" />
+                <YAxis allowDecimals={false} domain={[1, 45]} />
+                <RechartTooltip />
+                <Legend />
+                <Line type="monotone" dataKey="n1" stroke="#3b82f6" />
+                <Line type="monotone" dataKey="n2" stroke="#f97316" />
+                <Line type="monotone" dataKey="n3" stroke="#10b981" />
+                <Line type="monotone" dataKey="n4" stroke="#8b5cf6" />
+                <Line type="monotone" dataKey="n5" stroke="#f43f5e" />
+                <Line type="monotone" dataKey="n6" stroke="#facc15" />
+                {includeBonus && (
+                  <Line type="monotone" dataKey="bonus" stroke="#000000" />
+                )}
+              </LineChart>
+            </ResponsiveContainer>
           </div>
-        </div>
-      )}
 
-      {/* 번호별 추세 */}
-      <div className="bg-white rounded-xl shadow p-4 mt-6">
-        <h3 className="text-sm font-semibold mb-2">번호별 추세</h3>
-        <ResponsiveContainer width="100%" height={250}>
-          <LineChart data={lineChartData}>
-            <XAxis dataKey="round" />
-            <YAxis allowDecimals={false} domain={[1, 45]} />
-            <RechartTooltip />
-            <Legend />
-            <Line type="monotone" dataKey="n1" stroke="#3b82f6" />
-            <Line type="monotone" dataKey="n2" stroke="#f97316" />
-            <Line type="monotone" dataKey="n3" stroke="#10b981" />
-            <Line type="monotone" dataKey="n4" stroke="#8b5cf6" />
-            <Line type="monotone" dataKey="n5" stroke="#f43f5e" />
-            <Line type="monotone" dataKey="n6" stroke="#facc15" />
-            {includeBonus && (
-              <Line type="monotone" dataKey="bonus" stroke="#000000" />
-            )}
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
+          {/* 홀짝 추세 */}
+          <div className="bg-white rounded-xl shadow p-4 mt-6">
+            <h3 className="text-sm font-semibold mb-2">홀/짝 추세</h3>
+            <ResponsiveContainer width="100%" height={220}>
+              <LineChart data={oddEvenTrendData}>
+                <XAxis dataKey="round" />
+                <YAxis
+                  allowDecimals={false}
+                  domain={[0, includeBonus ? 7 : 6]}
+                />
+                <RechartTooltip />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="odd"
+                  stroke="#3b82f6"
+                  name="홀수"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="even"
+                  stroke="#f97316"
+                  name="짝수"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* 번호합 추세 */}
+          <div className="bg-white rounded-xl shadow p-4 mt-6">
+            <h3 className="text-sm font-semibold mb-2">번호합 추세</h3>
+            <ResponsiveContainer width="100%" height={220}>
+              <LineChart data={sumTrendData}>
+                <XAxis dataKey="round" />
+                <YAxis allowDecimals={false} />
+                <RechartTooltip />
+                <Line type="monotone" dataKey="sum" stroke="#10b981" />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </>
+      )}
 
       {loading && (
         <div className="text-center py-6 text-gray-500">데이터 분석 중...</div>

@@ -10,6 +10,7 @@ import {
 } from "@/app/utils/getDivStyle";
 import { FreqChart } from "@/app/components/analyze/FreqChartComponent";
 import NextFreqPagination from "./NextFreqPagination";
+import { useProfile } from "@/app/context/profileContext";
 
 /** ---------- Types (백엔드와 맞춤) ---------- */
 type RangeUnit = 5 | 7 | 10;
@@ -20,6 +21,7 @@ type CountCondition = { op: CmpOp; value: number } | BetweenCondition;
 
 type RangeCondition = {
   key: string; // ✅ 동적 구간 key ("1-7", "8-14" ...)
+  enabled?: boolean;
   op: CmpOp;
   value: number; // 0~6
 };
@@ -289,6 +291,7 @@ function CountCondEditor({
 
 /** ---------- Main ---------- */
 export default function PremiumNextFreqBuilder() {
+  const { profile, saveDefaultOptions } = useProfile();
   const latestRound = getLatestRound();
 
   const [start, setStart] = useState<number>(latestRound - 99);
@@ -300,9 +303,42 @@ export default function PremiumNextFreqBuilder() {
   const [includeMatchedRoundsDetail, setIncludeMatchedRoundsDetail] =
     useState<boolean>(false);
   const [selectedRecent, setSelectedRecent] = useState<number | null>(100);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [didHydrate, setDidHydrate] = useState(false);
+  const [savingDefaults, setSavingDefaults] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [savedRangeConditions, setSavedRangeConditions] = useState<
+    RangeCondition[]
+  >([]);
 
   // ✅ NEW: rangeUnit + dynamic keys
   const [rangeUnit, setRangeUnit] = useState<RangeUnit>(7);
+
+  useEffect(() => {
+    if (!profile || didHydrate) return;
+    const recentWindow = profile.defaultOptions.recentWindow;
+    setSelectedRecent(recentWindow);
+    setStart(Math.max(1, latestRound - recentWindow + 1));
+    setEnd(latestRound);
+    setIncludeBonus(profile.defaultOptions.includeBonus);
+    const initialRangeUnit =
+      profile.defaultOptions.rangeUnit === 5 ||
+      profile.defaultOptions.rangeUnit === 7 ||
+      profile.defaultOptions.rangeUnit === 10
+        ? profile.defaultOptions.rangeUnit
+        : 7;
+    setRangeUnit(initialRangeUnit);
+    setShowAdvanced(profile.defaultOptions.showAdvanced);
+    setSavedRangeConditions(profile.defaultOptions.rangeConditions ?? []);
+    setIncludeRaw((profile.defaultOptions.includeNumbers ?? []).join(","));
+    setExcludeRaw((profile.defaultOptions.excludeNumbers ?? []).join(","));
+    setOddCountCond(profile.defaultOptions.oddCount);
+    setSumCond(profile.defaultOptions.sum);
+    setMinCond(profile.defaultOptions.minNumber);
+    setMaxCond(profile.defaultOptions.maxNumber);
+    setConsecutiveMode(profile.defaultOptions.consecutiveMode ?? "any");
+    setDidHydrate(true);
+  }, [profile, didHydrate, latestRound]);
 
   const buckets = useMemo(() => makeRangeBuckets(rangeUnit), [rangeUnit]);
   const rangeKeys = useMemo(() => buckets.map((b) => b.key), [buckets]);
@@ -328,6 +364,25 @@ export default function PremiumNextFreqBuilder() {
     setRangeValue(value);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rangeKeys.join("|")]);
+
+  useEffect(() => {
+    if (!didHydrate || savedRangeConditions.length === 0) return;
+    const enabled: Record<string, boolean> = { ...rangeEnabled };
+    const op: Record<string, CmpOp> = { ...rangeOp };
+    const value: Record<string, number> = { ...rangeValue };
+
+    for (const cond of savedRangeConditions) {
+      if (!rangeKeys.includes(cond.key)) continue;
+      enabled[cond.key] = cond.enabled ?? false;
+      op[cond.key] = cond.op;
+      value[cond.key] = cond.value;
+    }
+
+    setRangeEnabled(enabled);
+    setRangeOp(op);
+    setRangeValue(value);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [savedRangeConditions, rangeKeys.join("|"), didHydrate]);
 
   const [includeRaw, setIncludeRaw] = useState<string>("");
   const [excludeRaw, setExcludeRaw] = useState<string>("");
@@ -511,6 +566,59 @@ export default function PremiumNextFreqBuilder() {
         />
       </div>
 
+      <div className="mb-3 flex flex-wrap items-center gap-3">
+        <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+          <input
+            type="checkbox"
+            checked={showAdvanced}
+            onChange={(e) => setShowAdvanced(e.target.checked)}
+          />
+          고급 옵션 표시
+        </label>
+        <button
+          type="button"
+          disabled={savingDefaults}
+          onClick={async () => {
+            setSavingDefaults(true);
+            const recentWindow = selectedRecent ?? 20;
+            const similarityMode =
+              profile?.defaultOptions.similarityMode ?? "pattern";
+            const rangeConditions = rangeKeys.map((key) => ({
+              key,
+              enabled: !!rangeEnabled[key],
+              op: rangeOp[key] ?? "eq",
+              value: rangeValue[key] ?? 0,
+            }));
+            const result = await saveDefaultOptions({
+              includeBonus,
+              recentWindow,
+              clusterUnit: profile?.defaultOptions.clusterUnit ?? 5,
+              similarityMode,
+              showAdvanced,
+              rangeUnit,
+              rangeConditions,
+              includeNumbers,
+              excludeNumbers,
+              oddCount: oddCountCond,
+              sum: sumCond,
+              minNumber: minCond,
+              maxNumber: maxCond,
+              consecutiveMode: consecutiveMode ?? "any",
+            });
+            setSaveMessage(
+              result.ok ? "기본값 저장 완료" : result.message ?? "저장 실패",
+            );
+            setSavingDefaults(false);
+          }}
+          className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100 disabled:opacity-60"
+        >
+          {savingDefaults ? "저장 중..." : "이 설정을 기본값으로 저장"}
+        </button>
+        {saveMessage && (
+          <span className="text-xs text-gray-500">{saveMessage}</span>
+        )}
+      </div>
+
       {/* 구간 조건 */}
       <div className="mb-3 rounded-xl border border-gray-200 bg-white/70 p-3">
         <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
@@ -611,113 +719,117 @@ export default function PremiumNextFreqBuilder() {
         </div>
       </div>
 
-      {/* 포함/제외 번호 */}
-      <div className="mb-3 grid grid-cols-1 gap-3 md:grid-cols-2">
-        <div className="rounded-xl border border-gray-200 bg-white/70 p-3">
-          <div className="mb-2 font-black">반드시 포함할 번호</div>
-          <input
-            value={includeRaw}
-            onChange={(e) => setIncludeRaw(e.target.value)}
-            placeholder="예: 5,14,33"
-            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"
-          />
-          <div className="mt-2 text-xs text-gray-500">
-            입력값 해석 결과:{" "}
-            {includeNumbers.length ? includeNumbers.join(", ") : "(없음)"}
-          </div>
-        </div>
+      {showAdvanced && (
+        <>
+          {/* 포함/제외 번호 */}
+          <div className="mb-3 grid grid-cols-1 gap-3 md:grid-cols-2">
+            <div className="rounded-xl border border-gray-200 bg-white/70 p-3">
+              <div className="mb-2 font-black">반드시 포함할 번호</div>
+              <input
+                value={includeRaw}
+                onChange={(e) => setIncludeRaw(e.target.value)}
+                placeholder="예: 5,14,33"
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"
+              />
+              <div className="mt-2 text-xs text-gray-500">
+                입력값 해석 결과:{" "}
+                {includeNumbers.length ? includeNumbers.join(", ") : "(없음)"}
+              </div>
+            </div>
 
-        <div className="rounded-xl border border-gray-200 bg-white/70 p-3">
-          <div className="mb-2 font-black">반드시 제외할 번호</div>
-          <input
-            value={excludeRaw}
-            onChange={(e) => setExcludeRaw(e.target.value)}
-            placeholder="예: 1,2,3"
-            className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"
-          />
-          <div className="mt-2 text-xs text-gray-500">
-            입력값 해석 결과:{" "}
-            {excludeNumbers.length ? excludeNumbers.join(", ") : "(없음)"}
+            <div className="rounded-xl border border-gray-200 bg-white/70 p-3">
+              <div className="mb-2 font-black">반드시 제외할 번호</div>
+              <input
+                value={excludeRaw}
+                onChange={(e) => setExcludeRaw(e.target.value)}
+                placeholder="예: 1,2,3"
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"
+              />
+              <div className="mt-2 text-xs text-gray-500">
+                입력값 해석 결과:{" "}
+                {excludeNumbers.length ? excludeNumbers.join(", ") : "(없음)"}
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
 
-      {conflicts.length > 0 && (
-        <div className="mb-3 rounded-xl border border-red-500 bg-red-50 p-3 font-bold text-red-700">
-          포함/제외 번호가 겹쳐요:{" "}
-          <span className="font-black">{conflicts.join(", ")}</span>
-        </div>
+          {conflicts.length > 0 && (
+            <div className="mb-3 rounded-xl border border-red-500 bg-red-50 p-3 font-bold text-red-700">
+              포함/제외 번호가 겹쳐요:{" "}
+              <span className="font-black">{conflicts.join(", ")}</span>
+            </div>
+          )}
+
+          {/* 개수/합 조건 */}
+          <div className="mb-3 grid grid-cols-1 gap-3 md:grid-cols-2">
+            <CountCondEditor
+              title="홀수 개수(oddCount)"
+              value={oddCountCond}
+              onChange={setOddCountCond}
+              minHint={0}
+              maxHint={6}
+              hintText="권장 범위: 0 ~ 6"
+            />
+            <CountCondEditor
+              title="번호 합(sum)"
+              value={sumCond}
+              onChange={setSumCond}
+              minHint={21}
+              maxHint={255}
+              hintText="권장 범위(예시): 21 ~ 255"
+            />
+            <CountCondEditor
+              title="최소값(minNumber)"
+              value={minCond}
+              onChange={setMinCond}
+              minHint={1}
+              maxHint={45}
+              hintText="권장 범위: 1 ~ 45"
+            />
+            <CountCondEditor
+              title="최대값(maxNumber)"
+              value={maxCond}
+              onChange={setMaxCond}
+              minHint={1}
+              maxHint={45}
+              hintText="권장 범위: 1 ~ 45"
+            />
+          </div>
+
+          {/* 연번 조건 */}
+          <div className="mb-3 rounded-xl border border-gray-200 bg-white/70 p-3">
+            <div className="mb-2 font-black">연번(연속번호) 조건</div>
+            <div className="flex flex-wrap items-center gap-3">
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="consecutive"
+                  checked={consecutiveMode === "any"}
+                  onChange={() => setConsecutiveMode("any")}
+                />
+                상관없음
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="consecutive"
+                  checked={consecutiveMode === "yes"}
+                  onChange={() => setConsecutiveMode("yes")}
+                />
+                연번이 있어야 함
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="consecutive"
+                  checked={consecutiveMode === "no"}
+                  onChange={() => setConsecutiveMode("no")}
+                />
+                연번이 없어야 함
+              </label>
+            </div>
+          </div>
+        </>
       )}
-
-      {/* 개수/합 조건 */}
-      <div className="mb-3 grid grid-cols-1 gap-3 md:grid-cols-2">
-        <CountCondEditor
-          title="홀수 개수(oddCount)"
-          value={oddCountCond}
-          onChange={setOddCountCond}
-          minHint={0}
-          maxHint={6}
-          hintText="권장 범위: 0 ~ 6"
-        />
-        <CountCondEditor
-          title="번호 합(sum)"
-          value={sumCond}
-          onChange={setSumCond}
-          minHint={21}
-          maxHint={255}
-          hintText="권장 범위(예시): 21 ~ 255"
-        />
-        <CountCondEditor
-          title="최소값(minNumber)"
-          value={minCond}
-          onChange={setMinCond}
-          minHint={1}
-          maxHint={45}
-          hintText="권장 범위: 1 ~ 45"
-        />
-        <CountCondEditor
-          title="최대값(maxNumber)"
-          value={maxCond}
-          onChange={setMaxCond}
-          minHint={1}
-          maxHint={45}
-          hintText="권장 범위: 1 ~ 45"
-        />
-      </div>
-
-      {/* 연번 조건 */}
-      <div className="mb-3 rounded-xl border border-gray-200 bg-white/70 p-3">
-        <div className="mb-2 font-black">연번(연속번호) 조건</div>
-        <div className="flex flex-wrap items-center gap-3">
-          <label className="flex items-center gap-2">
-            <input
-              type="radio"
-              name="consecutive"
-              checked={consecutiveMode === "any"}
-              onChange={() => setConsecutiveMode("any")}
-            />
-            상관없음
-          </label>
-          <label className="flex items-center gap-2">
-            <input
-              type="radio"
-              name="consecutive"
-              checked={consecutiveMode === "yes"}
-              onChange={() => setConsecutiveMode("yes")}
-            />
-            연번이 있어야 함
-          </label>
-          <label className="flex items-center gap-2">
-            <input
-              type="radio"
-              name="consecutive"
-              checked={consecutiveMode === "no"}
-              onChange={() => setConsecutiveMode("no")}
-            />
-            연번이 없어야 함
-          </label>
-        </div>
-      </div>
 
       {/* 실행 */}
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white/70 p-3">
@@ -733,37 +845,39 @@ export default function PremiumNextFreqBuilder() {
           {err && <span className="font-extrabold text-red-600">{err}</span>}
         </div>
 
-        <div className="flex flex-col items-end gap-1">
-          <label
-            className="flex items-center gap-2 font-extrabold cursor-pointer select-none whitespace-nowrap"
-            title="체크하면 matchedRoundList가 결과에 포함돼요"
-          >
-            <input
-              type="checkbox"
-              checked={includeMatchedRounds}
-              onChange={(e) => setIncludeMatchedRounds(e.target.checked)}
-            />
-            매칭된 회차 목록 포함
-            <span className="text-xs font-semibold text-gray-500">
-              (검증용)
-            </span>
-          </label>
+        {showAdvanced && (
+          <div className="flex flex-col items-end gap-1">
+            <label
+              className="flex items-center gap-2 font-extrabold cursor-pointer select-none whitespace-nowrap"
+              title="체크하면 matchedRoundList가 결과에 포함돼요"
+            >
+              <input
+                type="checkbox"
+                checked={includeMatchedRounds}
+                onChange={(e) => setIncludeMatchedRounds(e.target.checked)}
+              />
+              매칭된 회차 목록 포함
+              <span className="text-xs font-semibold text-gray-500">
+                (검증용)
+              </span>
+            </label>
 
-          <label
-            className="flex items-center gap-2 font-extrabold cursor-pointer select-none whitespace-nowrap"
-            title="체크하면 매칭된 회차 목록이 상세히 포함돼요"
-          >
-            <input
-              type="checkbox"
-              checked={includeMatchedRoundsDetail}
-              onChange={(e) => setIncludeMatchedRoundsDetail(e.target.checked)}
-            />
-            매칭된 회차 목록 상세 포함
-            <span className="text-xs font-semibold text-gray-500">
-              (검증용)
-            </span>
-          </label>
-        </div>
+            <label
+              className="flex items-center gap-2 font-extrabold cursor-pointer select-none whitespace-nowrap"
+              title="체크하면 매칭된 회차 목록이 상세히 포함돼요"
+            >
+              <input
+                type="checkbox"
+                checked={includeMatchedRoundsDetail}
+                onChange={(e) => setIncludeMatchedRoundsDetail(e.target.checked)}
+              />
+              매칭된 회차 목록 상세 포함
+              <span className="text-xs font-semibold text-gray-500">
+                (검증용)
+              </span>
+            </label>
+          </div>
+        )}
       </div>
 
       {/* 결과 */}

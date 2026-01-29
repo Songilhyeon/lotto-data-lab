@@ -13,7 +13,7 @@ interface PatternNextProps {
 }
 
 function isPatternObj(
-  d: PatternDataShape
+  d: PatternDataShape,
 ): d is { patternKey: string; freq: Record<number, number> } {
   if (d === null || typeof d !== "object") return false;
   if (!("freq" in (d as object))) return false;
@@ -29,7 +29,7 @@ export default function PatternNextFreqSection({
   const freq: Record<number, number> = isObj
     ? data.freq
     : (data as Record<number, number>);
-  const patternKey: string | null = isObj ? data.patternKey ?? null : null;
+  const patternKey: string | null = isObj ? (data.patternKey ?? null) : null;
 
   const nums = Array.from({ length: 45 }, (_, i) => i + 1);
   const values = nums.map((n) => freq[n] ?? 0);
@@ -41,7 +41,7 @@ export default function PatternNextFreqSection({
   const minNums = nums.filter((n) => (freq[n] ?? 0) === minVal);
 
   const hideMax = maxVal <= 1;
-  const hideMin = minVal === 0;
+  const hideMin = minVal === 0 && maxVal <= 1;
 
   return (
     <div className="mb-6 min-w-[280px]">

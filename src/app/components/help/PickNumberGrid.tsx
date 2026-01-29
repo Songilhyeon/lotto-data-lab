@@ -2,7 +2,6 @@
 
 import { getBallColor } from "@/app/utils/getBallColor";
 import clsx from "clsx";
-import { RotateCcw } from "lucide-react";
 
 type PickNumberGridProps = {
   selectedNumbers: number[];
@@ -14,13 +13,13 @@ type PickNumberGridProps = {
 export default function PickNumberGrid({
   selectedNumbers,
   onToggle,
-  onReset,
+  // onReset,
   max = 10,
 }: PickNumberGridProps) {
   return (
-    <div className="space-y-2">
+    <div className="gap-y-1 gap-x-1">
       {/* 🔝 리셋 헤더 (있을 때만 렌더) */}
-      {onReset && selectedNumbers.length > 0 && (
+      {/* {onReset && selectedNumbers.length > 0 && (
         <div className="flex justify-end px-1">
           <button
             onClick={onReset}
@@ -35,7 +34,7 @@ export default function PickNumberGrid({
             <RotateCcw size={14} />
           </button>
         </div>
-      )}
+      )} */}
 
       {/* 번호 그리드 */}
       <div className="overflow-x-hidden">
@@ -53,9 +52,9 @@ export default function PickNumberGrid({
                 className={clsx(
                   "h-7 w-7 sm:h-8 sm:w-8 rounded-full flex items-center justify-center text-[11px] sm:text-xs font-semibold transition",
                   isSelected
-                    ? `${getBallColor(num)} text-white scale-110`
+                    ? `${getBallColor(num)} text-white scale-105`
                     : "bg-white text-gray-700 border border-gray-200",
-                  isDisabled && "opacity-40 cursor-not-allowed"
+                  isDisabled && "opacity-40 cursor-not-allowed",
                 )}
               >
                 {num}

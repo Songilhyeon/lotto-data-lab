@@ -61,7 +61,7 @@ export interface PremiumAnalysisData {
   recentFreq: Record<number, number>;
 
   /** 다음 회차 번호 배열 */
-  nextRound: number[] | null;
+  nextRound: LottoDraw | null;
 
   generatedAt: string;
 }

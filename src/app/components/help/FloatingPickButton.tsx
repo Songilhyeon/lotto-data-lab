@@ -12,7 +12,7 @@ export default function FloatingPickButton() {
       <button
         onClick={isOpen ? closePanel : openPanel}
         className="
-          fixed bottom-6 right-6 z-50
+          fixed bottom-5 right-6 z-50
           w-10 h-10 rounded-full
           bg-indigo-600 text-white text-xl
           shadow-lg hover:scale-105 transition

@@ -8,13 +8,12 @@ import AiRecommend from "@/app/components/ai-recommend/AiRecommend";
 import AiNextRecommend from "@/app/components/ai-recommend/AiNextRecommend";
 import AiAdvancedRecommend from "@/app/components/ai-recommend/AiAdvancedRecommend";
 import AiVariantRecommend from "@/app/components/ai-recommend/AiVariantRecommend";
-import RequireAuth from "@/app/components/RequireAuth";
 
 const allTabs = [
   { id: "AiRecommend", label: "기본 점수 분석", premiumOnly: false },
   { id: "AiNextRecommend", label: "다음 회차 분석", premiumOnly: false },
   { id: "AiVariantRecommend", label: "전략 시뮬레이션", premiumOnly: false },
-  { id: "AiAdvancedRecommend", label: "심층 점수 모델", premiumOnly: true },
+  { id: "AiAdvancedRecommend", label: "심층 점수 모델", premiumOnly: false },
 ];
 
 type TabId = (typeof allTabs)[number]["id"];
@@ -71,7 +70,7 @@ export default function AiRecommendClient() {
                     className={`text-[11px] leading-none ${
                       activeTab === tab.id ? "text-amber-600" : "text-amber-400"
                     }`}
-                    title="프리미엄 기능입니다. 현재는 무료로 제공되고 있습니다."
+                    title="프리미엄 전용 기능입니다"
                   >
                     ★
                   </span>
@@ -87,12 +86,7 @@ export default function AiRecommendClient() {
         {activeTab === "AiRecommend" && <AiRecommend />}
         {activeTab === "AiNextRecommend" && <AiNextRecommend />}
         {activeTab === "AiVariantRecommend" && <AiVariantRecommend />}
-        {/* 🔹 현재는 제한 없이 노출 (추후 유료화 시 여기만 조정) */}
-        {activeTab === "AiAdvancedRecommend" && (
-          <RequireAuth>
-            <AiAdvancedRecommend />
-          </RequireAuth>
-        )}
+        {activeTab === "AiAdvancedRecommend" && <AiAdvancedRecommend />}
       </div>
     </div>
   );

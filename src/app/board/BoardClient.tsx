@@ -12,6 +12,7 @@ interface Post {
   title: string;
   content: string;
   createdAt: string;
+  authorDisplayName?: string;
 }
 
 interface PostListResponse {
@@ -106,6 +107,7 @@ export default function BoardClient() {
                 {post.title}
               </h2>
               <p className="text-gray-400 text-sm mt-1">
+                {post.authorDisplayName ?? "익명"} ·{" "}
                 {new Date(post.createdAt).toLocaleString()}
               </p>
               <p className="text-gray-600 mt-2 line-clamp-3">{post.content}</p>

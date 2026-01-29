@@ -13,10 +13,13 @@ export interface User {
   id: string;
   name: string;
   email?: string;
-  role?: "FREE" | "PREMIUM";
+  role?: "FREE" | "PREMIUM" | "ADMIN";
   subscriptionExpiresAt?: string | Date;
   trialUsed?: boolean;
 }
+
+export const isPremiumRole = (role?: User["role"]) =>
+  role === "PREMIUM" || role === "ADMIN";
 
 interface AuthContextType {
   user: User | null;

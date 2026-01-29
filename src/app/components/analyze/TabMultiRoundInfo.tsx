@@ -32,24 +32,18 @@ export default function MultiRoundInfo() {
   const prevParamsRef = useRef({
     start: -1,
     end: -1,
-    includeBonus: !includeBonus,
   });
 
   const fetchData = async () => {
     const prev = prevParamsRef.current;
-    if (
-      prev.start === start &&
-      prev.end === end &&
-      prev.includeBonus === includeBonus
-    )
-      return;
+    if (prev.start === start && prev.end === end) return;
 
     setLoading(true);
     let success = false;
 
     try {
       const res = await fetch(
-        `${apiUrl}/lotto/rounds?start=${start}&end=${end}&includeBonus=${includeBonus}`
+        `${apiUrl}/lotto/rounds?start=${start}&end=${end}`
       );
       const json = await res.json();
 
@@ -67,7 +61,7 @@ export default function MultiRoundInfo() {
     } finally {
       setLoading(false);
       if (success) {
-        prevParamsRef.current = { start, end, includeBonus };
+        prevParamsRef.current = { start, end };
       }
     }
   };

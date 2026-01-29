@@ -31,9 +31,18 @@ type IntervalPatternResponse = {
   baseRound?: number;
   baseNumbers?: number[];
   perNumber: PerNumberRow[];
-  ensemble: { num: number; score: number }[];
+  ensemble: { num: number; score: number; support?: number }[];
   nextRound?: LottoDraw;
+  patternLen?: number;
+  minSample?: number;
+  normalize?: "max" | "percentile";
 };
+
+const DEFAULT_RECENT_COUNT = 100;
+const DEFAULT_INTERVAL_SIZE = 7;
+const DEFAULT_PATTERN_LEN = 3;
+const DEFAULT_MIN_SAMPLE = 3;
+const DEFAULT_NORMALIZE: "max" | "percentile" = "max";
 
 const fetcher = async (url: string): Promise<IntervalPatternResponse> => {
   const res = await fetch(url, { credentials: "include" }); // ✅ 여기!
@@ -50,17 +59,35 @@ const fetcher = async (url: string): Promise<IntervalPatternResponse> => {
 
 export default function IntervalPatternTab() {
   const latestRound = getLatestRound();
-  const [start, setStart] = useState(latestRound - 99);
+  const [start, setStart] = useState(latestRound - DEFAULT_RECENT_COUNT + 1);
   const [end, setEnd] = useState(latestRound);
-  const [selectedRecent, setSelectedRecent] = useState<number | null>(100);
-  const [intervalSize, setIntervalSize] = useState<5 | 7 | 10>(7);
-  const [patternLen, setPatternLen] = useState<number>(5);
-  const [query, setQuery] = useState<{ start: number; end: number }>({
-    start: latestRound - 99,
+  const [selectedRecent, setSelectedRecent] = useState<number | null>(
+    DEFAULT_RECENT_COUNT,
+  );
+  const [intervalSize, setIntervalSize] =
+    useState<5 | 7 | 10>(DEFAULT_INTERVAL_SIZE);
+  const [patternLen, setPatternLen] = useState<3 | 4 | 5 | 6 | 7>(
+    DEFAULT_PATTERN_LEN,
+  );
+  const [minSample, setMinSample] = useState<3 | 5 | 7>(DEFAULT_MIN_SAMPLE);
+  const [normalize, setNormalize] = useState<"max" | "percentile">(
+    DEFAULT_NORMALIZE,
+  );
+  const [query, setQuery] = useState<{
+    start: number;
+    end: number;
+    patternLen: number;
+    minSample: number;
+    normalize: "max" | "percentile";
+  }>({
+    start: latestRound - DEFAULT_RECENT_COUNT + 1,
     end: latestRound,
+    patternLen: DEFAULT_PATTERN_LEN,
+    minSample: DEFAULT_MIN_SAMPLE,
+    normalize: DEFAULT_NORMALIZE,
   });
 
-  const swrKey = `${apiUrl}/lotto/premium/analysis/interval?start=${query.start}&end=${query.end}`;
+  const swrKey = `${apiUrl}/lotto/premium/analysis/interval?start=${query.start}&end=${query.end}&patternLen=${query.patternLen}&minSample=${query.minSample}&normalize=${query.normalize}`;
   const { data, error, isLoading, mutate } = useSWR<IntervalPatternResponse>(
     swrKey,
     fetcher,
@@ -95,11 +122,24 @@ export default function IntervalPatternTab() {
 
   const clearRecentSelect = () => setSelectedRecent(null);
   const fetchData = () => {
-    if (query.start === start && query.end === end) {
+    const nextQuery = {
+      start,
+      end,
+      patternLen,
+      minSample,
+      normalize,
+    };
+    if (
+      query.start === nextQuery.start &&
+      query.end === nextQuery.end &&
+      query.patternLen === nextQuery.patternLen &&
+      query.minSample === nextQuery.minSample &&
+      query.normalize === nextQuery.normalize
+    ) {
       mutate();
       return;
     }
-    setQuery({ start, end });
+    setQuery(nextQuery);
   };
 
   const intervalData = data?.ensemble
@@ -110,6 +150,18 @@ export default function IntervalPatternTab() {
     nextRoundNumbers.map((num) => getIntervalKey(num, intervalSize)),
   );
   const highlightNumbers = new Set(nextRoundNumbers);
+  const supportValues =
+    data?.ensemble
+      ?.map((row) => row.support ?? 0)
+      .filter((v) => v > 0) ?? [];
+  const supportStats = supportValues.length
+    ? {
+        avg:
+          supportValues.reduce((sum, v) => sum + v, 0) / supportValues.length,
+        max: Math.max(...supportValues),
+        min: Math.min(...supportValues),
+      }
+    : null;
 
   const errorMessage =
     error instanceof Error ? error.message : "Interval 분석 오류";
@@ -160,6 +212,61 @@ export default function IntervalPatternTab() {
       />
       <IntervalUnitHelp unit={intervalSize} />
 
+      <div className="mt-4 flex flex-wrap items-start gap-3 text-sm">
+        <label className="flex flex-col gap-1">
+          <span className="font-medium text-gray-700">패턴 길이</span>
+          <select
+            value={patternLen}
+            onChange={(e) =>
+              setPatternLen(Number(e.target.value) as 3 | 4 | 5 | 6 | 7)
+            }
+            className="rounded-md border border-gray-200 bg-white px-2 py-1 text-sm"
+          >
+            {[3, 4, 5, 6, 7].map((len) => (
+              <option key={len} value={len}>
+                최근 {len}회
+              </option>
+            ))}
+          </select>
+          <span className="text-xs text-gray-500">최근 간격 개수</span>
+        </label>
+
+        <label className="flex flex-col gap-1">
+          <span className="font-medium text-gray-700">최소 샘플</span>
+          <select
+            value={minSample}
+            onChange={(e) => setMinSample(Number(e.target.value) as 3 | 5 | 7)}
+            className="rounded-md border border-gray-200 bg-white px-2 py-1 text-sm"
+          >
+            {[3, 5, 7].map((cnt) => (
+              <option key={cnt} value={cnt}>
+                {cnt}회 이상
+              </option>
+            ))}
+          </select>
+          <span className="text-xs text-gray-500">표본이 적으면 제외</span>
+        </label>
+
+        <label className="flex flex-col gap-1">
+          <span className="font-medium text-gray-700">정규화 방식</span>
+          <select
+            value={normalize}
+            onChange={(e) =>
+              setNormalize(
+                e.target.value === "percentile" ? "percentile" : "max",
+              )
+            }
+            className="rounded-md border border-gray-200 bg-white px-2 py-1 text-sm"
+          >
+            <option value="max">최대값 기준</option>
+            <option value="percentile">분위수 기준</option>
+          </select>
+          <span className="text-xs text-gray-500">
+            최대값/순위 기준
+          </span>
+        </label>
+      </div>
+
       {isLoading && (
         <div className="mt-6 text-center text-gray-600">
           Interval 분석 중...
@@ -197,6 +304,12 @@ export default function IntervalPatternTab() {
             <p className="text-sm text-gray-500 mb-2">
               Interval 분석 결과를 번호 단위 점수로 환산한 분포입니다.
             </p>
+            {supportStats && (
+              <div className="mb-2 text-xs text-gray-500">
+                신뢰도(표본) 평균 {supportStats.avg.toFixed(1)} · 최대{" "}
+                {supportStats.max} · 최소 {supportStats.min}
+              </div>
+            )}
             <NumberEnsembleBar
               data={data.ensemble}
               highlightNumbers={highlightNumbers}
@@ -212,23 +325,6 @@ export default function IntervalPatternTab() {
             </p>
 
             <IntervalBucketLegend />
-
-            <div className="mt-4 mb-4 flex flex-wrap items-center gap-3">
-              <label className="text-sm text-gray-700 font-medium">
-                간격 패턴 횟수
-              </label>
-              <select
-                value={patternLen}
-                onChange={(e) => setPatternLen(Number(e.target.value))}
-                className="border rounded-md px-2 py-1 text-sm"
-              >
-                {[3, 4, 5, 6, 7].map((len) => (
-                  <option key={len} value={len}>
-                    최근 {len}회
-                  </option>
-                ))}
-              </select>
-            </div>
 
             <IntervalPatternTable
               data={data.perNumber}

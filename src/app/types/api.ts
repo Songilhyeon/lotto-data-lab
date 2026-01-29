@@ -20,6 +20,38 @@ export interface NumberScoreDetail {
   final: number; // ✅ 정규화 점수 (0~100)
 }
 
+export type SelectionLogMatch = {
+  isResolved: boolean;
+  matchCount: number;
+  matchedNumbers: number[];
+  bonusMatch: boolean;
+  resultNumbers: number[];
+  bonusNumber: number | null;
+};
+
+export type SelectionLog = {
+  id: string;
+  targetRound: number;
+  numbers: number[];
+  reasons: string[];
+  memo: string | null;
+  createdAt: string;
+  match: SelectionLogMatch;
+};
+
+export type SelectionLogSummary = {
+  totalCount: number;
+  resolvedCount: number;
+  pendingCount: number;
+  avgMatch: number;
+  bestMatch: number;
+  bestMatchRound: number | null;
+  recentResolvedCount: number;
+  recentAvgMatch: number;
+  bonusHitCount: number;
+  latestResolvedRound: number | null;
+};
+
 // 일반 AI 분석 점수 결과
 export interface IfAiRecommendResult {
   round: number;
@@ -27,7 +59,20 @@ export interface IfAiRecommendResult {
   scores: NumberScoreDetail[];
   scoreList?: NumberScoreDetail[];
   generatedAt: string;
+  tuned?: AiTunedBlock;
 }
+
+export type TunedContrib = { key: string; value: number };
+export type TunedScoreRow = {
+  num: number;
+  finalRawTuned: number;
+  finalTuned: number;
+  topContrib: TunedContrib[];
+};
+export type AiTunedBlock = {
+  recommended: number[];
+  scores: TunedScoreRow[];
+};
 
 // NextFreq AI 분석 점수 결과
 export interface IfAiNextFreqRecommendResult {
@@ -35,6 +80,7 @@ export interface IfAiNextFreqRecommendResult {
   details: NumberScoreDetail[];
   generatedAt: string;
   scores: NumberScoreDetail[];
+  tuned?: AiTunedBlock;
 }
 
 export interface IfAiRecommendation {
@@ -42,6 +88,7 @@ export interface IfAiRecommendation {
   scores: NumberScoreDetail[];
   seed: number;
   nextRound?: LottoDraw | null;
+  tuned?: AiTunedBlock;
 }
 
 export interface WeightConfig {

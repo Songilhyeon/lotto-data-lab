@@ -10,7 +10,8 @@ interface CommentType {
   id: string;
   content: string;
   createdAt: string;
-  user: { name: string; id: string };
+  authorDisplayName?: string;
+  user: { id: string } | null;
 }
 
 interface PostType {
@@ -18,7 +19,8 @@ interface PostType {
   title: string;
   content: string;
   createdAt: string;
-  user: { name: string; id: string };
+  authorDisplayName?: string;
+  user: { id: string } | null;
   comments: CommentType[];
 }
 
@@ -41,7 +43,7 @@ export default function BoardDetailClient({ initialPost }: Props) {
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editCommentText, setEditCommentText] = useState("");
 
-  const isOwner = user?.id === post.user.id;
+  const isOwner = user?.id === post.user?.id;
 
   // -----------------------------
   // 게시글 재조회
@@ -204,7 +206,8 @@ export default function BoardDetailClient({ initialPost }: Props) {
 
         {/* 작성자 & 날짜 */}
         <p className="text-gray-500 text-sm mb-4">
-          {post.user.name} · {new Date(post.createdAt).toLocaleString()}
+          {post.authorDisplayName ?? "익명"} ·{" "}
+          {new Date(post.createdAt).toLocaleString()}
         </p>
 
         {/* 게시글 내용 */}
@@ -249,10 +252,10 @@ export default function BoardDetailClient({ initialPost }: Props) {
                       {comment.content}
                     </p>
                     <p className="text-gray-500 text-sm">
-                      {comment.user.name} ·{" "}
+                      {comment.authorDisplayName ?? "익명"} ·{" "}
                       {new Date(comment.createdAt).toLocaleString()}
                     </p>
-                    {user?.id === comment.user.id && (
+                    {user?.id === comment.user?.id && (
                       <div className="flex gap-2 mt-2">
                         <button
                           className="px-2 py-1 text-sm bg-gray-200 rounded"
