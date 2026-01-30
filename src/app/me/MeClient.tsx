@@ -12,6 +12,8 @@ import { X } from "lucide-react";
 import type { SelectionLog } from "@/app/types/api";
 import Accordion from "@/app/components/analyze/SingleOpenAccordion";
 import { SelectionLogMatch } from "@/app/types/api";
+import { componentBodyDivStyle } from "@/app/utils/getDivStyle";
+import ComponentHeader from "@/app/components/ComponentHeader";
 
 const DEFAULT_OPTIONS: DefaultOptions = {
   includeBonus: false,
@@ -257,7 +259,8 @@ const parseNumberList = (raw: string) => {
 export default function MeClient() {
   const router = useRouter();
   const { user, logout } = useAuth();
-  const { refreshProfile } = useProfile();
+  const { profile, loadingProfile, profileError, refreshProfile } =
+    useProfile();
   const isPremium = isPremiumRole(user?.role);
   const latestRound = getLatestRound();
   const [displayName, setDisplayName] = useState("");
@@ -285,72 +288,73 @@ export default function MeClient() {
   const selectionLimit = isPremium ? 12 : 3;
   const selectionAtLimit = !isPremium && selectionLogs.length >= 3;
   const [selectionPage, setSelectionPage] = useState(1);
-  const [deletingLogId, setDeletingLogId] = useState<string | null>(null);
   const [openKey, setOpenKey] = useState<string | null>("profile");
   const [selectionReportWindow, setSelectionReportWindow] = useState(5);
+  const [selectedLogIds, setSelectedLogIds] = useState<string[]>([]);
+  const [bulkDeleteLoading, setBulkDeleteLoading] = useState(false);
+
+  const [profileSignature, setProfileSignature] = useState<string | null>(null);
 
   useEffect(() => {
-    let mounted = true;
-    const loadProfile = async () => {
-      try {
-        const res = await fetch(`${apiUrl}/auth/profile`, {
-          credentials: "include",
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data?.message || "프로필을 불러오지 못했습니다.");
-        }
+    if (loadingProfile) {
+      setLoading(true);
+      return;
+    }
 
-        const profile: UserProfile | null = data.profile ?? null;
-        if (mounted) {
-          if (!profile) {
-            setDefaultOptions(DEFAULT_OPTIONS);
-            setIncludeRaw("");
-            setExcludeRaw("");
-            setUpdatedAt("");
-          } else {
-            const options = profile.defaultOptions ?? DEFAULT_OPTIONS;
-            const buckets = makeRangeBuckets(options.rangeUnit);
-            const rangeConditions =
-              options.rangeConditions.length > 0
-                ? options.rangeConditions
-                : buckets.map((bucket) => ({
-                    key: bucket.key,
-                    enabled: false,
-                    op: "eq" as const,
-                    value: 0,
-                  }));
-            setDisplayName(profile.displayName ?? "");
-            setFavoriteNumbers(profile.favoriteNumbers ?? []);
-            setAvoidNumbers(profile.avoidNumbers ?? []);
-            setDefaultOptions({
-              ...options,
-              rangeConditions,
-              consecutiveMode: options.consecutiveMode ?? "any",
-            });
-            setIncludeRaw((options.includeNumbers ?? []).join(","));
-            setExcludeRaw((options.excludeNumbers ?? []).join(","));
-            setUpdatedAt(profile.updatedAt ?? "");
-          }
-        }
-      } catch (err: unknown) {
-        if (mounted) {
-          setError(
-            err instanceof Error
-              ? err.message
-              : "프로필을 불러오지 못했습니다.",
-          );
-        }
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
+    setLoading(false);
 
-    loadProfile();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+    if (profileError) {
+      setError(profileError);
+      return;
+    }
+
+    if (!profile) {
+      if (profileSignature === "__empty__") return;
+      setDisplayName("");
+      setFavoriteNumbers([]);
+      setAvoidNumbers([]);
+      setDefaultOptions(DEFAULT_OPTIONS);
+      setIncludeRaw("");
+      setExcludeRaw("");
+      setUpdatedAt("");
+      setProfileSignature("__empty__");
+      return;
+    }
+
+    const nextSignature = JSON.stringify({
+      displayName: profile.displayName ?? "",
+      favoriteNumbers: profile.favoriteNumbers ?? [],
+      avoidNumbers: profile.avoidNumbers ?? [],
+      defaultOptions: profile.defaultOptions ?? DEFAULT_OPTIONS,
+      updatedAt: profile.updatedAt ?? "",
+    });
+
+    if (profileSignature === nextSignature) return;
+
+    const options = profile.defaultOptions ?? DEFAULT_OPTIONS;
+    const buckets = makeRangeBuckets(options.rangeUnit);
+    const rangeConditions =
+      options.rangeConditions.length > 0
+        ? options.rangeConditions
+        : buckets.map((bucket) => ({
+            key: bucket.key,
+            enabled: false,
+            op: "eq" as const,
+            value: 0,
+          }));
+    setDisplayName(profile.displayName ?? "");
+    setFavoriteNumbers(profile.favoriteNumbers ?? []);
+    setAvoidNumbers(profile.avoidNumbers ?? []);
+    setDefaultOptions({
+      ...options,
+      rangeConditions,
+      consecutiveMode: options.consecutiveMode ?? "any",
+    });
+    setIncludeRaw((options.includeNumbers ?? []).join(","));
+    setExcludeRaw((options.excludeNumbers ?? []).join(","));
+    setUpdatedAt(profile.updatedAt ?? "");
+    setProfileSignature(nextSignature);
+  }, [loadingProfile, profileError, profile, profileSignature]);
 
   useEffect(() => {
     const buckets = makeRangeBuckets(defaultOptions.rangeUnit);
@@ -390,6 +394,7 @@ export default function MeClient() {
       const nextData = json.data ?? [];
       setSelectionLogs(nextData);
       setSelectionPage(page);
+      setSelectedLogIds([]);
     } catch (err: unknown) {
       setSelectionError(
         err instanceof Error ? err.message : "선택 기록을 불러오지 못했습니다.",
@@ -435,7 +440,9 @@ export default function MeClient() {
     const bestMatch = resolvedCount
       ? Math.max(...resolved.map((log) => log.match?.matchCount ?? 0))
       : 0;
-    const bonusHitCount = resolved.filter((log) => log.match?.bonusMatch).length;
+    const bonusHitCount = resolved.filter(
+      (log) => log.match?.bonusMatch,
+    ).length;
     const hit3plusCount = resolved.filter(
       (log) => (log.match?.matchCount ?? 0) >= 3,
     ).length;
@@ -673,35 +680,49 @@ export default function MeClient() {
     }
   };
 
-  const deleteSelectionLog = async (id: string) => {
-    if (deletingLogId) return;
-    const confirmed = window.confirm("이 기록을 삭제할까요?");
+  const deleteSelectedLogs = async () => {
+    if (bulkDeleteLoading || selectedLogIds.length === 0) return;
+    const confirmed = window.confirm(
+      `선택한 ${selectedLogIds.length}개 기록을 삭제할까요?`,
+    );
     if (!confirmed) return;
 
-    setDeletingLogId(id);
+    setBulkDeleteLoading(true);
     setSelectionError(null);
     try {
-      const res = await fetch(`${apiUrl}/lotto/selection-logs/${id}`, {
-        method: "DELETE",
+      const res = await fetch(`${apiUrl}/lotto/selection-logs/bulk-delete`, {
+        method: "POST",
         credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: selectedLogIds }),
       });
       const json = await res.json();
       if (!res.ok || !json.success) {
         throw new Error(json?.message || "기록 삭제에 실패했습니다.");
       }
+      const deletedCount = Number(json.deletedCount) || selectedLogIds.length;
       await fetchSelectionLogs(
         Math.max(
           1,
-          selectionLogs.length <= 1 ? selectionPage - 1 : selectionPage,
+          selectionLogs.length <= deletedCount
+            ? selectionPage - 1
+            : selectionPage,
         ),
       );
+      setSelectedLogIds([]);
     } catch (err: unknown) {
       setSelectionError(
         err instanceof Error ? err.message : "기록 삭제에 실패했습니다.",
       );
     } finally {
-      setDeletingLogId(null);
+      setBulkDeleteLoading(false);
     }
+  };
+
+  const toggleSelectedLog = (id: string) => {
+    setSelectedLogIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
+    );
   };
 
   const toggleSelectionNumber = (num: number) => {
@@ -807,816 +828,858 @@ export default function MeClient() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10 text-gray-900">
-      <h1 className="text-2xl sm:text-3xl font-bold mb-2">내 정보 저장</h1>
-      <p className="text-sm text-gray-500 mb-6">
-        마지막 저장: {formattedUpdatedAt}
-      </p>
-
-      {error && (
-        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
+    <main className={`${componentBodyDivStyle()} from-pink-50 to-indigo-100`}>
+      <ComponentHeader
+        title="🙋 내 정보 관리"
+        content="닉네임, 선호/회피 번호, 선택 기록을 한 곳에서 관리하세요."
+      />
+      <div className="py-10 text-gray-900">
+        <div className="mb-6 text-sm text-gray-500">
+          마지막 저장: {formattedUpdatedAt}
         </div>
-      )}
-      {success && (
-        <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-          {success}
-        </div>
-      )}
 
-      <div className="space-y-3">
-        <Accordion
-          title="프로필"
-          chartKey="profile"
-          openKey={openKey}
-          setOpenKey={setOpenKey}
-        >
-          <div className="grid gap-4">
-            <label className="grid gap-2 text-sm">
-              <span className="font-semibold text-gray-700">닉네임</span>
-              <input
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                className="rounded-lg border border-gray-200 px-3 py-2"
-                placeholder="2~20자"
-              />
-              <span className="text-xs text-gray-500">
-                게시판과 로그인 정보에 표시됩니다.
-              </span>
-            </label>
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={saveProfile}
-                disabled={saving}
-                className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
-              >
-                {saving ? "저장 중..." : "저장"}
-              </button>
-            </div>
+        {error && (
+          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
           </div>
-        </Accordion>
-
-        <Accordion
-          title="선호/회피 번호"
-          chartKey="preferences"
-          openKey={openKey}
-          setOpenKey={setOpenKey}
-        >
-          <div className="space-y-6">
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="font-semibold text-rose-700">
-                  선호 번호 ({favoriteNumbers.length}/10) ⭐
-                </span>
-                <button
-                  type="button"
-                  className="text-xs text-rose-600 hover:text-rose-800"
-                  onClick={() => setFavoriteNumbers([])}
-                >
-                  초기화
-                </button>
-              </div>
-              {renderNumberGrid(
-                favoriteNumbers,
-                avoidNumbers,
-                (num) =>
-                  handleToggleNumber(
-                    num,
-                    favoriteNumbers,
-                    avoidNumbers,
-                    setFavoriteNumbers,
-                  ),
-                "favorite",
-              )}
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="font-semibold text-blue-700">
-                  회피 번호 ({avoidNumbers.length}/10) 🚫
-                </span>
-                <button
-                  type="button"
-                  className="text-xs text-blue-600 hover:text-blue-800"
-                  onClick={() => setAvoidNumbers([])}
-                >
-                  초기화
-                </button>
-              </div>
-              {renderNumberGrid(
-                avoidNumbers,
-                favoriteNumbers,
-                (num) =>
-                  handleToggleNumber(
-                    num,
-                    avoidNumbers,
-                    favoriteNumbers,
-                    setAvoidNumbers,
-                  ),
-                "avoid",
-              )}
-            </div>
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={saveProfile}
-                disabled={saving}
-                className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
-              >
-                {saving ? "저장 중..." : "저장"}
-              </button>
-            </div>
+        )}
+        {success && (
+          <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            {success}
           </div>
-        </Accordion>
+        )}
 
-        <Accordion
-          title="조건 기반 분석 기본 옵션"
-          chartKey="conditions"
-          openKey={openKey}
-          setOpenKey={setOpenKey}
-        >
-          <div className="space-y-4">
-            <div className="grid gap-4 text-sm">
-              <label className="grid gap-2">
-                <span className="font-semibold text-gray-700">구간 단위</span>
-                <select
-                  value={defaultOptions.rangeUnit}
-                  onChange={(e) =>
-                    setDefaultOptions((prev) => ({
-                      ...prev,
-                      rangeUnit: Number(e.target.value) as 5 | 7 | 10,
-                    }))
-                  }
+        <div className="space-y-3">
+          <Accordion
+            title="프로필"
+            chartKey="profile"
+            openKey={openKey}
+            setOpenKey={setOpenKey}
+          >
+            <div className="grid gap-4">
+              <label className="grid gap-2 text-sm">
+                <span className="font-semibold text-gray-700">닉네임</span>
+                <input
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
                   className="rounded-lg border border-gray-200 px-3 py-2"
-                >
-                  <option value={5}>5구간</option>
-                  <option value={7}>7구간</option>
-                  <option value={10}>10구간</option>
-                </select>
+                  placeholder="2~20자"
+                />
+                <span className="text-xs text-gray-500">
+                  게시판과 로그인 정보에 표시됩니다.
+                </span>
               </label>
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={saveProfile}
+                  disabled={saving}
+                  className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+                >
+                  {saving ? "저장 중..." : "저장"}
+                </button>
+              </div>
             </div>
+          </Accordion>
 
-            <div className="rounded-xl border border-gray-200 bg-white/70 p-3">
-              <div className="mb-2 font-black">구간 조건</div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
-                {defaultOptions.rangeConditions.map((cond) => (
-                  <div
-                    key={cond.key}
-                    className="rounded-xl border border-gray-200 bg-white p-3"
+          <Accordion
+            title="선호/회피 번호"
+            chartKey="preferences"
+            openKey={openKey}
+            setOpenKey={setOpenKey}
+          >
+            <div className="space-y-6">
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="font-semibold text-rose-700">
+                    선호 번호 ({favoriteNumbers.length}/10) ⭐
+                  </span>
+                  <button
+                    type="button"
+                    className="text-xs text-rose-600 hover:text-rose-800"
+                    onClick={() => setFavoriteNumbers([])}
                   >
-                    <div className="flex flex-wrap items-center gap-2">
-                      <label className="flex min-w-[120px] items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={cond.enabled}
+                    초기화
+                  </button>
+                </div>
+                {renderNumberGrid(
+                  favoriteNumbers,
+                  avoidNumbers,
+                  (num) =>
+                    handleToggleNumber(
+                      num,
+                      favoriteNumbers,
+                      avoidNumbers,
+                      setFavoriteNumbers,
+                    ),
+                  "favorite",
+                )}
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="font-semibold text-blue-700">
+                    회피 번호 ({avoidNumbers.length}/10) 🚫
+                  </span>
+                  <button
+                    type="button"
+                    className="text-xs text-blue-600 hover:text-blue-800"
+                    onClick={() => setAvoidNumbers([])}
+                  >
+                    초기화
+                  </button>
+                </div>
+                {renderNumberGrid(
+                  avoidNumbers,
+                  favoriteNumbers,
+                  (num) =>
+                    handleToggleNumber(
+                      num,
+                      avoidNumbers,
+                      favoriteNumbers,
+                      setAvoidNumbers,
+                    ),
+                  "avoid",
+                )}
+              </div>
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={saveProfile}
+                  disabled={saving}
+                  className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+                >
+                  {saving ? "저장 중..." : "저장"}
+                </button>
+              </div>
+            </div>
+          </Accordion>
+
+          <Accordion
+            title="조건 기반 분석 기본 옵션"
+            chartKey="conditions"
+            openKey={openKey}
+            setOpenKey={setOpenKey}
+          >
+            <div className="space-y-4">
+              <div className="grid gap-4 text-sm">
+                <label className="grid gap-2">
+                  <span className="font-semibold text-gray-700">구간 단위</span>
+                  <select
+                    value={defaultOptions.rangeUnit}
+                    onChange={(e) =>
+                      setDefaultOptions((prev) => ({
+                        ...prev,
+                        rangeUnit: Number(e.target.value) as 5 | 7 | 10,
+                      }))
+                    }
+                    className="rounded-lg border border-gray-200 px-3 py-2"
+                  >
+                    <option value={5}>5구간</option>
+                    <option value={7}>7구간</option>
+                    <option value={10}>10구간</option>
+                  </select>
+                </label>
+              </div>
+
+              <div className="rounded-xl border border-gray-200 bg-white/70 p-3">
+                <div className="mb-2 font-black">구간 조건</div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+                  {defaultOptions.rangeConditions.map((cond) => (
+                    <div
+                      key={cond.key}
+                      className="rounded-xl border border-gray-200 bg-white p-3"
+                    >
+                      <div className="flex flex-wrap items-center gap-2">
+                        <label className="flex min-w-[120px] items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={cond.enabled}
+                            onChange={(e) =>
+                              setDefaultOptions((prev) => ({
+                                ...prev,
+                                rangeConditions: prev.rangeConditions.map(
+                                  (item) =>
+                                    item.key === cond.key
+                                      ? { ...item, enabled: e.target.checked }
+                                      : item,
+                                ),
+                              }))
+                            }
+                          />
+                          <b>{cond.key}</b>
+                        </label>
+                        <select
+                          className="min-w-[88px] rounded-lg border border-gray-200 bg-white px-2 py-1 text-sm"
+                          value={cond.op}
+                          disabled={!cond.enabled}
                           onChange={(e) =>
                             setDefaultOptions((prev) => ({
                               ...prev,
                               rangeConditions: prev.rangeConditions.map(
                                 (item) =>
                                   item.key === cond.key
-                                    ? { ...item, enabled: e.target.checked }
+                                    ? {
+                                        ...item,
+                                        op: e.target.value as
+                                          | "eq"
+                                          | "gte"
+                                          | "lte",
+                                      }
+                                    : item,
+                              ),
+                            }))
+                          }
+                        >
+                          <option value="eq">=</option>
+                          <option value="gte">≥</option>
+                          <option value="lte">≤</option>
+                        </select>
+                        <input
+                          className="w-20 rounded-lg border border-gray-200 bg-white px-2 py-1 text-sm"
+                          type="number"
+                          min={0}
+                          max={6}
+                          disabled={!cond.enabled}
+                          value={cond.value}
+                          onChange={(e) =>
+                            setDefaultOptions((prev) => ({
+                              ...prev,
+                              rangeConditions: prev.rangeConditions.map(
+                                (item) =>
+                                  item.key === cond.key
+                                    ? {
+                                        ...item,
+                                        value: Math.max(
+                                          0,
+                                          Math.min(6, Number(e.target.value)),
+                                        ),
+                                      }
                                     : item,
                               ),
                             }))
                           }
                         />
-                        <b>{cond.key}</b>
-                      </label>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <div className="rounded-xl border border-gray-200 bg-white/70 p-3">
+                  <div className="mb-2 font-black">반드시 포함할 번호</div>
+                  <input
+                    value={includeRaw}
+                    onChange={(e) => setIncludeRaw(e.target.value)}
+                    placeholder="예: 5,14,33"
+                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"
+                  />
+                  <div className="mt-2 text-xs text-gray-500">
+                    입력값 해석 결과:{" "}
+                    {parseNumberList(includeRaw).length
+                      ? parseNumberList(includeRaw).join(", ")
+                      : "(없음)"}
+                  </div>
+                </div>
+                <div className="rounded-xl border border-gray-200 bg-white/70 p-3">
+                  <div className="mb-2 font-black">반드시 제외할 번호</div>
+                  <input
+                    value={excludeRaw}
+                    onChange={(e) => setExcludeRaw(e.target.value)}
+                    placeholder="예: 1,2,3"
+                    className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"
+                  />
+                  <div className="mt-2 text-xs text-gray-500">
+                    입력값 해석 결과:{" "}
+                    {parseNumberList(excludeRaw).length
+                      ? parseNumberList(excludeRaw).join(", ")
+                      : "(없음)"}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <CountConditionEditor
+                  title="홀수 개수(oddCount)"
+                  value={defaultOptions.oddCount}
+                  onChange={(next) =>
+                    setDefaultOptions((prev) => ({ ...prev, oddCount: next }))
+                  }
+                  minHint={0}
+                  maxHint={6}
+                />
+                <CountConditionEditor
+                  title="번호 합(sum)"
+                  value={defaultOptions.sum}
+                  onChange={(next) =>
+                    setDefaultOptions((prev) => ({ ...prev, sum: next }))
+                  }
+                  minHint={21}
+                  maxHint={255}
+                />
+                <CountConditionEditor
+                  title="최소값(minNumber)"
+                  value={defaultOptions.minNumber}
+                  onChange={(next) =>
+                    setDefaultOptions((prev) => ({ ...prev, minNumber: next }))
+                  }
+                  minHint={1}
+                  maxHint={45}
+                />
+                <CountConditionEditor
+                  title="최대값(maxNumber)"
+                  value={defaultOptions.maxNumber}
+                  onChange={(next) =>
+                    setDefaultOptions((prev) => ({ ...prev, maxNumber: next }))
+                  }
+                  minHint={1}
+                  maxHint={45}
+                />
+              </div>
+
+              <div className="rounded-xl border border-gray-200 bg-white/70 p-3">
+                <div className="mb-2 font-black">연번(연속번호) 조건</div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="consecutive"
+                      checked={defaultOptions.consecutiveMode === "any"}
+                      onChange={() =>
+                        setDefaultOptions((prev) => ({
+                          ...prev,
+                          consecutiveMode: "any",
+                        }))
+                      }
+                    />
+                    상관없음
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="consecutive"
+                      checked={defaultOptions.consecutiveMode === "yes"}
+                      onChange={() =>
+                        setDefaultOptions((prev) => ({
+                          ...prev,
+                          consecutiveMode: "yes",
+                        }))
+                      }
+                    />
+                    연번이 있어야 함
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="consecutive"
+                      checked={defaultOptions.consecutiveMode === "no"}
+                      onChange={() =>
+                        setDefaultOptions((prev) => ({
+                          ...prev,
+                          consecutiveMode: "no",
+                        }))
+                      }
+                    />
+                    연번이 없어야 함
+                  </label>
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={saveProfile}
+                  disabled={saving}
+                  className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+                >
+                  {saving ? "저장 중..." : "저장"}
+                </button>
+              </div>
+            </div>
+          </Accordion>
+        </div>
+
+        <div className="mt-4">
+          <Accordion
+            title="선택 기록"
+            chartKey="selection-log"
+            openKey={openKey}
+            setOpenKey={setOpenKey}
+            containerClassName="overflow-visible"
+          >
+            <div className="space-y-5">
+              {!isPremium ? (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                  FREE는 선택 기록을 3개까지 저장할 수 있습니다.
+                </div>
+              ) : (
+                <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
+                  프리미엄은 하루 20개까지 선택 기록을 저장할 수 있습니다.
+                </div>
+              )}
+              {selectionQuickReport && (
+                <div className="rounded-xl border border-slate-200 bg-white/70 p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="text-sm font-semibold text-slate-800">
+                      선택 기록 요약
+                      <span className="ml-2 text-xs text-slate-400">
+                        (최근 {selectionQuickReport.totalCount}건 기준)
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-slate-600">
+                      <span>요약 범위</span>
                       <select
-                        className="min-w-[88px] rounded-lg border border-gray-200 bg-white px-2 py-1 text-sm"
-                        value={cond.op}
-                        disabled={!cond.enabled}
+                        value={selectionReportWindow}
                         onChange={(e) =>
-                          setDefaultOptions((prev) => ({
-                            ...prev,
-                            rangeConditions: prev.rangeConditions.map((item) =>
-                              item.key === cond.key
-                                ? {
-                                    ...item,
-                                    op: e.target.value as "eq" | "gte" | "lte",
-                                  }
-                                : item,
-                            ),
-                          }))
+                          setSelectionReportWindow(Number(e.target.value))
                         }
+                        className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs"
                       >
-                        <option value="eq">=</option>
-                        <option value="gte">≥</option>
-                        <option value="lte">≤</option>
+                        {[3, 5, 10, 20].map((count) => (
+                          <option key={count} value={count}>
+                            최근 {count}건
+                          </option>
+                        ))}
                       </select>
-                      <input
-                        className="w-20 rounded-lg border border-gray-200 bg-white px-2 py-1 text-sm"
-                        type="number"
-                        min={0}
-                        max={6}
-                        disabled={!cond.enabled}
-                        value={cond.value}
-                        onChange={(e) =>
-                          setDefaultOptions((prev) => ({
-                            ...prev,
-                            rangeConditions: prev.rangeConditions.map((item) =>
-                              item.key === cond.key
-                                ? {
-                                    ...item,
-                                    value: Math.max(
-                                      0,
-                                      Math.min(6, Number(e.target.value)),
-                                    ),
-                                  }
-                                : item,
-                            ),
-                          }))
-                        }
-                      />
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-              <div className="rounded-xl border border-gray-200 bg-white/70 p-3">
-                <div className="mb-2 font-black">반드시 포함할 번호</div>
-                <input
-                  value={includeRaw}
-                  onChange={(e) => setIncludeRaw(e.target.value)}
-                  placeholder="예: 5,14,33"
-                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"
-                />
-                <div className="mt-2 text-xs text-gray-500">
-                  입력값 해석 결과:{" "}
-                  {parseNumberList(includeRaw).length
-                    ? parseNumberList(includeRaw).join(", ")
-                    : "(없음)"}
-                </div>
-              </div>
-              <div className="rounded-xl border border-gray-200 bg-white/70 p-3">
-                <div className="mb-2 font-black">반드시 제외할 번호</div>
-                <input
-                  value={excludeRaw}
-                  onChange={(e) => setExcludeRaw(e.target.value)}
-                  placeholder="예: 1,2,3"
-                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm"
-                />
-                <div className="mt-2 text-xs text-gray-500">
-                  입력값 해석 결과:{" "}
-                  {parseNumberList(excludeRaw).length
-                    ? parseNumberList(excludeRaw).join(", ")
-                    : "(없음)"}
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-              <CountConditionEditor
-                title="홀수 개수(oddCount)"
-                value={defaultOptions.oddCount}
-                onChange={(next) =>
-                  setDefaultOptions((prev) => ({ ...prev, oddCount: next }))
-                }
-                minHint={0}
-                maxHint={6}
-              />
-              <CountConditionEditor
-                title="번호 합(sum)"
-                value={defaultOptions.sum}
-                onChange={(next) =>
-                  setDefaultOptions((prev) => ({ ...prev, sum: next }))
-                }
-                minHint={21}
-                maxHint={255}
-              />
-              <CountConditionEditor
-                title="최소값(minNumber)"
-                value={defaultOptions.minNumber}
-                onChange={(next) =>
-                  setDefaultOptions((prev) => ({ ...prev, minNumber: next }))
-                }
-                minHint={1}
-                maxHint={45}
-              />
-              <CountConditionEditor
-                title="최대값(maxNumber)"
-                value={defaultOptions.maxNumber}
-                onChange={(next) =>
-                  setDefaultOptions((prev) => ({ ...prev, maxNumber: next }))
-                }
-                minHint={1}
-                maxHint={45}
-              />
-            </div>
-
-            <div className="rounded-xl border border-gray-200 bg-white/70 p-3">
-              <div className="mb-2 font-black">연번(연속번호) 조건</div>
-              <div className="flex flex-wrap items-center gap-3">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="consecutive"
-                    checked={defaultOptions.consecutiveMode === "any"}
-                    onChange={() =>
-                      setDefaultOptions((prev) => ({
-                        ...prev,
-                        consecutiveMode: "any",
-                      }))
-                    }
-                  />
-                  상관없음
-                </label>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="consecutive"
-                    checked={defaultOptions.consecutiveMode === "yes"}
-                    onChange={() =>
-                      setDefaultOptions((prev) => ({
-                        ...prev,
-                        consecutiveMode: "yes",
-                      }))
-                    }
-                  />
-                  연번이 있어야 함
-                </label>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="consecutive"
-                    checked={defaultOptions.consecutiveMode === "no"}
-                    onChange={() =>
-                      setDefaultOptions((prev) => ({
-                        ...prev,
-                        consecutiveMode: "no",
-                      }))
-                    }
-                  />
-                  연번이 없어야 함
-                </label>
-              </div>
-            </div>
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={saveProfile}
-                disabled={saving}
-                className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
-              >
-                {saving ? "저장 중..." : "저장"}
-              </button>
-            </div>
-          </div>
-        </Accordion>
-      </div>
-
-      <div className="mt-4">
-        <Accordion
-          title="선택 기록"
-          chartKey="selection-log"
-          openKey={openKey}
-          setOpenKey={setOpenKey}
-        >
-          <div className="space-y-5">
-            {!isPremium ? (
-              <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-                FREE는 선택 기록을 3개까지 저장할 수 있습니다.
-              </div>
-            ) : (
-              <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
-                프리미엄은 하루 20개까지 선택 기록을 저장할 수 있습니다.
-              </div>
-            )}
-            {selectionQuickReport && (
-              <div className="rounded-xl border border-slate-200 bg-white/70 p-4">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="text-sm font-semibold text-slate-800">
-                    선택 기록 요약
-                    <span className="ml-2 text-xs text-slate-400">
-                      (최근 {selectionQuickReport.totalCount}건 기준)
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-slate-600">
-                    <span>요약 범위</span>
-                    <select
-                      value={selectionReportWindow}
-                      onChange={(e) =>
-                        setSelectionReportWindow(Number(e.target.value))
-                      }
-                      className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs"
-                    >
-                      {[3, 5, 10, 20].map((count) => (
-                        <option key={count} value={count}>
-                          최근 {count}건
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                <div className="mt-3 grid gap-2 text-xs text-slate-600 sm:grid-cols-2">
-                  <div>결과 확인: {selectionQuickReport.resolvedCount}건</div>
-                  <div>결과 대기: {selectionQuickReport.pendingCount}건</div>
-                  <div>
-                    평균 일치:{" "}
-                    {selectionQuickReport.resolvedCount
-                      ? selectionQuickReport.avgMatch.toFixed(1)
-                      : "-"}
-                    개
-                  </div>
-                  <div>최고 일치: {selectionQuickReport.bestMatch}개</div>
-                  <div>3개 이상 적중: {selectionQuickReport.hit3plusRate}%</div>
-                  <div>보너스 적중: {selectionQuickReport.bonusHitCount}회</div>
-                  <div>
-                    최근 결과:{" "}
-                    {selectionQuickReport.latestResolvedRound
-                      ? `${selectionQuickReport.latestResolvedRound}회`
-                      : "대기 중"}
-                  </div>
-                  {isPremium && (
-                    <>
-                      <div>
-                        전체 평균:{" "}
-                        {selectionQuickReport.allAvgMatch
-                          ? selectionQuickReport.allAvgMatch.toFixed(1)
-                          : "-"}
-                        개
-                      </div>
-                      <div>
-                        최근 {selectionReportWindow}건 평균:{" "}
-                        {selectionQuickReport.recentAvgMatch
-                          ? selectionQuickReport.recentAvgMatch.toFixed(1)
-                          : "-"}
-                        개
-                        <span className="ml-1 text-[11px] text-slate-400">
-                          {selectionQuickReport.recentDelta > 0
-                            ? `(+${selectionQuickReport.recentDelta.toFixed(
-                                1,
-                              )})`
-                            : selectionQuickReport.recentDelta < 0
-                              ? `(${selectionQuickReport.recentDelta.toFixed(
+                  <div className="mt-3 grid gap-2 text-xs text-slate-600 sm:grid-cols-2">
+                    <div>결과 확인: {selectionQuickReport.resolvedCount}건</div>
+                    <div>결과 대기: {selectionQuickReport.pendingCount}건</div>
+                    <div>
+                      평균 일치:{" "}
+                      {selectionQuickReport.resolvedCount
+                        ? selectionQuickReport.avgMatch.toFixed(1)
+                        : "-"}
+                      개
+                    </div>
+                    <div>최고 일치: {selectionQuickReport.bestMatch}개</div>
+                    <div>
+                      3개 이상 적중: {selectionQuickReport.hit3plusRate}%
+                    </div>
+                    <div>
+                      보너스 적중: {selectionQuickReport.bonusHitCount}회
+                    </div>
+                    <div>
+                      최근 결과:{" "}
+                      {selectionQuickReport.latestResolvedRound
+                        ? `${selectionQuickReport.latestResolvedRound}회`
+                        : "대기 중"}
+                    </div>
+                    {isPremium && (
+                      <>
+                        <div>
+                          전체 평균:{" "}
+                          {selectionQuickReport.allAvgMatch
+                            ? selectionQuickReport.allAvgMatch.toFixed(1)
+                            : "-"}
+                          개
+                        </div>
+                        <div>
+                          최근 {selectionReportWindow}건 평균:{" "}
+                          {selectionQuickReport.recentAvgMatch
+                            ? selectionQuickReport.recentAvgMatch.toFixed(1)
+                            : "-"}
+                          개
+                          <span className="ml-1 text-[11px] text-slate-400">
+                            {selectionQuickReport.recentDelta > 0
+                              ? `(+${selectionQuickReport.recentDelta.toFixed(
                                   1,
                                 )})`
-                              : "(0.0)"}
-                        </span>
+                              : selectionQuickReport.recentDelta < 0
+                                ? `(${selectionQuickReport.recentDelta.toFixed(
+                                    1,
+                                  )})`
+                                : "(0.0)"}
+                          </span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+              {selectionKeywordReport && (
+                <div className="rounded-xl border border-slate-200 bg-white/70 p-4">
+                  <div className="text-sm font-semibold text-slate-800">
+                    자주 쓰는 전략 키워드
+                    <span className="ml-2 text-xs text-slate-400">
+                      (최근 {selectionReportWindow}건 기준)
+                    </span>
+                  </div>
+                  <div className="mt-3 grid gap-3 text-xs text-slate-600 sm:grid-cols-2">
+                    <div>
+                      <div className="text-xs font-semibold text-slate-500">
+                        선택 이유
                       </div>
-                    </>
+                      {selectionKeywordReport.topReasons.length > 0 ? (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {selectionKeywordReport.topReasons.map((item) => (
+                            <span
+                              key={item.label}
+                              className="rounded-full bg-slate-100 px-2 py-1 text-slate-600"
+                            >
+                              {item.label} · {item.count}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="mt-2 text-xs text-slate-400">
+                          선택 이유가 없습니다.
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <div className="text-xs font-semibold text-slate-500">
+                        메모 키워드
+                      </div>
+                      {selectionKeywordReport.topKeywords.length > 0 ? (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {selectionKeywordReport.topKeywords.map((item) => (
+                            <span
+                              key={item.label}
+                              className="rounded-full bg-amber-50 px-2 py-1 text-amber-700"
+                            >
+                              {item.label} · {item.count}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="mt-2 text-xs text-slate-400">
+                          메모 키워드가 없습니다.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="text-sm font-semibold text-slate-700">
+                    선택 번호 ({selectionNumbers.length}/6)
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setSelectionPickerOpen(true)}
+                        className="rounded-lg border border-slate-300 bg-white px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+                      >
+                        번호 고르기
+                      </button>
+                      {selectionPickerOpen && (
+                        <div
+                          className="
+                          absolute top-full right-0 z-50 mt-2
+                          rounded-2xl bg-white p-4 shadow-xl
+                          w-[320px] max-w-[90vw]
+                          max-h-[70vh] overflow-y-auto
+                        "
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <div className="mb-3 flex items-center justify-between">
+                            <h3 className="font-bold">
+                              선택 번호
+                              <span className="ml-2 text-xs text-gray-500">
+                                {selectionNumbers.length}/6
+                              </span>
+                            </h3>
+                            <button
+                              onClick={() => setSelectionPickerOpen(false)}
+                              className="rounded p-1 hover:bg-gray-100"
+                            >
+                              <X size={16} />
+                            </button>
+                          </div>
+                          <PickNumberGrid
+                            selectedNumbers={selectionNumbers}
+                            onToggle={toggleSelectionNumber}
+                            max={6}
+                          />
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={resetSelectionNumbers}
+                      className="rounded-lg border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-500 hover:bg-slate-100"
+                    >
+                      초기화
+                    </button>
+                  </div>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {selectionNumbers.length > 0 ? (
+                    selectionNumbers.map((num) => (
+                      <LottoBall key={num} number={num} size="sm" />
+                    ))
+                  ) : (
+                    <span className="text-xs text-slate-500">
+                      번호를 선택해 주세요.
+                    </span>
                   )}
                 </div>
               </div>
-            )}
-            {selectionKeywordReport && (
-              <div className="rounded-xl border border-slate-200 bg-white/70 p-4">
-                <div className="text-sm font-semibold text-slate-800">
-                  자주 쓰는 전략 키워드
-                  <span className="ml-2 text-xs text-slate-400">
-                    (최근 {selectionReportWindow}건 기준)
-                  </span>
-                </div>
-                <div className="mt-3 grid gap-3 text-xs text-slate-600 sm:grid-cols-2">
-                  <div>
-                    <div className="text-xs font-semibold text-slate-500">
-                      선택 이유
-                    </div>
-                    {selectionKeywordReport.topReasons.length > 0 ? (
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {selectionKeywordReport.topReasons.map((item) => (
-                          <span
-                            key={item.label}
-                            className="rounded-full bg-slate-100 px-2 py-1 text-slate-600"
-                          >
-                            {item.label} · {item.count}
-                          </span>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="mt-2 text-xs text-slate-400">
-                        선택 이유가 없습니다.
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <div className="text-xs font-semibold text-slate-500">
-                      메모 키워드
-                    </div>
-                    {selectionKeywordReport.topKeywords.length > 0 ? (
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {selectionKeywordReport.topKeywords.map((item) => (
-                          <span
-                            key={item.label}
-                            className="rounded-full bg-amber-50 px-2 py-1 text-amber-700"
-                          >
-                            {item.label} · {item.count}
-                          </span>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="mt-2 text-xs text-slate-400">
-                        메모 키워드가 없습니다.
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="text-sm font-semibold text-slate-700">
-                  선택 번호 ({selectionNumbers.length}/6)
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setSelectionPickerOpen(true)}
-                    className="rounded-lg border border-slate-300 bg-white px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
-                  >
-                    번호 고르기
-                  </button>
-                  <button
-                    type="button"
-                    onClick={resetSelectionNumbers}
-                    className="rounded-lg border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-500 hover:bg-slate-100"
-                  >
-                    초기화
-                  </button>
-                </div>
-              </div>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {selectionNumbers.length > 0 ? (
-                  selectionNumbers.map((num) => (
-                    <LottoBall key={num} number={num} size="sm" />
-                  ))
-                ) : (
-                  <span className="text-xs text-slate-500">
-                    번호를 선택해 주세요.
-                  </span>
-                )}
-              </div>
-            </div>
 
-            {selectionPickerOpen && (
-              <>
+              {selectionPickerOpen && (
                 <div
                   className="fixed inset-0 z-40"
                   onClick={() => setSelectionPickerOpen(false)}
                 />
-                <div
-                  className="
-                    fixed bottom-24 right-6 z-50
-                    bg-white rounded-2xl shadow-xl p-4
-                    w-[320px]
-                    max-h-[70vh] overflow-y-auto
-                  "
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-bold">
-                      선택 번호
-                      <span className="ml-2 text-xs text-gray-500">
-                        {selectionNumbers.length}/6
-                      </span>
-                    </h3>
-                    <button
-                      onClick={() => setSelectionPickerOpen(false)}
-                      className="p-1 rounded hover:bg-gray-100"
-                    >
-                      <X size={16} />
-                    </button>
-                  </div>
-                  <PickNumberGrid
-                    selectedNumbers={selectionNumbers}
-                    onToggle={toggleSelectionNumber}
-                    max={6}
-                  />
-                </div>
-              </>
-            )}
+              )}
 
-            <div className="grid gap-3 md:grid-cols-2">
+              <div className="grid gap-3 md:grid-cols-2">
+                <label className="grid gap-2 text-sm">
+                  <span className="font-semibold text-slate-700">
+                    목표 회차
+                  </span>
+                  <input
+                    type="number"
+                    value={targetRound}
+                    min={1}
+                    onChange={(e) => setTargetRound(Number(e.target.value))}
+                    className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
+                  />
+                  <span className="text-xs text-slate-500">
+                    기본값은 다음 회차({latestRound + 1}회)입니다.
+                  </span>
+                </label>
+                <div className="grid gap-2 text-sm">
+                  <span className="font-semibold text-slate-700">
+                    선택 이유
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {SELECTION_REASONS.map((reason) => (
+                      <label
+                        key={reason}
+                        className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectionReasons.includes(reason)}
+                          onChange={() => toggleSelectionReason(reason)}
+                        />
+                        {reason}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
               <label className="grid gap-2 text-sm">
-                <span className="font-semibold text-slate-700">목표 회차</span>
-                <input
-                  type="number"
-                  value={targetRound}
-                  min={1}
-                  onChange={(e) => setTargetRound(Number(e.target.value))}
+                <span className="font-semibold text-slate-700">전략 메모</span>
+                <textarea
+                  value={selectionMemo}
+                  onChange={(e) => setSelectionMemo(e.target.value)}
+                  rows={3}
+                  placeholder="이번 선택의 전략/근거를 간단히 기록해 보세요."
                   className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
                 />
-                <span className="text-xs text-slate-500">
-                  기본값은 다음 회차({latestRound + 1}회)입니다.
-                </span>
               </label>
-              <div className="grid gap-2 text-sm">
-                <span className="font-semibold text-slate-700">선택 이유</span>
-                <div className="flex flex-wrap gap-2">
-                  {SELECTION_REASONS.map((reason) => (
-                    <label
-                      key={reason}
-                      className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectionReasons.includes(reason)}
-                        onChange={() => toggleSelectionReason(reason)}
-                      />
-                      {reason}
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </div>
 
-            <label className="grid gap-2 text-sm">
-              <span className="font-semibold text-slate-700">전략 메모</span>
-              <textarea
-                value={selectionMemo}
-                onChange={(e) => setSelectionMemo(e.target.value)}
-                rows={3}
-                placeholder="이번 선택의 전략/근거를 간단히 기록해 보세요."
-                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
-              />
-            </label>
-
-            {selectionError && (
-              <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
-                {selectionError}
-              </div>
-            )}
-
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={saveSelectionLog}
-                disabled={selectionSaving || selectionAtLimit}
-                className="rounded-xl bg-slate-900 px-5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-slate-800 disabled:opacity-60"
-              >
-                {selectionSaving ? "저장 중..." : "선택 기록 저장"}
-              </button>
-            </div>
-
-            <div className="border-t border-slate-200 pt-4">
-              <div className="mb-2 text-sm font-semibold text-slate-700">
-                최근 기록{isPremium ? "" : " (최대 3개)"}
-              </div>
-              {selectionLoading && (
-                <div className="text-xs text-slate-500">
-                  기록을 불러오는 중...
+              {selectionError && (
+                <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+                  {selectionError}
                 </div>
               )}
-              {!selectionLoading && selectionLogs.length === 0 && (
-                <div className="text-xs text-slate-500">
-                  저장된 기록이 없습니다.
+
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={saveSelectionLog}
+                  disabled={selectionSaving || selectionAtLimit}
+                  className="rounded-xl bg-slate-900 px-5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-slate-800 disabled:opacity-60"
+                >
+                  {selectionSaving ? "저장 중..." : "선택 기록 저장"}
+                </button>
+              </div>
+
+              <div className="border-t border-slate-200 pt-4">
+                <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-sm font-semibold text-slate-700">
+                  <span>최근 기록{isPremium ? "" : " (최대 3개)"}</span>
+                  <button
+                    type="button"
+                    onClick={deleteSelectedLogs}
+                    disabled={
+                      bulkDeleteLoading ||
+                      selectionLoading ||
+                      selectedLogIds.length === 0
+                    }
+                    className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-60"
+                  >
+                    {bulkDeleteLoading
+                      ? "삭제 중..."
+                      : `선택 삭제${
+                          selectedLogIds.length
+                            ? ` (${selectedLogIds.length})`
+                            : ""
+                        }`}
+                  </button>
                 </div>
-              )}
-              <div className="grid gap-3 md:grid-cols-2">
-                {selectionLogs.map((log) => {
-                  const rankMeta = getMatchRankMeta(log.match);
-                  return (
-                    <div
-                      key={log.id}
-                      className="rounded-xl border border-slate-200 bg-white p-3"
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="text-sm font-semibold text-slate-800">
-                          목표 {log.targetRound}회
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-slate-500">
-                          <span
-                            className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${rankMeta.className}`}
-                          >
-                            {rankMeta.label}
-                          </span>
-                          <span>
-                            {new Date(log.createdAt).toLocaleDateString(
-                              "ko-KR",
-                            )}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => deleteSelectionLog(log.id)}
-                            disabled={deletingLogId === log.id}
-                            className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-slate-500 hover:bg-slate-50 disabled:opacity-60"
-                          >
-                            {deletingLogId === log.id ? "삭제 중..." : "삭제"}
-                          </button>
-                        </div>
-                      </div>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {log.numbers.map((num) => (
-                          <LottoBall
-                            key={`${log.id}-${num}`}
-                            number={num}
-                            size="sm"
-                            isSelected={log.match.matchedNumbers.includes(num)}
-                          />
-                        ))}
-                      </div>
-                      {log.match.isResolved && (
-                        <div className="mt-2 grid gap-2 text-xs text-slate-600">
-                          <div className="font-semibold text-slate-700">
-                            당첨 번호
+                {selectionLoading && (
+                  <div className="text-xs text-slate-500">
+                    기록을 불러오는 중...
+                  </div>
+                )}
+                {!selectionLoading && selectionLogs.length === 0 && (
+                  <div className="text-xs text-slate-500">
+                    저장된 기록이 없습니다.
+                  </div>
+                )}
+                <div className="grid gap-3 md:grid-cols-2">
+                  {selectionLogs.map((log) => {
+                    const rankMeta = getMatchRankMeta(log.match);
+                    return (
+                      <div
+                        key={log.id}
+                        className="rounded-xl border border-slate-200 bg-white p-3"
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="text-sm font-semibold text-slate-800">
+                            목표 {log.targetRound}회
                           </div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            {log.match.resultNumbers.map((num) => (
-                              <LottoBall
-                                key={`${log.id}-result-${num}`}
-                                number={num}
-                                size="xs"
+                          <div className="flex items-center gap-2 text-xs text-slate-500">
+                            <label className="inline-flex items-center gap-1">
+                              <input
+                                type="checkbox"
+                                checked={selectedLogIds.includes(log.id)}
+                                onChange={() => toggleSelectedLog(log.id)}
                               />
-                            ))}
-                            {log.match.bonusNumber != null && (
-                              <div className="flex items-center gap-1">
-                                <span className="text-xs font-semibold text-slate-500">
-                                  +
-                                </span>
-                                <LottoBall
-                                  number={log.match.bonusNumber}
-                                  size="xs"
-                                />
-                              </div>
-                            )}
+                              선택
+                            </label>
+                            <span
+                              className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${rankMeta.className}`}
+                            >
+                              {rankMeta.label}
+                            </span>
+                            <span>
+                              {new Date(log.createdAt).toLocaleDateString(
+                                "ko-KR",
+                              )}
+                            </span>
                           </div>
                         </div>
-                      )}
-                      {log.reasons.length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-1 text-xs text-slate-500">
-                          {log.reasons.map((reason) => (
-                            <span key={`${log.id}-${reason}`}>#{reason}</span>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {log.numbers.map((num) => (
+                            <LottoBall
+                              key={`${log.id}-${num}`}
+                              number={num}
+                              size="sm"
+                              isSelected={log.match.matchedNumbers.includes(
+                                num,
+                              )}
+                            />
                           ))}
                         </div>
-                      )}
-                      {log.memo && (
+                        {log.match.isResolved && (
+                          <div className="mt-2 grid gap-2 text-xs text-slate-600">
+                            <div className="font-semibold text-slate-700">
+                              당첨 번호
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              {log.match.resultNumbers.map((num) => (
+                                <LottoBall
+                                  key={`${log.id}-result-${num}`}
+                                  number={num}
+                                  size="xs"
+                                />
+                              ))}
+                              {log.match.bonusNumber != null && (
+                                <div className="flex items-center gap-1">
+                                  <span className="text-xs font-semibold text-slate-500">
+                                    +
+                                  </span>
+                                  <LottoBall
+                                    number={log.match.bonusNumber}
+                                    size="xs"
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        {log.reasons.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-1 text-xs text-slate-500">
+                            {log.reasons.map((reason) => (
+                              <span key={`${log.id}-${reason}`}>#{reason}</span>
+                            ))}
+                          </div>
+                        )}
+                        {log.memo && (
+                          <div className="mt-2 text-xs text-slate-600">
+                            {log.memo}
+                          </div>
+                        )}
                         <div className="mt-2 text-xs text-slate-600">
-                          {log.memo}
+                          {log.match.isResolved
+                            ? `결과: ${log.match.matchCount}개 일치${
+                                log.match.bonusMatch ? " · 보너스 포함" : ""
+                              }`
+                            : "추첨 대기 · 목표 회차 발표 후 자동 업데이트"}
                         </div>
-                      )}
-                      <div className="mt-2 text-xs text-slate-600">
-                        {log.match.isResolved
-                          ? `결과: ${log.match.matchCount}개 일치${
-                              log.match.bonusMatch ? " · 보너스 포함" : ""
-                            }`
-                          : "추첨 대기 · 목표 회차 발표 후 자동 업데이트"}
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-              {isPremium && (
-                <div className="mt-3 flex justify-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      fetchSelectionLogs(Math.max(1, selectionPage - 1))
-                    }
-                    disabled={selectionLoading || selectionPage <= 1}
-                    className="rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-60"
-                  >
-                    이전
-                  </button>
-                  <span className="self-center text-xs text-slate-500">
-                    {selectionPage} 페이지
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => fetchSelectionLogs(selectionPage + 1)}
-                    disabled={
-                      selectionLoading || selectionLogs.length < selectionLimit
-                    }
-                    className="rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-60"
-                  >
-                    다음
-                  </button>
+                    );
+                  })}
                 </div>
-              )}
+                {isPremium && (
+                  <div className="mt-3 flex justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        fetchSelectionLogs(Math.max(1, selectionPage - 1))
+                      }
+                      disabled={selectionLoading || selectionPage <= 1}
+                      className="rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-60"
+                    >
+                      이전
+                    </button>
+                    <span className="self-center text-xs text-slate-500">
+                      {selectionPage} 페이지
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => fetchSelectionLogs(selectionPage + 1)}
+                      disabled={
+                        selectionLoading ||
+                        selectionLogs.length < selectionLimit
+                      }
+                      className="rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-60"
+                    >
+                      다음
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        </Accordion>
-      </div>
+          </Accordion>
+        </div>
 
-      <div className="mt-4">
-        <Accordion
-          title="계정 삭제"
-          chartKey="delete-account"
-          openKey={openKey}
-          setOpenKey={setOpenKey}
-        >
-          <div className="rounded-2xl border border-red-200 bg-red-50/60 p-5">
-            <p className="text-sm text-red-700/80">
-              계정 삭제 시 본 서비스에 저장된 사용자 정보와 분석 기록이 모두
-              삭제되며, 해당 데이터는 복구할 수 없습니다. 소셜 계정 자체에는
-              영향을 미치지 않습니다.
-            </p>
-            <button
-              type="button"
-              onClick={handleDeleteAccount}
-              disabled={deleteLoading}
-              className="mt-4 rounded-xl border border-red-300 bg-white px-5 py-2.5 text-sm font-semibold text-red-700 hover:bg-red-100 disabled:opacity-60"
-            >
-              {deleteLoading
-                ? "삭제 중..."
-                : "계정 삭제 (모든 데이터 즉시 삭제)"}
-            </button>
-          </div>
-        </Accordion>
+        <div className="mt-4">
+          <Accordion
+            title="계정 삭제"
+            chartKey="delete-account"
+            openKey={openKey}
+            setOpenKey={setOpenKey}
+          >
+            <div className="rounded-2xl border border-red-200 bg-red-50/60 p-5">
+              <p className="text-sm text-red-700/80">
+                계정 삭제 시 본 서비스에 저장된 사용자 정보와 분석 기록이 모두
+                삭제되며, 해당 데이터는 복구할 수 없습니다. 소셜 계정 자체에는
+                영향을 미치지 않습니다.
+              </p>
+              <button
+                type="button"
+                onClick={handleDeleteAccount}
+                disabled={deleteLoading}
+                className="mt-4 rounded-xl border border-red-300 bg-white px-5 py-2.5 text-sm font-semibold text-red-700 hover:bg-red-100 disabled:opacity-60"
+              >
+                {deleteLoading
+                  ? "삭제 중..."
+                  : "계정 삭제 (모든 데이터 즉시 삭제)"}
+              </button>
+            </div>
+          </Accordion>
+        </div>
       </div>
-    </div>
+    </main>
   );
 }

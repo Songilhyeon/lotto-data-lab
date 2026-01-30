@@ -9,6 +9,7 @@ export default function Accordion({
   openKey,
   setOpenKey,
   defaultOpen = false,
+  containerClassName = "",
   children,
 }: {
   title: React.ReactNode;
@@ -16,6 +17,7 @@ export default function Accordion({
   openKey: string | null;
   setOpenKey: (key: string | null) => void;
   defaultOpen?: boolean;
+  containerClassName?: string;
   children: React.ReactNode;
 }) {
   const isOpen = openKey === chartKey;
@@ -26,7 +28,9 @@ export default function Accordion({
   };
 
   return (
-    <div className="border border-gray-200 rounded-xl mb-3 overflow-hidden shadow-sm">
+    <div
+      className={`border border-gray-200 rounded-xl mb-3 overflow-hidden shadow-sm ${containerClassName}`}
+    >
       <button
         onClick={handleToggle}
         className="w-full flex items-center justify-between gap-3 p-3 bg-gray-50 hover:bg-gray-100 text-left sm:p-4"
